@@ -1,15 +1,16 @@
 import re
-import sys
+import os
 import shlex
 import argparse
 from instructions import get_instructions
 
 identifier = re.compile(r'[a-zA-Z_]\w*')
-label_name = '[a-zA-Z_]\w*'
+label_name_add = r'([a-zA-Z_]\w*)([\+\-]\d+)'
+label_name = r'[a-zA-Z_][\+\-\w]*'
 label_pat = f'{label_name}:'
-hex_num = '[0-9A-F]+(H|h)'
-bin_num = '[0-1]+(B|b)'
-dec_num = '\d+'
+hex_num = r'[0-9A-F]+[Hh]'
+bin_num = r'[0-1]+[Bb]'
+dec_num = r'\d+'
 num = f'({hex_num}|{bin_num}|{dec_num})'
 num_label = f'({hex_num}|{bin_num}|{dec_num}|{label_name})'
 def_str = "DS\s+\\'(.*)\\'"
@@ -23,6 +24,27 @@ assembler_pass = 1
 class ASMSyntaxError(Exception):
     def __init__(self, text='Syntax Error'):
         super(ASMSyntaxError, self).__init__(text)
+
+
+def is_label(s):
+    if s in labels:
+        return True
+    m = re.match(label_name_add, s)
+    if m:
+        g = m.groups()
+        base = g[0]
+        return base in labels
+    return False
+
+
+def get_label_value(s):
+    if s in labels:
+        return labels.get(s)
+    m = re.match(label_name_add, s)
+    g = m.groups()
+    base = g[0]
+    diff = g[1]
+    return labels.get(base) + int(diff)
 
 
 def to_number(text):
@@ -109,7 +131,7 @@ def create_pattern(candidate):
             candidate = candidate[0:s[0]] + replacement + candidate[s[1]:]
         else:
             break
-    return candidate, types
+    return candidate + "$", types
 
 
 def compose(template, values):
@@ -145,10 +167,12 @@ def handle_labels(values, types, pos):
     res = []
     score = 0
     for value, value_type in zip(values, types):
+        if value is None:
+            return [], -1
         if value in defines:
             value = defines.get(value)
-        if value in labels:
-            value = labels.get(value)
+        if is_label(value):
+            value = get_label_value(value)
         if not isinstance(value, int):
             if re.match(label_name, value):
                 if assembler_pass == 1:
@@ -170,8 +194,8 @@ def handle_labels(values, types, pos):
             res.append((value >> 8) & 255)
         if value_type == '%%':
             value = value - pos
-            if assembler_pass==1:
-                value=0
+            if assembler_pass == 1:
+                value = 0
             if -126 <= value <= 129:
                 res.append(value - 2)
             else:
@@ -200,7 +224,31 @@ def find_match(candidates, instruction, pos):
         if len(scored_candidates[score]) > 0:
             s = scored_candidates[score][0]
             return compose(s[0], s[1])
-    return []
+    raise ASMSyntaxError(f"Could not assemble: {instruction}")
+    # return []
+
+
+def parse_bytes(parts):
+    parts = [p.split(',') for p in parts]
+    numbers = []
+    for p in parts:
+        numbers.extend(p)
+    numbers = [n.upper() for n in numbers]
+    return [parse_number(p) for p in numbers]
+
+
+def parse_words(parts):
+    parts = [p.split(',') for p in parts]
+    numbers = []
+    for p in parts:
+        numbers.extend(p)
+    numbers = [n.upper() for n in numbers]
+    res = []
+    for n in numbers:
+        val = parse_number(n)
+        res.append(val & 255)
+        res.append((val >> 8) & 255)
+    return res
 
 
 def parse_line(parts, pos):
@@ -224,6 +272,12 @@ def parse_line(parts, pos):
             return [], -1
     if parts[0] == 'ORG':
         return [], parse_number(parts[1])
+    if parts[0] == 'DB':
+        return parse_bytes(parts[1:]), -1
+    if parts[0] == 'DW':
+        return parse_words(parts[1:]), -1
+    if parts[0] == 'BUF':
+        return [0] * parse_number(parts[1]), -1
     m = re.match(def_str, ' '.join(parts))
     if m:
         s = m.groups()[0]
@@ -279,6 +333,11 @@ def assemble(src):
     except ASMSyntaxError as e:
         print(last_line)
         print(f'{e} in line {line_number}')
+        return None, None
+    except Exception as e:
+        print(f"Syntax error in line {line_number}")
+        print(last_line)
+        return None, None
 
 
 def hexbytes(code):
@@ -287,32 +346,34 @@ def hexbytes(code):
     return ' '.join(s)
 
 
-def print_listing(listing):
+def print_listing(f, listing):
     for pos, line_number, code, line in listing:
-        print(f'{pos:#0{6}x} {str(line_number+1):<4} {hexbytes(code):<16} {line}')
+        f.write(f'{pos:#0{6}x} {str(line_number+1):<4} {hexbytes(code):<16} {line}\n')
 
 
 def main():
     parser = argparse.ArgumentParser(description='Z80 Assembler')
     parser.add_argument('source', type=str, help='Asm source file to assemble')
-    parser.add_argument('output', nargs='?', type=str, help='Binary output')
     args = parser.parse_args()
-    print("Pass 1")
+    # print("Pass 1")
+    source_name = args.source
+    base_name = os.path.splitext(source_name)[0]
+    bin_name = base_name + '.bin'
+    lst_name = base_name + '.lst'
     code, listing = assemble(args.source)
     if code:
         global assembler_pass
         assembler_pass = 2
-        print("Pass 2")
+        # print("Pass 2")
         code, listing = assemble(args.source)
     if code:
-        if args.output:
-            with open(args.output, 'wb') as f:
-                f.write(code)
-        else:
-            for line in [code[i:i + 16] for i in range(0, len(code), 16)]:
-                print(' '.join([f'{byte:02x}'.upper() for byte in list(line)]))
-    if listing:
-        print_listing(listing)
+        with open(bin_name, 'wb') as f:
+            f.write(code)
+        # else:
+        #    for line in [code[i:i + 16] for i in range(0, len(code), 16)]:
+        #        print(' '.join([f'{byte:02x}'.upper() for byte in list(line)]))
+        with open(lst_name, 'w') as f:
+            print_listing(f, listing)
 
 
 if __name__ == '__main__':

@@ -2,8 +2,6 @@
 # a file taken from:  https://github.com/toptensoftware/yazd
 
 db = '''
-::               DB ::
-:: ::            DW @@
 CE ::            ADC A,::
 8E               ADC A,(HL)
 DD 8E ::         ADC A,(IX+::)
