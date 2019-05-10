@@ -207,7 +207,7 @@ class Protocol
     {
     case CMD_HORZ_PIXELS: return Header.horz_pixels.n * 2 + sizeof(Command_HorzPixels) - m_Pos;
     case CMD_TEXT: return Header.text.n + sizeof(Command_Text) - m_Pos;
-    case CMD_SET_SPRITE: return Header.set_sprite.w * Header.set_sprite.h * 2 + sizeof(Command_SetSprite) - m_Pos;
+    case CMD_SET_SPRITE: return 16 * 16 * 2 + sizeof(Command_SetSprite) - m_Pos;
     }
     return 0;
   }
