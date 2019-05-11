@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <thread>
 #include <screen.h>
 #include <protocol.h>
 #include <cxx/xstring.h>
@@ -7,14 +8,15 @@
 #include "gui.h"
 
 extern Protocol prot;
+extern bool flip_screen;
 uint8_t RAM[65536];
 byte key = 0, key_latch = 0;
 
 void vis_init();
-void vis_draw(byte& key);
-void vis_wait();
+void vis_draw(uint8_t& key);
+uint8_t vis_wait(int ms);
 
-bool load_ram(const cxx::xstring& filename)
+bool load_ram(const cxx::xstring& filename, bool zero_rest_of_ram)
 {
   std::ifstream fin(filename, std::ios::in | std::ios::binary);
   if (fin.fail())
@@ -24,8 +26,9 @@ bool load_ram(const cxx::xstring& filename)
   fin.seekg(0);
   if (n > 65536) n = 65536;
   fin.read((char*)RAM, n);
-  for (; n < 65536; ++n)
-    RAM[n] = 0;
+  if (zero_rest_of_ram)
+    for (; n < 65536; ++n)
+      RAM[n] = 0;
   return true;
 }
 
@@ -82,6 +85,24 @@ bool exists(const cxx::xstring& filename)
   return !fin.fail();
 }
 
+bool done = false;
+
+void vis_thread_loop()
+{
+  vis_init();
+  while (!done)
+  {
+    if (flip_screen)
+    {
+      flip_screen = false;
+      vis_draw(key);
+    }
+    else
+      key=vis_wait(10);
+    if (key == 27) break;
+  }
+}
+
 int main(int argc, char* argv[])
 {
   try
@@ -95,14 +116,16 @@ int main(int argc, char* argv[])
     cpu.memWrite = mem_write;
     cpu.ioWrite = gpu_out;
     cpu.ioRead = io_read;
-    vis_init();
-    load_ram(rom + ".bin");
+    std::thread vis_thread(vis_thread_loop);
+    load_ram(rom + ".bin", true);
+    load_ram("zos.bin", false);
     if (exists(rom + ".asm") && exists(rom+".lst"))
     {
       gui_init(&cpu,RAM);
       gui_load_code(rom + ".asm", rom + ".lst");
     }
-    for (int i = 0; i < 1000000; ++i)
+    int timer = 500000;
+    for (int i = 0; i < 0x7FFFFFFF; ++i)
     {
       //if ((i&1023)==0) std::cout << i << "\t\t" << cpu.PC << "\r";
       prot.loop();
@@ -113,16 +136,23 @@ int main(int argc, char* argv[])
         cpu.int_vector = 0xCF;
         cpu.int_req = 1;
       }
+      if (--timer <= 0)
+      {
+        cpu.int_vector = 0xFF;
+        cpu.int_req = 1;
+        timer = 500000;
+      }
       Z80Execute(&cpu);
       gui_update(&cpu);
       if (!gui_sync()) break;
       //print_registers(&cpu);
-      if ((i & 255) == 0)
+      if ((i & 0xFFFF) == 0)
       {
-        vis_draw(key);
-        if (key == 27) break;
+        std::cout << i << "    \r";
       }
     }
+    done = true;
+    vis_thread.join();
     //vis_wait();
   }
   catch (const cxx::xstring& msg)

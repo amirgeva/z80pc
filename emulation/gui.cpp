@@ -19,6 +19,8 @@
 std::string hex(uint8_t b);
 std::string hex16(uint16_t u);
 
+void redraw_screen();
+
 static bool done = false;
 
 typedef std::shared_ptr<QAction> action_ptr;
@@ -157,6 +159,16 @@ class MainWindow : public QMainWindow
   bool        m_Stopped;
   bool        m_StopOnNext;
 
+  cxx::xstring flags_str(uint8_t F)
+  {
+    static const cxx::xstring Names = "CNP_H_ZS";
+    cxx::xstring res;
+    for (int i = 0; i < 8; ++i)
+      if ((F & (1 << i)) != 0) res += Names.substr(i, 1);
+      else res += "_";
+    return res;
+  }
+
   void update_views()
   {
     str_vec lines;
@@ -169,21 +181,23 @@ class MainWindow : public QMainWindow
     ADD(E);
     ADD(H);
     ADD(L);
+    lines.push_back("F: " + flags_str(m_CPU->R1.br.F));
     ADD16(BC);
     ADD16(DE);
     ADD16(HL);
     ADD16(IX);
     ADD16(IY);
+    ADD16(SP);
+    lines.push_back("PC: " + hex16(m_CPU->PC));
     m_Registers->set_values(lines);
     lines.clear();
     uint16_t a = 0;
     for (size_t i = 0; i < 256; ++i)
     {
       cxx::xstring line=hex16(a)+": ";
-      for (size_t j = 0; j < 8; ++j)
-        line += hex(m_RAM[i * 8 + j]) + " ";
+      for (size_t j = 0; j < 16; ++j, ++a)
+        line += hex(m_RAM[i * 16 + j]) + " ";
       lines.push_back(line);
-      a += 8;
     }
     m_Memory->set_values(lines);
   }
@@ -254,28 +268,26 @@ public:
 
   void set_current_address(uint16_t addr)
   {
-    if (m_Stopped)
-      m_CodeView.set_current_address(addr);
+    if (m_Stopped) stop(addr);
     if (m_StopOnNext) 
     { 
       m_StopOnNext = false; 
-      m_Stopped = true;
-      m_CodeView.set_current_address(addr);
-      update_views();
+      stop(addr);
     }
-    if (m_CodeView.is_breakpoint_at_address(addr))
-    {
-      m_Stopped = true;
-      m_CodeView.set_current_address(addr);
-      update_views();
-    }
+    if (m_CodeView.is_breakpoint_at_address(addr)) stop(addr);
     if (m_StopOnSP > 0 && m_CPU->R1.wr.SP > m_StopOnSP)
     {
-      m_Stopped = true;
+      stop(addr);
       m_StopOnSP = 0;
-      m_CodeView.set_current_address(addr);
-      update_views();
     }
+  }
+
+  void stop(uint16_t addr)
+  {
+    m_Stopped = true;
+    m_CodeView.set_current_address(addr);
+    update_views();
+    redraw_screen();
   }
 
   void closeEvent(QCloseEvent * event)
@@ -307,6 +319,7 @@ void gui_init(Z80Context* cpu, uint8_t* ram)
 
 bool gui_sync()
 {
+  if (!app || !win) return true;
   while (!done && win->stopped())
     app->sync();
   return !done;
@@ -314,10 +327,12 @@ bool gui_sync()
 
 void gui_load_code(const cxx::xstring& source, const cxx::xstring& listing)
 {
-  win->load_code(source,listing);
+  if (win)
+    win->load_code(source,listing);
 }
 
 void gui_update(Z80Context* cpu)
 {
-  win->set_current_address(cpu->PC);
+  if (win)
+    win->set_current_address(cpu->PC);
 }

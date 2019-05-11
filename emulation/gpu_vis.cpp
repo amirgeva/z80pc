@@ -1,6 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
 #include <protocol.h>
+#include <cxx/xstring.h>
 
 extern Protocol prot;
 
@@ -34,7 +35,7 @@ double fps = 30;
 
 void vis_init()
 {
-  cv::namedWindow("scr");
+  cv::namedWindow("scr", cv::WINDOW_NORMAL);
 }
 
 void vis_draw(uint8_t& key)
@@ -45,12 +46,23 @@ void vis_draw(uint8_t& key)
   last = cur;
   fps = 0.95 * fps + 0.05 / dt;
   //cv::putText(image, str(fps), cv::Point(10, 10), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(255, 255, 255, 255), 1);
+  //static int frame_num = 0;
+  //cxx::xstring filename = "frame_" + cxx::xstring_utils::pad(++frame_num, 6, '0') + ".png";
+  //cv::imwrite(filename, image);
   cv::imshow("scr", image);
-  int k = (cv::waitKey(10) & 255);
-  if (k > 0 && k<255) key = uint8_t(k & 255);
+  int k = cv::waitKey(10);
+  if (k > 0) key = uint8_t(k & 255);
 }
 
-void vis_wait()
+void redraw_screen()
 {
-  cv::waitKey();
+  uint8_t key;
+  vis_draw(key);
+}
+
+uint8_t vis_wait(int ms)
+{
+  int k= cv::waitKey(ms);
+  if (k > 0) return uint8_t(k & 255);
+  return 0;
 }

@@ -1,19 +1,11 @@
 import re
+import cProfile
 import os
 import shlex
+import time
 import argparse
 from instructions import get_instructions
-
-identifier = re.compile(r'[a-zA-Z_]\w*')
-label_name_add = r'([a-zA-Z_]\w*)([\+\-]\d+)'
-label_name = r'[a-zA-Z_][\+\-\w]*'
-label_pat = f'{label_name}:'
-hex_num = r'[0-9A-F]+[Hh]'
-bin_num = r'[0-1]+[Bb]'
-dec_num = r'\d+'
-num = f'({hex_num}|{bin_num}|{dec_num})'
-num_label = f'({hex_num}|{bin_num}|{dec_num}|{label_name})'
-def_str = "DS\s+\\'(.*)\\'"
+from defs import *
 
 defines = {}
 labels = {}
@@ -26,33 +18,14 @@ class ASMSyntaxError(Exception):
         super(ASMSyntaxError, self).__init__(text)
 
 
-def is_label(s):
-    if s in labels:
-        return True
-    m = re.match(label_name_add, s)
-    if m:
-        g = m.groups()
-        base = g[0]
-        return base in labels
-    return False
-
-
-def get_label_value(s):
-    if s in labels:
-        return labels.get(s)
-    m = re.match(label_name_add, s)
-    g = m.groups()
-    base = g[0]
-    diff = g[1]
-    return labels.get(base) + int(diff)
-
-
 def to_number(text):
     """
     Convert number strings to integers
     :param text: Number string
     :return: integer
     """
+    if isinstance(text,int):
+        return text
     if re.match(hex_num, text):
         return int(text[0:-1], 16)
     if re.match(bin_num, text):
@@ -74,16 +47,60 @@ def parse_number_label(text):
         raise ASMSyntaxError(f'Invalid address or label: {text}')
 
 
-def parse_number(text):
+def parse_number(text, allow_to_fail):
     """
     Convert to integer, throw if fails
     :param text: Number as text (decimal, hex or binary)
     :return: Integer value
     """
     try:
+        if text in defines:
+            return parse_number(defines.get(text), allow_to_fail)
         return to_number(text)
     except ValueError:
-        raise ASMSyntaxError(f'Invalid number format: {text}')
+        if allow_to_fail:
+            return 0
+        else:
+            raise ASMSyntaxError(f'Invalid number format: {text}')
+
+
+def is_in_dict(s, d):
+    if s in d:
+        return True
+    if not isinstance(s,str):
+        return False
+    m = re.match(label_name_add, s)
+    if m:
+        g = m.groups()
+        base = g[0]
+        return base in d
+    return False
+
+
+def is_label(s):
+    return is_in_dict(s, labels)
+
+
+def is_define(s):
+    return is_in_dict(s, defines)
+
+
+def get_from_dict(s, d):
+    if s in d:
+        return d.get(s)
+    m = re.match(label_name_add, s)
+    g = m.groups()
+    base = g[0]
+    diff = g[1]
+    return parse_number(d.get(base), False) + int(diff)
+
+
+def get_label_value(s):
+    return get_from_dict(s, labels)
+
+
+def get_define_value(s):
+    return get_from_dict(s, defines)
 
 
 def remove_comments(line):
@@ -109,29 +126,6 @@ def define(name, value):
         raise ASMSyntaxError(f'EQU requires a valid identifier: {name}')
     defines[name] = value
     return [], -1
-
-
-def create_pattern(candidate):
-    """
-    Create search pattern for parameter placeholders
-
-    :param candidate: Instruction template
-    :return: Regular expression pattern for matching
-    """
-    types = []
-    pat = '@@|::|%%'
-    while True:
-        m = re.search(pat, candidate)
-        if m:
-            s = m.span()
-            types.append(candidate[s[0]:s[1]])
-            replacement = num_label
-            # if candidate[s[0]] == '@' or candidate[s[0]] == '%':
-            #    replacement = num_label
-            candidate = candidate[0:s[0]] + replacement + candidate[s[1]:]
-        else:
-            break
-    return candidate + "$", types
 
 
 def compose(template, values):
@@ -169,8 +163,8 @@ def handle_labels(values, types, pos):
     for value, value_type in zip(values, types):
         if value is None:
             return [], -1
-        if value in defines:
-            value = defines.get(value)
+        if is_define(value):
+            value = get_define_value(value)
         if is_label(value):
             value = get_label_value(value)
         if not isinstance(value, int):
@@ -182,7 +176,7 @@ def handle_labels(values, types, pos):
                 else:
                     return [], -1
             else:
-                value = parse_number(value)
+                value = parse_number(value, False)
         if value_type == '::':
             if value < 0 or value > 255:
                 raise ASMSyntaxError(f'Invalid byte value {value}')
@@ -213,12 +207,12 @@ def find_match(candidates, instruction, pos):
     """
     scored_candidates = [[], [], [], [], [], []]
     for candidate in candidates:
-        pattern, types = create_pattern(re.escape(candidate[1]))
+        code, pattern, types = candidate
         match = re.match(pattern, instruction)
         if match:
             values, score = handle_labels(match.groups(), types, pos)
             if score >= 0:
-                scored_candidates[score].append((candidate[0], values))
+                scored_candidates[score].append((code, values))
             # return compose(candidate[0], values)
     for score in range(6):
         if len(scored_candidates[score]) > 0:
@@ -234,7 +228,7 @@ def parse_bytes(parts):
     for p in parts:
         numbers.extend(p)
     numbers = [n.upper() for n in numbers]
-    return [parse_number(p) for p in numbers]
+    return [parse_number(p, False) for p in numbers]
 
 
 def parse_words(parts):
@@ -245,7 +239,10 @@ def parse_words(parts):
     numbers = [n.upper() for n in numbers]
     res = []
     for n in numbers:
-        val = parse_number(n)
+        if is_label(n):
+            val = get_label_value(n)
+        else:
+            val = parse_number(n, assembler_pass == 1)
         res.append(val & 255)
         res.append((val >> 8) & 255)
     return res
@@ -270,14 +267,16 @@ def parse_line(parts, pos):
         del parts[0]
         if len(parts) == 0:
             return [], -1
+    parts[0] = parts[0].upper()
     if parts[0] == 'ORG':
-        return [], parse_number(parts[1])
+        return [], parse_number(parts[1], False)
     if parts[0] == 'DB':
         return parse_bytes(parts[1:]), -1
     if parts[0] == 'DW':
         return parse_words(parts[1:]), -1
     if parts[0] == 'BUF':
-        return [0] * parse_number(parts[1]), -1
+        n = parse_number(parts[1], False)
+        return [0] * n, -1
     m = re.match(def_str, ' '.join(parts))
     if m:
         s = m.groups()[0]
@@ -311,6 +310,7 @@ def assemble(src):
     full_code = []
     pos = 0
     last_line = ''
+    line_number = 0
     try:
         listing = []
         for line_number, line in enumerate(open(src).readlines()):
@@ -333,6 +333,9 @@ def assemble(src):
     except ASMSyntaxError as e:
         print(last_line)
         print(f'{e} in line {line_number}')
+        return None, None
+    except IOError as e:
+        print(e)
         return None, None
     except Exception as e:
         print(f"Syntax error in line {line_number}")
@@ -377,4 +380,8 @@ def main():
 
 
 if __name__ == '__main__':
+    start = time.time()
+    # cProfile.run('main()')
     main()
+    total = time.time() - start
+    print(f"Total time: {total:0.2f} seconds")

@@ -1,3 +1,5 @@
+import re
+from defs import *
 # Instructions text listed below is a modified version of
 # a file taken from:  https://github.com/toptensoftware/yazd
 
@@ -1183,6 +1185,29 @@ AD               XOR L
 instructions = {}
 
 
+def create_pattern(candidate):
+    """
+    Create search pattern for parameter placeholders
+
+    :param candidate: Instruction template
+    :return: Regular expression pattern for matching
+    """
+    types = []
+    pat = '@@|::|%%'
+    while True:
+        m = re.search(pat, candidate)
+        if m:
+            s = m.span()
+            types.append(candidate[s[0]:s[1]])
+            replacement = num_label
+            candidate = candidate[0:s[0]] + replacement + candidate[s[1]:]
+        else:
+            break
+    return re.compile(candidate + "$"), types
+
+
+
+
 def preprocess():
     lines = db.split('\n')
     lines = [l.strip() for l in lines]
@@ -1193,7 +1218,8 @@ def preprocess():
         mnemonic = inst.split()[0]
         if mnemonic not in instructions:
             instructions[mnemonic] = []
-        instructions[mnemonic].append((code, inst))
+        inst,types=create_pattern(re.escape(inst))
+        instructions[mnemonic].append((code, inst, types))
 
 
 def get_instructions(mnemonic):
