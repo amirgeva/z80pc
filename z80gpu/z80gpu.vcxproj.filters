@@ -21,18 +21,18 @@
     <ClInclude Include="font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="protocol.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="screen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sprites.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gpu_protocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="protocol.cpp">
+    <ClCompile Include="gpu_protocol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../z80gpu;..\emulators\libz80</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../z80io;../z80gpu;..\emulators\libz80</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -142,7 +142,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../z80gpu;..\emulators\libz80</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../z80io;../z80gpu;..\emulators\libz80</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -162,6 +162,9 @@
   <ItemGroup>
     <ProjectReference Include="..\z80gpu\z80gpu.vcxproj">
       <Project>{a0ad96cd-f7ef-4dae-a58a-f3d92df9feb6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\z80io\z80io.vcxproj">
+      <Project>{49d82b72-d2ad-492e-bfac-7980de554f68}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

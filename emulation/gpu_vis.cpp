@@ -1,9 +1,13 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
-#include <protocol.h>
+#include <gpu_protocol.h>
 #include <cxx/xstring.h>
 
-extern Protocol prot;
+using namespace gpu;
+
+namespace gpu {
+  extern Protocol prot;
+}
 
 void screen_to_image(const Screen& scr, cv::Mat& image)
 {
@@ -16,6 +20,7 @@ void screen_to_image(const Screen& scr, cv::Mat& image)
     *dst++ = ((c & 0x01F0) >> 1) | ((c & 0x01F0) >> 5);
     *dst++ = ((c & 0x3E00) >> 6) | ((c & 0x3E00) >> 10);
   }
+  cv::imwrite("fff.png", image);
 }
 
 std::string str(double d)

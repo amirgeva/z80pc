@@ -986,14 +986,14 @@ CB 0C            RRC H
 CB 0D            RRC L
 0F               RRCA
 ED 67            RRD
-C7               RST 0x00
-CF               RST 0x08
-D7               RST 0x10
-DF               RST 0x18
-E7               RST 0x20
-EF               RST 0x28
-F7               RST 0x30
-FF               RST 0x38
+C7               RST 0X00
+CF               RST 0X08
+D7               RST 0X10
+DF               RST 0X18
+E7               RST 0X20
+EF               RST 0X28
+F7               RST 0X30
+FF               RST 0X38
 DE ::            SBC A,::
 9E               SBC A,(HL)
 DD 9E ::         SBC A,(IX+::)

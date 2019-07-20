@@ -55,6 +55,7 @@ int main(void)
 	UBRR0L = uint8_t(BR);
 	UCSR0B = (1<<TXEN0);
 	UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);
+	OSCCAL = 0x47;
 	for(uint8_t i=0;i<75;++i)
 	{
 		last_state[i]=1;

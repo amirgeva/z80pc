@@ -24,7 +24,7 @@ def to_number(text):
     :param text: Number string
     :return: integer
     """
-    if isinstance(text,int):
+    if isinstance(text, int):
         return text
     if re.match(hex_num, text):
         return int(text[0:-1], 16)
@@ -67,7 +67,7 @@ def parse_number(text, allow_to_fail):
 def is_in_dict(s, d):
     if s in d:
         return True
-    if not isinstance(s,str):
+    if not isinstance(s, str):
         return False
     m = re.match(label_name_add, s)
     if m:
@@ -257,9 +257,19 @@ def parse_line(parts, pos):
                                    new position should be positive for an ORG
                                    or negative for a valid code line
     """
+    if len(parts) < 2 or parts[1].upper() != 'EQU':
+        replacements = 1
+        while replacements > 0:
+            replacements = 0
+            for i in range(len(parts)):
+                upart = parts[i].upper()
+                if upart in defines:
+                    parts = parts[0:i] + defines.get(upart).split() + parts[(i + 1):]
+                    replacements = 1
+                    break
     parts[0] = parts[0].upper()
-    if len(parts) == 3 and parts[1].upper() == 'EQU':
-        return define(parts[0], parts[2])
+    if len(parts) >= 3 and parts[1].upper() == 'EQU':
+        return define(parts[0], ' '.join(parts[2:]))
     if re.match(label_pat, parts[0]):
         label = parts[0]
         label = label[0:-1]
