@@ -20,25 +20,6 @@ namespace gpu {
       return &data[c * 8];
     }
 
-    void new_line(uint16_t& x, uint16_t& y, Screen& scr)
-    {
-      x = 0;
-      y += m_CharHeight;
-      if (y >= gpu::HEIGHT)
-      {
-        scr.scroll();
-        y -= m_CharHeight;
-      }
-    }
-
-    void move_cursor_forward(uint16_t& x, uint16_t& y, Screen& scr)
-    {
-      x += m_CharWidth;
-      if (x >= gpu::WIDTH)
-      {
-        new_line(x, y, scr);
-      }
-    }
   public:
     Font()
       : m_CharWidth(8)
@@ -77,6 +58,27 @@ namespace gpu {
       if (progress)
         move_cursor_forward(x, y, scr);
     }
+
+    void new_line(uint16_t& x, uint16_t& y, Screen& scr)
+    {
+      x = 0;
+      y += m_CharHeight;
+      if (y >= gpu::HEIGHT)
+      {
+        scr.scroll();
+        y -= m_CharHeight;
+      }
+    }
+
+    void move_cursor_forward(uint16_t& x, uint16_t& y, Screen& scr)
+    {
+      x += m_CharWidth;
+      if (x >= gpu::WIDTH)
+      {
+        new_line(x, y, scr);
+      }
+    }
+
   };
 
 }

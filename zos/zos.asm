@@ -1,5 +1,6 @@
 		GPU_NOP          EQU 0
 		GPU_CLS          EQU 1
+		GPU_TEXT_NEWLINE EQU 4
 		GPU_PIXEL_CURSOR EQU 5
 		GPU_TEXT_CURSOR  EQU 6
 		GPU_FG_COLOR     EQU 7
@@ -165,7 +166,6 @@ sys0:	; System call 0
 		OUT		(0),A
 		CALL	wait_io					; Wait for all bytes to be received
 		INC		HL
-		INC		HL
 		LD		C,(HL)
 		INC		HL
 		LD		B,(HL)
@@ -223,19 +223,22 @@ sys15: ; System call 15
 		ORG		100h
 kbdbuf: BUF 	KBD_BUF_SIZE
 osbuf:  BUF		80h
-	
-main:
-		EI
-		;jp		400h
-		
-		CALL	cls
-		LD		HL,os_prompt
-		CALL	print
-		CALL	cursor_on
 
+cmds:	db		3
+		ds		'CLS'
+		dw		exec_cls
+		ds		'DIR'
+		dw		exec_dir
+		ds		'RUN'
+		dw		exec_run
+
+
+list_files:
+		PUSH	AF
+		PUSH	BC
+		PUSH	HL
 		LD		A,0
 		SYSCALL
-		
 		LD		A,0
 list_loop:
 		PUSH	BC
@@ -246,31 +249,106 @@ list_loop:
 		SYSCALL
 		PUSH	BC
 		POP		HL
-		CALL	print
-		LD		A,10
-		CALL	print_char
+		CALL	println
 		POP		AF
 		POP		BC
 		INC		A
 		CP		A,C
 		JR		NZ,list_loop
-stub:	jp		stub
-		
-		
+		POP		HL
+		POP		BC
+		POP		AF
+		RET
 
+
+main:
+		EI
+		;jp		400h
+		
+		CALL	cls
+		CALL	cursor_on
+main_cmd:
+		LD		HL,os_prompt
+		CALL	print
 
 main_loop:
 		LD		A,(lastkey)
 		OR		A
 		JR		Z,main_loop
+		CP		13
+		JR		Z,process_cmd
 		CALL	print_char
 		LD		A,0
 		LD		(lastkey),A
 		jp       main_loop
 		nop
 		nop
+		
+process_cmd:
+		SUB		A
+		LD		(lastkey),A
+		LD		(kbd_wptr),A
+		LD		A,GPU_TEXT_NEWLINE
+		OUT		(2),A
+		LD		IX,cmds
+		LD		IY,kbdbuf
+		LD		B,(IX+0)
+		LD		DE,5
+		INC		IX
+process_cmd_loop:
+		PUSH	IX
+		LD		C,3
+		CALL	cmpstr
+		POP		IX
+		OR		A
+		JR		Z,exec_cmd
+		DEC		B
+		JR		Z,main_loop
+		ADD		IX,DE
+		JP		process_cmd_loop
+exec_cmd:
+		LD		L,(IX+3)
+		LD		H,(IX+4)
+		JP		(HL)
 
+exec_cls:
+		LD		A,GPU_CLS
+		OUT		(2),A
+		JP		main_cmd
 
+exec_dir:
+		CALL	list_files
+		JP		main_cmd
+		
+exec_run:
+		JP		main_cmd
+
+;-----------------------------------------------------
+;	IX - first string
+;	IY - second string
+;   C  - length
+;
+;   Returns (in A)  0 if equal, 1 if first is greater, -1 otherwise
+cmpstr:
+		LD		A,(IX+0)
+		CP		(IY+0)
+		JR		Z,cmpstr_next
+		JR		C,cmpstr_neg
+		LD		A,1
+		RET
+cmpstr_neg:
+		LD		A,255
+		RET
+cmpstr_next:
+		INC		IX
+		INC		IY
+		DEC		C
+		JR		NZ,cmpstr
+		SUB		A
+		RET
+;-----------------------------------------------------
+		
+		
 
 cursor_on:
 		LD		A,GPU_BLINK_CURSOR
@@ -303,7 +381,11 @@ print:
 		OTIR
 		POP		BC
 		RET
-
+println:
+		CALL	print
+		LD		A,10
+		CALL	print_char
+		RET
 
 
 data:

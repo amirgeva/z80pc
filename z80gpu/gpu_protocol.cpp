@@ -21,6 +21,7 @@ namespace gpu {
     case CMD_NOP: return sizeof(Command);
     case CMD_CLS: return sizeof(Command_CLS);
     case CMD_FLIP: return sizeof(Command_Flip);
+    case CMD_TEXT_NEWLINE: return sizeof(Command_NewLine);
     case CMD_PUSH_CURSOR: return sizeof(Command_PushCursor);
     case CMD_POP_CURSOR: return sizeof(Command_PopCursor);
     case CMD_PIXEL_CURSOR: return sizeof(Command_PixelCursor);
@@ -77,6 +78,11 @@ namespace gpu {
     case CMD_POP_CURSOR:
     {
       m_CursorStack.pop(m_CursorX, m_CursorY);
+      return true;
+    }
+    case CMD_TEXT_NEWLINE:
+    {
+      m_Font.new_line(m_CursorX, m_CursorY, m_Screen);
       return true;
     }
     case CMD_PIXEL_CURSOR:
