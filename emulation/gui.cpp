@@ -158,6 +158,7 @@ class MainWindow : public QMainWindow
   uint16_t    m_StopOnSP;
   bool        m_Stopped;
   bool        m_StopOnNext;
+  int         m_SkipCount;
 
   cxx::xstring flags_str(uint8_t F)
   {
@@ -209,12 +210,14 @@ public:
     , m_Stopped(true)
     , m_StopOnNext(false)
     , m_StopOnSP(0)
+    , m_SkipCount(0)
   {
     QMenu* file = menuBar()->addMenu("&File");
     create_action("&Quit", file, &MainWindow::quit);
     QMenu* run = menuBar()->addMenu("&Run");
     create_action("&Over", run, &MainWindow::step_over, "F10");
     create_action("&Into", run, &MainWindow::step_into, "F11");
+    create_action("&Thousand", run, &MainWindow::thousand, "F8");
     create_action("&Continue", run, &MainWindow::cont, "F5");
     create_action("&Return", run, &MainWindow::ret, "Shift+F11");
 
@@ -231,6 +234,12 @@ public:
     m_Memory = new TextList(dock);
     dock->setWidget(m_Memory);
     addDockWidget(Qt::RightDockWidgetArea, dock);
+  }
+
+  void thousand()
+  {
+    m_SkipCount = 1000;
+    m_Stopped = false;
   }
 
   void step_into()
@@ -268,6 +277,11 @@ public:
 
   void set_current_address(uint16_t addr)
   {
+    if (m_SkipCount > 0)
+    {
+      if (--m_SkipCount == 0)
+        stop(addr);
+    }
     if (m_Stopped) stop(addr);
     if (m_StopOnNext) 
     { 

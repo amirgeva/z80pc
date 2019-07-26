@@ -367,6 +367,7 @@ def print_listing(f, listing):
 def main():
     parser = argparse.ArgumentParser(description='Z80 Assembler')
     parser.add_argument('source', type=str, help='Asm source file to assemble')
+    parser.add_argument('offset', type=int, help='Program start offset', default=0)
     args = parser.parse_args()
     # print("Pass 1")
     source_name = args.source
@@ -381,10 +382,7 @@ def main():
         code, listing = assemble(args.source)
     if code:
         with open(bin_name, 'wb') as f:
-            f.write(code)
-        # else:
-        #    for line in [code[i:i + 16] for i in range(0, len(code), 16)]:
-        #        print(' '.join([f'{byte:02x}'.upper() for byte in list(line)]))
+            f.write(code[args.offset:])
         with open(lst_name, 'w') as f:
             print_listing(f, listing)
 

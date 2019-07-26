@@ -53,7 +53,14 @@ inline uint8_t read_file(uint8_t* buffer, uint8_t len)
 
 inline uint16_t get_file_size(const uint8_t* filename)
 {
-  return uint16_t(fs::file_size(reinterpret_cast<const char*>(filename)));
+  try
+  {
+    return uint16_t(fs::file_size(reinterpret_cast<const char*>(filename)));
+  }
+  catch (fs::filesystem_error&) 
+  {
+    return 0;
+  }
 }
 
 inline uint16_t get_files_number()
@@ -63,7 +70,7 @@ inline uint16_t get_files_number()
   return res;
 }
 
-inline bool get_file_name(uint8_t index, uint8_t* buffer)
+inline bool get_file_name(uint16_t index, uint8_t* buffer)
 {
   for (const auto& entry : fs::directory_iterator("."))
   {
@@ -80,6 +87,7 @@ inline bool get_file_name(uint8_t index, uint8_t* buffer)
           break;
         }
       }
+      while (j < 15) buffer[j++] = 0;
       return true;
     }
     --index;

@@ -114,7 +114,7 @@ kbd_rptr:
 disk_wptr:
 		dw		0
 disk_wcount:
-		db		0
+		dw		0
 
 keyboard_handler:
 		PUSH	AF
@@ -134,13 +134,14 @@ keyboard_handler:
 
 disk_read_handler:
 		PUSH	AF
-		LD		A,(disk_wcount)
-		OR		A,A
-		JR		Z,done_reading
-		DEC		A
-		LD		(disk_wcount),A
-		IN		A,(0)    ; Read IO
 		PUSH	HL
+		LD		HL,(disk_wcount)
+		LD		A,L
+		OR		A,H
+		JR		Z,done_reading
+		DEC		HL
+		LD		(disk_wcount),HL
+		IN		A,(0)    ; Read IO
 		LD		HL,(disk_wptr)
 		LD		(HL),A
 		INC		HL
@@ -150,21 +151,53 @@ done_reading:
 		POP		AF
 		RET
 
-wait_io:
-		LD		A,(disk_wcount)
-		OR		A
-		JR		NZ,wait_io
+wait_disk_io:
+		PUSH	HL
+wait_disk_io_loop:
+		LD		HL,(disk_wcount)
+		LD		A,L
+		OR		H
+		JR		NZ,wait_disk_io_loop
+		POP		HL
 		RET
-
-sys0:	; System call 0
-		; Get Number of files on disk
-		LD		A,3						; Call returns 3 bytes (2,L,H)
+		
+init_disk_buffer:
 		LD		(disk_wcount),A
 		LD		HL,osbuf
 		LD		(disk_wptr),HL			; Init write pointer to OS buffer
+		RET
+
+
+; Send 15 bytes with a file string from HL, padding with zeros
+send_file_name:
+		LD		A,15
+		LD		C,(HL)
+		SUB		C
+		LD		B,A
+send_file_name_loop:
+		INC		HL
+		LD		A,(HL)
+		OUT		(0),A
+		DEC		C
+		JR		NZ,send_file_name_loop
+		LD		A,0
+send_file_name_loop2:
+		OUT		(0),A
+		DEC		B
+		JR		NZ,send_file_name_loop2
+		RET
+
+		ORG		100h
+kbdbuf: BUF 	KBD_BUF_SIZE
+osbuf:  BUF		80h
+
+sys0:	; System call 0
+		; Get Number of files on disk
+		LD		A,3						; Call returns 3 bytes (2,C,B)
+		CALL	init_disk_buffer
 		LD		A,IO_GET_FILE_NUM
 		OUT		(0),A
-		CALL	wait_io					; Wait for all bytes to be received
+		CALL	wait_disk_io			; Wait for all bytes to be received
 		INC		HL
 		LD		C,(HL)
 		INC		HL
@@ -174,14 +207,14 @@ sys0:	; System call 0
 sys1:	; System call 1
 		; Get file name for index in BC
 		LD		A,16					; 15 & file name chars
-		LD		(disk_wcount),A
-		LD		HL,osbuf
-		LD		(disk_wptr),HL			; Init write pointer to OS buffer
+		CALL	init_disk_buffer
 		LD		A,IO_GET_FILE_NAME
 		OUT		(0),A
 		LD		A,C
 		OUT		(0),A
-		CALL	wait_io					; Wait for all bytes to be received
+		LD		A,B
+		OUT		(0),A
+		CALL	wait_disk_io			; Wait for all bytes to be received
 		LD		B,0
 		LD		C,0
 		LD		A,(osbuf)
@@ -191,13 +224,58 @@ sys1:	; System call 1
 sys1_done:
 		POP		HL
 		RET
-sys2: ; System call 2
+sys2:	; System call 2
+		; Get file size
+		; Input:   BC pointer to filename
+		; Output:  BC size of file
+		LD		A,3						; Call returns 3 bytes (2,C,B)
+		CALL	init_disk_buffer
+		LD		A,IO_GET_FILE_SIZE
+		OUT		(0),A
+		PUSH	BC
+		POP		HL
+		CALL	send_file_name		
+		CALL	wait_disk_io			; Wait for all bytes to be received
+		LD		HL,osbuf+1
+		LD		C,(HL)
+		INC		HL
+		LD		B,(HL)
+		POP		HL
 		RET
-sys3: ; System call 3
+sys3:	; System call 3
+		; Open file for reading
+		; Input:	BC pointer to filename
+		; Output:	C=1 if successful
+		LD		A,2
+		CALL	init_disk_buffer
+		LD		A,IO_OPEN_FILE_R
+		OUT		(0),A
+		PUSH	BC
+		POP		HL
+		CALL	send_file_name		
+		CALL	wait_disk_io			; Wait for all bytes to be received
+		LD		HL,osbuf+1
+		LD		C,(HL)
+		POP		HL
 		RET
-sys4: ; System call 4
+sys4:	; System call 4
+		; Read from file
+		; Input:	BC number of bytes to read
+		LD		(disk_wcount),BC
+		LD		A,IO_READ_FILE
+		OUT		(0),A
+		LD		A,C
+		OUT		(0),A
+		LD		A,B
+		OUT		(0),A
+		CALL	wait_disk_io
+		POP		HL
 		RET
-sys5: ; System call 5
+sys5:	; System call 5
+		; Close open file
+		LD		A,IO_CLOSE_FILE
+		LD		(0),A
+		POP		HL
 		RET
 sys6: ; System call 6
 		RET
@@ -219,10 +297,6 @@ sys14: ; System call 14
 		RET
 sys15: ; System call 15
 		RET
-
-		ORG		100h
-kbdbuf: BUF 	KBD_BUF_SIZE
-osbuf:  BUF		80h
 
 cmds:	db		3
 		ds		'CLS'
@@ -321,6 +395,44 @@ exec_dir:
 		JP		main_cmd
 		
 exec_run:
+		LD		HL,kbdbuf+3
+		PUSH	HL
+		LD		C,255
+exec_run_loop1:
+		INC		HL
+		INC		C
+		LD		A,(HL)
+		CP		13
+		JR		NZ,exec_run_loop1
+		POP		HL
+		LD		(HL),C
+		PUSH	HL
+		POP		BC
+		LD		A,2			; get file size
+		SYSCALL
+		PUSH	BC
+		POP		DE
+		LD		A,C
+		OR		B
+		JR		Z,file_not_found
+		PUSH	HL
+		POP		BC
+		LD		A,3			; open file for reading
+		SYSCALL
+		DEC		C
+		JR		NZ,file_not_found
+		LD		BC,800h
+		LD		(disk_wptr),BC
+		PUSH	DE
+		POP		BC
+		LD		A,4			; read BC bytes
+		SYSCALL
+		LD		A,5
+		SYSCALL				; close file
+		JP		800h
+file_not_found:
+		LD		HL,fnf_prompt
+		CALL	println
 		JP		main_cmd
 
 ;-----------------------------------------------------
@@ -392,5 +504,9 @@ data:
 os_prompt:
 		db		4
 		ds		'ZOS>'
-		nop
+fnf_prompt:
+		db		14
+		ds		'File not found'
+
+
 userspace:

@@ -1,5 +1,5 @@
 		TIMER_FLAG		EQU 3
-		LAST_KEY		EQU 6
+		LAST_KEY		EQU 4
 
 		GPU_NOP          EQU 0
 		GPU_CLS          EQU 1
@@ -19,8 +19,12 @@
 		GPU_SET_SPRITE   EQU 40
 		GPU_DRAW_SPRITE  EQU 41
 
-	ORG		400h
+	ORG		800h
 start:
+	LD		A,GPU_BLINK_CURSOR
+	OUT		(2),A
+	LD		A,0
+	OUT		(2),A
 	jp		main
 
 xrnd:

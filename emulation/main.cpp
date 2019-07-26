@@ -166,10 +166,7 @@ int main(int argc, char* argv[])
       io_loop();
       if (!gui_sync()) break;
       //print_registers(&cpu);
-      if ((i & 0xFFFF) == 0)
-      {
-        std::cout << i << "    \r";
-      }
+      //if ((i & 0xFFFF) == 0)  std::cout << i << "    \r";
     }
     done = true;
     vis_thread.join();

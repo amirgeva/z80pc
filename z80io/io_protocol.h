@@ -42,10 +42,16 @@ namespace io {
     uint8_t data;
   };
 
-  struct Command_Block
+  struct Command_SBlock
   {
     uint8_t  opcode;
     uint8_t  len;
+  };
+
+  struct Command_Block
+  {
+    uint8_t  opcode;
+    uint16_t len;
   };
 
   struct Command_File
@@ -57,11 +63,12 @@ namespace io {
   class Protocol
   {
     union {
-      Command       cmd;
-      Command_Byte  cmd_byte;
-      Command_Block cmd_block;
-      Command_File  cmd_file;
-      uint8_t       buffer[64];
+      Command        cmd;
+      Command_Byte   cmd_byte;
+      Command_Block  cmd_block;
+      Command_SBlock cmd_sblock;
+      Command_File   cmd_file;
+      uint8_t        buffer[64];
     } Header;
 
     uint8_t get_header_len();

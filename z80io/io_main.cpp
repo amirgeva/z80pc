@@ -1,9 +1,10 @@
+#include <iostream>
 #include "io_protocol.h"
 #include <cyclic.h>
 
 CyclicBuffer<16> keyboard_buffer;
 CyclicBuffer<16> serial_buffer;
-CyclicBuffer<64> disk_buffer;
+CyclicBuffer<4096> disk_buffer;
 
 namespace io
 {
@@ -42,6 +43,7 @@ void io_loop()
   else
   if (io_buffer_empty)
   {
+    if (disk_buffer.size() > 0) std::cout << disk_buffer.size() << std::endl;
     CHECK(keyboard_buffer, TYPE_KEYBOARD);
     CHECK(serial_buffer, TYPE_SERIAL);
     CHECK(disk_buffer, TYPE_DISK);

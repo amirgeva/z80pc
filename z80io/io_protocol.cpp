@@ -27,8 +27,8 @@ namespace io {
     case CMD_GET_FILE_NUM: return sizeof(Command);
     case CMD_GET_FILE_NAME: return sizeof(Command_Block);
     case CMD_ERASE_FILE: return sizeof(Command_File);
-    case CMD_WRITE_FILE: return sizeof(Command_Block);
-    case CMD_READ_FILE: return sizeof(Command);
+    case CMD_WRITE_FILE: return sizeof(Command_SBlock);
+    case CMD_READ_FILE: return sizeof(Command_Block);
     }
     return 1;
   }
@@ -38,7 +38,7 @@ namespace io {
     switch (Header.cmd.opcode)
     {
     case CMD_OUTBLOCK: 
-    case CMD_WRITE_FILE: return Header.cmd_block.len + sizeof(Command_Block) - m_Pos;
+    case CMD_WRITE_FILE: return uint8_t(Header.cmd_block.len + sizeof(Command_SBlock) - m_Pos);
     }
     return 0;
   }
@@ -105,7 +105,7 @@ namespace io {
       case CMD_CLOSE_FILE:
       {
         close_file();
-        return respond(true);
+        return true;
       }
       case CMD_GET_FILE_SIZE:
       {
@@ -130,17 +130,22 @@ namespace io {
       }
       case CMD_WRITE_FILE:
       {
-        write_file(&Header.buffer[sizeof(Command_Block)], MIN(Header.cmd_block.len, 62));
+        write_file(&Header.buffer[sizeof(Command_SBlock)], MIN(Header.cmd_sblock.len, 62));
         return respond(true);
       }
       case CMD_READ_FILE:
       {
         uint8_t* buffer = Header.buffer;
+        uint16_t n = Header.cmd_block.len;
         uint8_t act;
-        while ((act=read_file(buffer, 64))>0)
+        std::cout << "\n";
+        while ((act=read_file(buffer, 64))>0 && n>0)
         {
-          for (uint8_t i = 0; i < act; ++i)
-            send_input_disk_byte(Header.buffer[sizeof(Command_Block) + i]);
+          for (uint8_t i = 0; i < act; ++i, --n)
+          {
+            //std::cout << n << "   \r";
+            send_input_disk_byte(buffer[i]);
+          }
         }
         return true;
       }
