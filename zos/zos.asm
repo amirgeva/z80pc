@@ -336,16 +336,21 @@ list_loop:
 
 
 main:
-		EI
+        LD      BC,65000
+        CALL    delay
+        
+		;EI
 		;jp		400h
 		
-		CALL	cls
-		CALL	cursor_on
+		;CALL	cls
+		;CALL	cursor_on
 main_cmd:
 		LD		HL,os_prompt
 		CALL	print
 
 main_loop:
+        LD      A,GPU_NOP
+        OUT     (4),A
 		LD		A,(lastkey)
 		OR		A
 		JR		Z,main_loop
@@ -363,7 +368,7 @@ process_cmd:
 		LD		(lastkey),A
 		LD		(kbd_wptr),A
 		LD		A,GPU_TEXT_NEWLINE
-		OUT		(2),A
+		OUT		(4),A
 		LD		IX,cmds
 		LD		IY,kbdbuf
 		LD		B,(IX+0)
@@ -387,7 +392,7 @@ exec_cmd:
 
 exec_cls:
 		LD		A,GPU_CLS
-		OUT		(2),A
+		OUT		(4),A
 		JP		main_cmd
 
 exec_dir:
@@ -460,28 +465,44 @@ cmpstr_next:
 		RET
 ;-----------------------------------------------------
 		
-		
+delay:
+        NOP
+delay_loop:
+        LD      A,0
+        OUT     (4),A
+        LD      A,B
+        CP      0
+        JR      NZ,delay_dec_count
+        LD      A,C
+        CP      0
+        JR      Z,delay_done
+delay_dec_count:
+        DEC     BC
+        jp      delay_loop
+delay_done:
+        RET
+        
 
 cursor_on:
 		LD		A,GPU_BLINK_CURSOR
-		OUT		(2),A
+		OUT		(4),A
 		LD		A,1
-		OUT		(2),A
+		OUT		(4),A
 		RET
 		
 cls:
 		LD		A,GPU_CLS
-		OUT		(2),A
+		OUT		(4),A
 		RET
 
 print_char:
 		PUSH	AF
 		LD		A,GPU_TEXT
-		OUT		(2),A
+		OUT		(4),A
 		LD		A,1
-		OUT		(2),A
+		OUT		(4),A
 		POP		AF
-		OUT		(2),A
+		OUT		(4),A
 		RET
 print:
 		PUSH	BC
@@ -489,7 +510,7 @@ print:
 		INC		B
 		LD		C,2
 		LD		A,GPU_TEXT
-		OUT		(2),A
+		OUT		(4),A
 		OTIR
 		POP		BC
 		RET

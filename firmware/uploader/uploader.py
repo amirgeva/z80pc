@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 '''
 
     Memory programmer.  Upload using serial port, a ROM image into the
@@ -10,6 +11,7 @@
 '''
 import sys
 import serial
+import time
 
 
 def calculate_crc16(buffer):
@@ -56,6 +58,13 @@ def place_crc(msg):
     crc = calculate_crc16(msg[4:62])
     msg[62] = crc & 0xFF
     msg[63] = (crc >> 8) & 0xFF
+
+
+def create_reset_message():
+    msg = create_empty_message(0,0)
+    msg[4]=3
+    place_crc(msg)
+    return msg
 
 
 def create_query_message(address, length):
@@ -119,6 +128,8 @@ def verify_ack(msg, data):
     '''
     for i in range(len(data)):
         if msg[8 + i] != data[i]:
+            print(f"Sent: {data}")
+            print(f"Recv: {msg[8:62]}")
             return False
     return True
 
@@ -137,7 +148,7 @@ def wait_for_result(ser, data):
     while True:
         b = ser.read(1)
         if len(b) < 1:
-            # Timeout
+            print(f"Timeout pos={pos}")
             return False
         msg[pos] = int(b[0])
         pos = pos + 1
@@ -157,7 +168,9 @@ def main():
     else:
         try:
             data = open(sys.argv[2], 'rb').read()
-            ser = serial.serialwin32.Serial(sys.argv[1], baudrate=115200, timeout=1.0)
+            #ser = serial.serialwin32.Serial(sys.argv[1], baudrate=115200, timeout=1.0)
+            ser = serial.Serial(sys.argv[1], baudrate=115200, timeout=5.0)
+            time.sleep(5)
             # Split up data into 54 byte chunks
             n = (len(data) + 53) // 54
             queue = []
@@ -180,6 +193,7 @@ def main():
                     msg = create_programming_message(item[0], sub)
                     ser.write(bytes(msg))
                 leftover = []
+                time.sleep(4)
                 print("Verify")
                 for item in queue:
                     sys.stdout.write(f'{item[0]}\r')
@@ -198,6 +212,9 @@ def main():
                     break
             if len(queue) > 0:
                 print(f"Could not send {len(queue)} packets after {total_trials} trials")
+            else:
+                msg = create_reset_message()
+                ser.write(bytes(msg))
         except FileNotFoundError:
             print(f"File not found: {sys.argv[2]}")
 
