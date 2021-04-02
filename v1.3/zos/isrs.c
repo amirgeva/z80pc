@@ -17,5 +17,7 @@ void input_isr()
 	POP		BC
 	POP		HL
 	POP		AF
+	EI
+	RETI
 	__endasm;
 }

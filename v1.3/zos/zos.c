@@ -6,6 +6,31 @@ extern char strcmp(const byte*,const byte*);
 
 void scan_input();
 
+void service1()
+{
+}
+
+void service2()
+{
+}
+
+void service3()
+{
+}
+
+void service4()
+{
+}
+
+void service5()
+{
+}
+
+void service6()
+{
+}
+
+
 void main()
 {
 	while (1) scan_input();
@@ -29,12 +54,28 @@ void scan_input()
 	byte cur;
 	if (g.in_write==g.in_read) return;
 	cur=g.input_buffer[g.in_read++];
+	if (cur == 8)
+	{
+		if (g.cmd_pos>0) --g.cmd_pos;
+	}
+	else
 	if (cur==10 || cur==13)
 	{
 		g.cmd_buffer[g.cmd_pos]=0;
 		process_command();
 		g.cmd_pos=0;
 	}
-	g.cmd_buffer[g.cmd_pos++]=cur;
+	else
+	if (g.cmd_pos < (CMD_BUFFER_SIZE-1))
+		g.cmd_buffer[g.cmd_pos++]=cur;
 }
 
+byte send(byte* data)
+{
+	return 0;
+}
+
+byte receive(byte* data)
+{
+	return 0;
+}
