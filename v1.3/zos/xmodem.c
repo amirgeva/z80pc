@@ -7,7 +7,7 @@
 #define ETB 0x17
 #define CAN 0x18
 
-byte send(byte*);
+byte send(byte* data);
 byte receive(byte*);
 
 unsigned short calcrc16(const byte* ptr, byte count)

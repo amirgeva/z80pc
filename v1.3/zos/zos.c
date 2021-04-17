@@ -1,8 +1,8 @@
 #include "global_data.h"
+#include "ll.h"
+#include "xmodem.h"
 
 GlobalData __at(0x1000) g;
-extern void sendstr(const byte*);
-extern char strcmp(const byte*,const byte*);
 
 void scan_input();
 
@@ -30,7 +30,6 @@ void service6()
 {
 }
 
-
 void main()
 {
 	while (1) scan_input();
@@ -43,9 +42,9 @@ void input_handler(byte incoming)
 
 void process_command()
 {
-	if (strcmp(g.cmd_buffer,"LOAD") == 0)
+	if (strcmp(g.cmd_buffer,"upload") == 0)
 	{
-		sendstr("Loading");
+		
 	}
 }
 
@@ -72,10 +71,12 @@ void scan_input()
 
 byte send(byte* data)
 {
-	return 0;
+	sendchar(*data);
+	return 1;
 }
 
 byte receive(byte* data)
 {
+	if (g.in_write==g.in_read) return 0;
 	return 0;
 }

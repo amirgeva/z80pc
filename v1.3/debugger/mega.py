@@ -150,7 +150,8 @@ def receive_message(ser):
 
 class Mega:
     def __init__(self):
-        self.ser = serial.Serial('COM3', 115200, timeout=1)
+        port = open('megaport.cfg').readline().strip()
+        self.ser = serial.Serial(port, 115200, timeout=1)
 
     def send_message(self, msg):
         if not isinstance(msg, bytes):

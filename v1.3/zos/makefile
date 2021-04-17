@@ -4,7 +4,7 @@ zos.bin: zos.ihx
 	rm -f intermediate/*
 	echo intermediate > intermediate/README.md
 	python3 ihx2bin.py zos.ihx zos.bin
-	#mv *.asm intermediate
+	mv *.asm intermediate
 	mv *.lst intermediate
 	mv *.ihx intermediate
 	mv *.rel intermediate
@@ -23,14 +23,14 @@ zos.rel: zos.c
 xmodem.rel: xmodem.c
 	sdcc -c -mz80 xmodem.c
 
-bootloader.rel: bootloader.asm
-	#sdcc -c -mz80 --codeseg BOOT bootloader.c
-	sdasz80 -o bootloader.rel bootloader.asm
+bootloader.rel: bootloader.zasm
+	sdasz80 -o bootloader.rel bootloader.zasm
 	
 isrs.rel: isrs.c
 	sdcc -c -mz80 --codeseg ISRS isrs.c
 
 clean:
+	rm -f *.asm
 	rm -f *.map
 	rm -f *.rel
 	rm -f *.lst

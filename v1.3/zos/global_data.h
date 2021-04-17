@@ -16,3 +16,4 @@ typedef struct global_data
         byte in_write,in_read,cmd_pos;
 } GlobalData;
 
+#define USER_AREA (0x1000 + sizeof(GlobalData))

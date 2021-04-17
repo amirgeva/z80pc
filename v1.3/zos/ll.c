@@ -18,6 +18,21 @@ char strcmp(const byte* s1, const byte* s2)
 	}
 }
 
+void sendchar(byte b)
+{
+	b;
+	__asm
+		push	ix
+		ld		ix,#0
+		add		ix,sp
+		push	af
+		ld		a,4(ix)
+		out		(0),a
+		pop		af
+		pop		ix
+	__endasm;
+}
+
 byte strlen(const byte* s)
 {
 	byte res=0;
@@ -27,17 +42,7 @@ byte strlen(const byte* s)
 
 void sendstr(const byte* s)
 {
-	s;
-	__asm
-	pop		bc
-	pop		hl
-	push	hl
-	push	bc
-	push	hl
-	call	_strlen
-	LD		B,L
-	pop		HL
-	OTIR
-	__endasm;
+	for(;*s;++s)
+		sendchar(*s);
 }
 
