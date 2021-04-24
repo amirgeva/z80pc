@@ -16,4 +16,7 @@ typedef struct global_data
         byte in_write,in_read,cmd_pos;
 } GlobalData;
 
-#define USER_AREA (0x1000 + sizeof(GlobalData))
+/* (0x1000 + sizeof(GlobalData)) */
+#define USER_AREA_ADDR 0x1200
+typedef char address_check[USER_AREA_ADDR-(0x1000+sizeof(GlobalData))];
+#define USER_AREA ((byte*)USER_AREA_ADDR)

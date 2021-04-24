@@ -12,7 +12,7 @@ zos.bin: zos.ihx
 	
 
 zos.ihx:	ll.rel zos.rel bootloader.rel isrs.rel xmodem.rel
-	sdldz80 -i -b _CODE=0x100 -b _BOOT=1 -b _ISRS=0x38 zos bootloader.rel isrs.rel zos.rel ll.rel xmodem.rel
+	sdldz80 -m -w -i -b _CODE=0x100 -b _BOOT=1 -b _ISRS=0x38 zos bootloader.rel isrs.rel zos.rel ll.rel xmodem.rel
 	
 ll.rel: ll.c
 	sdcc -c -mz80 ll.c
@@ -24,7 +24,7 @@ xmodem.rel: xmodem.c
 	sdcc -c -mz80 xmodem.c
 
 bootloader.rel: bootloader.zasm
-	sdasz80 -o bootloader.rel bootloader.zasm
+	sdasz80 -l -o bootloader.rel bootloader.zasm
 	
 isrs.rel: isrs.c
 	sdcc -c -mz80 --codeseg ISRS isrs.c

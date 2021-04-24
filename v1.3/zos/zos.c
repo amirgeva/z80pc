@@ -4,7 +4,11 @@
 
 GlobalData __at(0x1000) g;
 
+typedef void (*func_ptr)();
+func_ptr user_program = (func_ptr)USER_AREA;
+
 void scan_input();
+void send_prompt();
 
 void service1()
 {
@@ -32,6 +36,7 @@ void service6()
 
 void main()
 {
+	send_prompt();
 	while (1) scan_input();
 }
 
@@ -44,8 +49,15 @@ void process_command()
 {
 	if (strcmp(g.cmd_buffer,"upload") == 0)
 	{
-		
+		xmodem_receive(USER_AREA);
 	}
+	else
+	if (strcmp(g.cmd_buffer,"run") == 0)
+	{
+		user_program();
+	}
+	else
+		sendstr("Invalid command\r\n");
 }
 
 void scan_input()
@@ -53,6 +65,7 @@ void scan_input()
 	byte cur;
 	if (g.in_write==g.in_read) return;
 	cur=g.input_buffer[g.in_read++];
+	sendchar(cur);
 	if (cur == 8)
 	{
 		if (g.cmd_pos>0) --g.cmd_pos;
@@ -60,9 +73,13 @@ void scan_input()
 	else
 	if (cur==10 || cur==13)
 	{
-		g.cmd_buffer[g.cmd_pos]=0;
-		process_command();
-		g.cmd_pos=0;
+		if (g.cmd_pos>0)
+		{
+			g.cmd_buffer[g.cmd_pos]=0;
+			process_command();
+			g.cmd_pos=0;
+		}
+		send_prompt();
 	}
 	else
 	if (g.cmd_pos < (CMD_BUFFER_SIZE-1))
@@ -78,5 +95,11 @@ byte send(byte* data)
 byte receive(byte* data)
 {
 	if (g.in_write==g.in_read) return 0;
-	return 0;
+	*data = g.input_buffer[g.in_read++];
+	return 1;
+}
+
+void send_prompt()
+{
+  send("zOS>");
 }

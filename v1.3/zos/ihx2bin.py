@@ -15,7 +15,7 @@ def ihx2bin(src: str, dst: str):
                 continue
             line = line.strip()
             data = bytes.fromhex(line[1:-2])
-            calculated_checksum = 0x100 - (sum(data) & 0xFF)
+            calculated_checksum = (0x100 - (sum(data) & 0xFF)) & 0xFF
             given_checksum = bytes.fromhex(line[-2:])[0]
             if calculated_checksum == given_checksum:
                 length = data[0]
@@ -26,7 +26,7 @@ def ihx2bin(src: str, dst: str):
                     f.seek(address)
                     f.write(data)
             else:
-                print(f"Checksum Error at line {line_number}")
+                print(f"Checksum Error at line {line_number}\n{line}")
                 return
 
 
