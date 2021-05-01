@@ -57,7 +57,7 @@ void process_command()
 		user_program();
 	}
 	else
-		sendstr("Invalid command\r\n");
+		println("Invalid command");
 }
 
 void scan_input()

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import os
 import re
 from dataclasses import dataclass
@@ -68,4 +69,5 @@ def parse_program(directory: str):
 
 
 if __name__ == '__main__':
-    print(parse_program('/home/amir/prg/github/z80pc/v1.3/zos'))
+    if len(sys.argv) > 1:
+        print(parse_program(sys.argv[1]))

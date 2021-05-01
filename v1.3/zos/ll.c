@@ -40,9 +40,14 @@ byte strlen(const byte* s)
 	return res;
 }
 
-void sendstr(const byte* s)
+void print(const byte* s)
 {
 	for(;*s;++s)
 		sendchar(*s);
 }
 
+void println(const byte* s)
+{
+	print(s);
+	print("\r\n");
+}

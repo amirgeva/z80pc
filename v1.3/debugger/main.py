@@ -2,6 +2,7 @@
 import sys
 import os
 import subprocess
+from dataclasses import dataclass
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -18,22 +19,10 @@ def flag_text(flags):
         res += f' {prefix}{FLAG_NAMES[i]}'
     return res
 
-class Config:
-    def __init__(self):
-        self.cfg = QSettings()
-
-    def get(self, name):
-        return self.cfg.value(name, '')
-
-    def set(self, name, value):
-        self.cfg.setValue(name, value)
-        self.cfg.sync()
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
-        super().__init__()
-        # self.code = QTextEdit()
+        super().__init__(flags=0)
         self.code = QsciScintilla()
         # self.code.setTabStopWidth(4)
         self.code.setTabWidth(4)
@@ -43,7 +32,7 @@ class MainWindow(QMainWindow):
         self.font = QFont('Courier New', 18)
         self.code.setFont(self.font)
         self.code.setMinimumSize(1024, 768)
-        self.addr2line = {}
+        self.locations = {}
         self.debug_mode = False
         self.setCentralWidget(self.code)
         self.pane_output = QDockWidget('Output', self)
@@ -54,6 +43,7 @@ class MainWindow(QMainWindow):
         self.setup_menu()
         self.setup_panes()
         self.cfg = Config()
+        self.directory = self.cfg.get('directory')
         self.filename = self.cfg.get('filename')
         if self.filename:
             self.open_file(self.filename)
@@ -70,9 +60,6 @@ class MainWindow(QMainWindow):
             self.restoreState(state)
 
     def closeEvent(self, e: QCloseEvent) -> None:
-        # self.cfg.set('mem_size', self.pane_memory.size())
-        # self.cfg.set('size', self.size())
-        # self.cfg.set('pos', self.pos())
         self.cfg.set('geometry', self.saveGeometry())
         self.cfg.set('state', self.saveState())
 
@@ -93,10 +80,16 @@ class MainWindow(QMainWindow):
     def setup_menu(self):
         mb = self.menuBar()
         m = mb.addMenu('&File')
+
+        dir_open = QAction('Open &Dir', m)
+        dir_open.triggered.connect(self.on_dir_open)
+        m.addAction(dir_open)
+
         file_open = QAction('&Open', m)
         file_open.triggered.connect(self.on_file_open)
         file_open.setShortcut('Ctrl+O')
         m.addAction(file_open)
+
         file_save = QAction('&Save', m)
         file_save.triggered.connect(self.on_file_save)
         file_save.setShortcut('Ctrl+S')
@@ -133,6 +126,10 @@ class MainWindow(QMainWindow):
         ram.triggered.connect(self.on_update_memory)
         ram.setShortcut('F6')
         m.addAction(ram)
+
+    def on_dir_open(self):
+        res = QFileDialog.getExistingDirectory(caption='Select Directory', directory=self.directory)
+        print(res)
 
     def open_file(self, filename):
         try:
@@ -219,7 +216,7 @@ class MainWindow(QMainWindow):
                         y = self.addr2line.get(address)
                         self.code.setSelection(y, 0, y + 1, 0)
                     break
-                    
+
     def on_auto_clock(self):
         self.mega.auto_clock()
 
