@@ -1,0 +1,23 @@
+
+.area _GLOBALS
+
+_input_write_ptr::
+	.db		#0
+_input_read_ptr::
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+_input_buffer::
+

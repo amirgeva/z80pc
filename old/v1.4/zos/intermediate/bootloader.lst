@@ -1,0 +1,133 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 1
+Hexadecimal [24-Bits]
+
+
+
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.1.0 #12072 (MINGW64)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module bootloader
+                                      6 	.optsdcc -mz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _start_bootloader
+                                     12 	.globl _service1
+                                     13 	.globl _service2
+                                     14 	.globl _service3
+                                     15 	.globl _service4
+                                     16 	.globl _service5
+                                     17 	.globl _service6
+                                     18 	.globl _init
+                                     19 ;--------------------------------------------------------
+                                     20 ; special function registers
+                                     21 ;--------------------------------------------------------
+                                     22 ;--------------------------------------------------------
+                                     23 ; ram data
+                                     24 ;--------------------------------------------------------
+                                     25 	.area _DATA
+                                     26 ;--------------------------------------------------------
+                                     27 ; ram data
+                                     28 ;--------------------------------------------------------
+                                     29 	.area _INITIALIZED
+                                     30 ;--------------------------------------------------------
+                                     31 ; absolute external ram data
+                                     32 ;--------------------------------------------------------
+                                     33 	.area _DABS (ABS)
+                                     34 ;--------------------------------------------------------
+                                     35 ; global & static initialisations
+                                     36 ;--------------------------------------------------------
+                                     37 	.area _HOME
+                                     38 	.area _GSINIT
+                                     39 	.area _GSFINAL
+                                     40 	.area _GSINIT
+                                     41 ;--------------------------------------------------------
+                                     42 ; Home
+                                     43 ;--------------------------------------------------------
+                                     44 	.area _HOME
+                                     45 	.area _HOME
+                                     46 ;--------------------------------------------------------
+                                     47 ; code
+                                     48 ;--------------------------------------------------------
+                                     49 	.area _BOOT
+                                     50 ;bootloader.c:6: void start_bootloader()
+                                     51 ;	---------------------------------
+                                     52 ; Function start_bootloader
+                                     53 ; ---------------------------------
+      000000                         54 _start_bootloader::
+                                     55 ;bootloader.c:8: main();
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 2
+Hexadecimal [24-Bits]
+
+
+
+                                     56 ;bootloader.c:14: __endasm;
+      000000 C3 00 00         [10]   57 	jp    _init
+      000003 00               [ 4]   58 	nop
+      000004 00               [ 4]   59 	nop
+      000005 00               [ 4]   60 	nop
+      000006 00               [ 4]   61 	nop
+      000007 C3 00 00         [10]   62 	jp    _service1
+      00000A 00               [ 4]   63 	nop
+      00000B 00               [ 4]   64 	nop
+      00000C 00               [ 4]   65 	nop
+      00000D 00               [ 4]   66 	nop
+      00000E 00               [ 4]   67 	nop
+      00000F C3 00 00         [10]   68 	jp    _service2
+      000012 00               [ 4]   69 	nop
+      000013 00               [ 4]   70 	nop
+      000014 00               [ 4]   71 	nop
+      000015 00               [ 4]   72 	nop
+      000016 00               [ 4]   73 	nop
+      000017 C3 00 00         [10]   74 	jp    _service3
+      00001A 00               [ 4]   75 	nop
+      00001B 00               [ 4]   76 	nop
+      00001C 00               [ 4]   77 	nop
+      00001D 00               [ 4]   78 	nop
+      00001E 00               [ 4]   79 	nop
+      00001F C3 00 00         [10]   80 	jp    _service4
+      000022 00               [ 4]   81 	nop
+      000023 00               [ 4]   82 	nop
+      000024 00               [ 4]   83 	nop
+      000025 00               [ 4]   84 	nop
+      000026 00               [ 4]   85 	nop
+      000027 C3 00 00         [10]   86 	jp    _service5
+      00002A 00               [ 4]   87 	nop
+      00002B 00               [ 4]   88 	nop
+      00002C 00               [ 4]   89 	nop
+      00002D 00               [ 4]   90 	nop
+      00002E 00               [ 4]   91 	nop
+      00002F C3 00 00         [10]   92 	jp    _service6
+                                     93 
+                                     94 ;bootloader.c:37: }
+                                     95 	.area _BOOT
+                                     96 	.area _INITIALIZER
+                                     97 	.area _CABS (ABS)
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 3
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |     _init      ****** GX  |     _service   ****** GX
+    _service   ****** GX  |     _service   ****** GX  |     _service   ****** GX
+    _service   ****** GX  |     _service   ****** GX  |   7 _start_b   000000 GR
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 4
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size      0   flags    0
+   1 _DATA      size      0   flags    0
+   2 _INITIAL   size      0   flags    0
+   3 _DABS      size      0   flags    8
+   4 _HOME      size      0   flags    0
+   5 _GSINIT    size      0   flags    0
+   6 _GSFINAL   size      0   flags    0
+   7 _BOOT      size     32   flags    0
+   8 _INITIAL   size      0   flags    0
+   9 _CABS      size      0   flags    8
+

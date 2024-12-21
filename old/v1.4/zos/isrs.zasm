@@ -1,0 +1,26 @@
+	.globl _main
+	.area _ISRS
+
+_mode1_isr::
+	PUSH	HL
+	LD		(#0xF6),HL
+	PUSH	AF
+	POP		HL
+	LD		(#0xF0),HL
+	LD		(#0xF2),BC
+	LD		(#0xF4),DE
+	LD		(#0xF8),SP
+	LD		(#0xFA),IX
+	LD		(#0xFC),IY
+	POP		HL
+	EI
+	RETI
+
+_init::
+	LD		HL,#0xFF00	; Initialize stack pointer
+	LD		SP,HL
+	IM		1			; Interrupt mode 1 (@ 0x38)
+	EI					; Enable interrupts
+	JP		_main
+
+	

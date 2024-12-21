@@ -1,0 +1,48 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 1
+Hexadecimal [24-Bits]
+
+
+
+                                      1 	.globl _main
+                                      2 	.area _ISRS
+                                      3 
+      000000                          4 _mode1_isr::
+      000000 E5               [11]    5 	PUSH	HL
+      000001 22 F6 00         [16]    6 	LD		(#0xF6),HL
+      000004 F5               [11]    7 	PUSH	AF
+      000005 E1               [10]    8 	POP		HL
+      000006 22 F0 00         [16]    9 	LD		(#0xF0),HL
+      000009 ED 43 F2 00      [20]   10 	LD		(#0xF2),BC
+      00000D ED 53 F4 00      [20]   11 	LD		(#0xF4),DE
+      000011 ED 73 F8 00      [20]   12 	LD		(#0xF8),SP
+      000015 DD 22 FA 00      [20]   13 	LD		(#0xFA),IX
+      000019 FD 22 FC 00      [20]   14 	LD		(#0xFC),IY
+      00001D E1               [10]   15 	POP		HL
+      00001E FB               [ 4]   16 	EI
+      00001F ED 4D            [14]   17 	RETI
+                                     18 
+      000021                         19 _init::
+      000021 21 00 FF         [10]   20 	LD		HL,#0xFF00	; Initialize stack pointer
+      000024 F9               [ 6]   21 	LD		SP,HL
+      000025 ED 56            [ 8]   22 	IM		1			; Interrupt mode 1 (@ 0x38)
+      000027 FB               [ 4]   23 	EI					; Enable interrupts
+      000028 C3 00 00         [10]   24 	JP		_main
+                                     25 
+                                     26 	
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 2
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |   1 _init      000021 GR  |     _main      ****** GX
+  1 _mode1_i   000000 GR
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 3
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size      0   flags    0
+   1 _ISRS      size     2B   flags    0
+

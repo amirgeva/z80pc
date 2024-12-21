@@ -1,0 +1,39 @@
+	.module bootloader
+	.optsdcc -mz80
+;--------------------------------------------------------
+; Public variables in this module
+;--------------------------------------------------------
+	.globl _services
+	.globl _init
+;--------------------------------------------------------
+; code
+;--------------------------------------------------------
+	.area _BOOT
+_start_bootloader::
+	jp    _init
+	nop
+	nop
+	nop
+	nop
+; Address 8	
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	PUSH	HL
+	PUSH	BC
+	LD		HL,#_services
+	SLA		A
+	ADD		A,L
+	LD		L,A
+	LD		A,3(IX)		; restore A
+	LD		C,(HL)
+	LD		2(IX),C
+	INC		HL
+	LD		B,(HL)
+	LD		3(IX),B
+	POP		BC
+	POP		HL
+	POP		IX
+	RET
+	
+	

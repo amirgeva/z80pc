@@ -1,0 +1,493 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+
+
+                                      1 	.area _CODE
+                                      2 	
+                           000C00     3 IO_BUFFER = 0x0C00
+                                      4 	
+                                      5 	.globl _input_write_ptr
+                                      6 	.globl _input_read_ptr
+                                      7 	
+                                      8 
+      000000                          9 input_empty::
+      000000 3A 00 00         [13]   10 	LD		A,(#_input_write_ptr)
+      000003 6F               [ 4]   11 	LD		L,A
+      000004 3A 00 00         [13]   12 	LD		A,(#_input_read_ptr)
+      000007 95               [ 4]   13 	SUB		L
+      000008 3E 01            [ 7]   14 	LD		A,#1
+      00000A C8               [11]   15 	RET		Z
+      00000B AF               [ 4]   16 	XOR		A
+      00000C C9               [10]   17 	RET
+                                     18 
+      00000D                         19 input_read::
+      00000D 3A 00 00         [13]   20 	LD		A,(#_input_read_ptr)
+      000010 26 01            [ 7]   21 	LD		H,#1    ; Input buffer at 0x0100, so H=1, L=offset
+      000012 6F               [ 4]   22 	LD		L,A
+      000013 4E               [ 7]   23 	LD		C,(HL)	; Byte read
+      000014 21 00 00         [10]   24 	LD		HL,#_input_read_ptr
+      000017 3E 1F            [ 7]   25 	LD		A,#0x1F ; size of buffer - 1
+      000019 34               [11]   26 	INC		(HL)
+      00001A A6               [ 7]   27 	AND		(HL)
+      00001B 77               [ 7]   28 	LD		(HL),A
+      00001C 79               [ 4]   29 	LD		A,C
+      00001D C9               [10]   30 	RET
+                                     31 
+      00001E                         32 strlen::
+      00001E 01 FF 00         [10]   33 	LD		BC,#255
+      000021 AF               [ 4]   34 	XOR		A
+      000022 ED B1            [21]   35 	CPIR
+      000024 79               [ 4]   36 	LD		A,C
+      000025 ED 44            [ 8]   37 	NEG
+      000027 D6 02            [ 7]   38 	SUB		#2
+      000029 C9               [10]   39 	RET
+                                     40 
+                                     41 ; copy string from HL -> DE
+      00002A                         42 strcpy::
+      00002A E5               [11]   43 	PUSH	HL
+      00002B CD 1E 00         [17]   44 	CALL	strlen
+      00002E 06 00            [ 7]   45 	LD		B,#0
+      000030 4F               [ 4]   46 	LD		C,A
+      000031 0C               [ 4]   47 	INC		C
+      000032 E1               [10]   48 	POP		HL
+      000033 ED B0            [21]   49 	LDIR
+      000035 C9               [10]   50 	RET
+                                     51 
+      000036                         52 print_text::
+      000036 E5               [11]   53 	PUSH	HL			; save text pointer
+      000037 3E 1E            [ 7]   54 	LD		A,#30		; Send 30, code for print
+      000039 CD A7 00         [17]   55 	CALL	_gpu_byte_a
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+
+
+      00003C E1               [10]   56 	POP		HL
+      00003D E5               [11]   57 	PUSH	HL
+      00003E CD 1E 00         [17]   58 	call	strlen
+      000041 F5               [11]   59 	PUSH	AF
+      000042 CD A7 00         [17]   60 	CALL	_gpu_byte_a	; strlen returns length in A,  send it
+      000045 F1               [10]   61 	POP		AF
+      000046 4F               [ 4]   62 	LD		C,A
+      000047 06 00            [ 7]   63 	LD		B,#0
+      000049 E1               [10]   64 	POP		HL			; restore text pointer
+      00004A C3 77 00         [10]   65 	JP		gpu_block_bc
+                                     66 	
+      00004D                         67 rng::
+      00004D 21                      68 	.db 0x21
+      00004E                         69 seed1:
+      00004E 0F 27                   70 	.db 0x0F, 0x27
+      000050 44               [ 4]   71 	LD		B,H
+      000051 4D               [ 4]   72 	LD		C,L
+      000052 29               [11]   73 	ADD		HL,HL
+      000053 29               [11]   74 	ADD		HL,HL
+      000054 2C               [ 4]   75 	INC		L
+      000055 09               [11]   76 	ADD		HL,BC
+      000056 22 4E 00         [16]   77 	LD		(seed1),HL
+      000059 21                      78 	.db 0x21
+      00005A                         79 seed2:
+      00005A DB 03                   80 	.db 0xDB, 0x03
+      00005C 29               [11]   81 	ADD HL,HL
+      00005D 9F               [ 4]   82 	SBC A,A
+      00005E E6 2D            [ 7]   83 	AND #0X2D	;#101101b
+      000060 AD               [ 4]   84 	XOR L
+      000061 6F               [ 4]   85 	LD L,A
+      000062 22 5A 00         [16]   86 	LD (seed2),HL
+      000065 09               [11]   87 	ADD HL,BC
+      000066 C9               [10]   88 	RET
+                                     89 
+      000067                         90 cls::
+      000067 3E 01            [ 7]   91 	LD		A,#1
+      000069 CD A7 00         [17]   92 	CALL	_gpu_byte_a
+      00006C C9               [10]   93 	RET
+                                     94 	
+      00006D                         95 newline::
+      00006D 3E 04            [ 7]   96 	LD		A,#4
+      00006F CD A7 00         [17]   97 	CALL	_gpu_byte_a
+      000072 C9               [10]   98 	RET
+                                     99 
+                                    100 ; copy block starting at HL+1, with length at (HL)
+      000073                        101 gpu_block::
+      000073 4E               [ 7]  102 	LD		C,(HL)			; C = number of bytes to copy
+      000074 06 00            [ 7]  103 	LD		B,#0			; BC = number of bytes to copy
+      000076 23               [ 6]  104 	INC		HL				; HL = pointer to data
+      000077                        105 gpu_block_bc::
+      000077 E5               [11]  106 	PUSH	HL
+      000078 2A FE 0B         [16]  107 	LD		HL,(#IO_BUFFER-2)
+      00007B E5               [11]  108 	PUSH	HL				;\
+      00007C 09               [11]  109 	ADD		HL,BC			;| Increment data count
+      00007D 3E 04            [ 7]  110 	LD		A,#4			;| Check for buffer overflow
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+
+
+      00007F BC               [ 4]  111 	CP		H				;|
+      000080 20 05            [12]  112 	JR		NZ, no_flush	;|
+      000082 CD 94 00         [17]  113 	CALL	gpu_flush		;| Too much data, flush first
+      000085 C5               [11]  114 	PUSH	BC				;|
+      000086 E1               [10]  115 	POP		HL				;|
+      000087                        116 no_flush:					;|
+      000087 22 FE 0B         [16]  117 	LD		(#IO_BUFFER-2),HL	;|
+      00008A E1               [10]  118 	POP		HL				;/
+      00008B 11 00 0C         [10]  119 	LD		DE,#IO_BUFFER
+      00008E 19               [11]  120 	ADD		HL,DE
+      00008F EB               [ 4]  121 	EX		DE,HL			; DE = target pointer
+      000090 E1               [10]  122 	POP		HL				; HL = source pointer
+      000091 ED B0            [21]  123 	LDIR					; copy block
+      000093 C9               [10]  124 	RET
+                                    125 
+      000094                        126 gpu_flush::
+      000094 21 FE 0B         [10]  127 	LD		HL,#IO_BUFFER-2
+      000097 7E               [ 7]  128 	LD		A,(HL)
+      000098 23               [ 6]  129 	INC		HL
+      000099 B6               [ 7]  130 	OR		(HL)
+      00009A C8               [11]  131 	RET		Z
+      00009B AF               [ 4]  132 	XOR		A
+      00009C D3 00            [11]  133 	OUT		(0),A
+      00009E 77               [ 7]  134 	LD		(HL),A
+      00009F 2B               [ 6]  135 	DEC		HL
+      0000A0 77               [ 7]  136 	LD		(HL),A
+      0000A1 C9               [10]  137 	RET
+                                    138 	
+      0000A2                        139 timer::
+      0000A2 2A EC 00         [16]  140 	LD		HL,(#0xEC)
+      0000A5 C9               [10]  141 	RET
+                                    142 
+      0000A6                        143 gpu_byte::
+      0000A6 7E               [ 7]  144 	LD		A,(HL)
+      0000A7                        145 _gpu_byte_a::
+      0000A7 2A FE 0B         [16]  146 	LD		HL,(#IO_BUFFER-2)    ; size of existing data
+      0000AA 23               [ 6]  147 	INC		HL
+      0000AB 22 FE 0B         [16]  148 	LD		(#IO_BUFFER-2),HL	; store increased size
+      0000AE 01 FF 0B         [10]  149 	LD		BC,#(IO_BUFFER-1)
+      0000B1 09               [11]  150 	ADD		HL,BC
+      0000B2 77               [ 7]  151 	LD		(HL),A
+      0000B3 C9               [10]  152 	RET
+                                    153 	
+      0000B4                        154 gpu_clear::
+      0000B4 21 FE 0B         [10]  155 	LD		HL,#(IO_BUFFER-2)
+      0000B7 06 0A            [ 7]  156 	LD		B,#10
+      0000B9                        157 gpu_clear_loop:
+      0000B9 36 00            [10]  158 	LD		(HL),#0
+      0000BB 23               [ 6]  159 	INC		HL
+      0000BC 10 FB            [13]  160 	DJNZ	gpu_clear_loop
+      0000BE C9               [10]  161 	RET
+                                    162 
+                                    163 
+      0000BF                        164 clear_gpu_cmd:
+      0000BF 21 FE 0B         [10]  165 	LD		HL,#(IO_BUFFER-2)
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 4.
+Hexadecimal [24-Bits]
+
+
+
+      0000C2 36 00            [10]  166 	LD		(HL),#0
+      0000C4 23               [ 6]  167 	INC		HL
+      0000C5 36 00            [10]  168 	LD		(HL),#0
+      0000C7 C9               [10]  169 	RET
+                                    170 
+      0000C8                        171 set_disk_cmd:
+      0000C8 21 FE 0B         [10]  172 	LD		HL,#(IO_BUFFER-2)
+      0000CB 36 FF            [10]  173 	LD		(HL),#255
+      0000CD 23               [ 6]  174 	INC		HL
+      0000CE 36 FF            [10]  175 	LD		(HL),#255
+      0000D0 C9               [10]  176 	RET
+                                    177 
+      0000D1                        178 wait_for_disk:
+      0000D1 21 FE 0B         [10]  179 	LD		HL,#(IO_BUFFER-2)
+      0000D4 AF               [ 4]  180 	XOR		A
+      0000D5                        181 wait_for_disk_loop:
+      0000D5 BE               [ 7]  182 	CP		(HL)
+      0000D6 20 FD            [12]  183 	JR		NZ, wait_for_disk_loop
+      0000D8 C9               [10]  184 	RET
+                                    185 
+                                    186 ; byte list_dir(const byte* path, byte* filename, word* size)
+      0000D9                        187 list_dir::
+                                    188 	; DE = filename
+                                    189 	; HL = path
+                                    190 	; (SP+2)=pointer to size
+      0000D9 DD E5            [15]  191 	PUSH	IX
+      0000DB DD 21 00 00      [14]  192 	LD		IX,#0
+      0000DF DD 39            [15]  193 	ADD		IX,SP
+      0000E1 D5               [11]  194 	PUSH	DE
+      0000E2 E5               [11]  195 	PUSH	HL
+      0000E3 CD 94 00         [17]  196 	CALL	gpu_flush
+      0000E6 FD 21 00 0C      [14]  197 	LD		IY,#IO_BUFFER
+      0000EA FD 36 00 01      [19]  198 	LD		0(IY),#1
+      0000EE 11 06 0C         [10]  199 	LD		DE,#(IO_BUFFER+6)
+      0000F1 E1               [10]  200 	POP		HL
+      0000F2 CD 2A 00         [17]  201 	CALL	strcpy
+      0000F5 CD C8 00         [17]  202 	CALL	set_disk_cmd
+      0000F8 3E 01            [ 7]  203 	LD		A,#1
+      0000FA D3 00            [11]  204 	OUT		(0),A
+      0000FC CD D1 00         [17]  205 	CALL	wait_for_disk
+      0000FF D1               [10]  206 	POP		DE
+      000100 21 06 0C         [10]  207 	LD		HL,#(IO_BUFFER+6)
+      000103 CD 2A 00         [17]  208 	CALL	strcpy
+      000106 21 02 0C         [10]  209 	LD		HL,#(IO_BUFFER+2)
+      000109 DD 5E 04         [19]  210 	LD		E,4(IX)
+      00010C DD 56 05         [19]  211 	LD		D,5(IX)
+      00010F 0E 02            [ 7]  212 	LD		C,#2
+      000111 06 00            [ 7]  213 	LD		B,#0
+      000113 ED B0            [21]  214 	LDIR
+                                    215 	
+      000115 FD 7E 00         [19]  216 	LD		A,0(IY)
+                                    217 	
+      000118 DD E1            [14]  218 	POP		IX
+      00011A C9               [10]  219 	RET
+                                    220 	
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 5.
+Hexadecimal [24-Bits]
+
+
+
+                                    221 ; byte list_next(byte* filename, word* size)
+      00011B                        222 list_next::
+                                    223 	; HL=filename
+                                    224 	; DE=size
+      00011B DD E5            [15]  225 	PUSH	IX
+      00011D DD 21 00 00      [14]  226 	LD		IX,#0
+      000121 DD 39            [15]  227 	ADD		IX,SP
+      000123 D5               [11]  228 	PUSH	DE
+      000124 E5               [11]  229 	PUSH	HL
+      000125 CD 94 00         [17]  230 	CALL	gpu_flush
+      000128 21 00 0C         [10]  231 	LD		HL,#IO_BUFFER
+      00012B 36 02            [10]  232 	LD		(HL),#2
+      00012D CD C8 00         [17]  233 	CALL	set_disk_cmd
+      000130 3E 01            [ 7]  234 	LD		A,#1
+      000132 D3 00            [11]  235 	OUT		(0),A
+      000134 CD D1 00         [17]  236 	CALL	wait_for_disk
+      000137 D1               [10]  237 	POP		DE
+      000138 21 06 0C         [10]  238 	LD		HL,#(IO_BUFFER+6)
+      00013B CD 2A 00         [17]  239 	CALL	strcpy
+      00013E E1               [10]  240 	POP		HL
+      00013F 5E               [ 7]  241 	LD		E,(HL)
+      000140 23               [ 6]  242 	INC		HL
+      000141 56               [ 7]  243 	LD		D,(HL)
+      000142 21 02 0C         [10]  244 	LD		HL,#(IO_BUFFER+2)
+      000145 01 02 00         [10]  245 	LD		BC,#2
+      000148 ED B0            [21]  246 	LDIR
+                                    247 	
+      00014A 21 00 0C         [10]  248 	LD		HL,#IO_BUFFER
+      00014D 7E               [ 7]  249 	LD		A,(HL)
+                                    250 
+      00014E DD E1            [14]  251 	POP		IX
+      000150 C9               [10]  252 	RET
+                                    253 	
+                                    254 ; byte open_file(const char* filename, byte write)
+                                    255 ; HL = filename
+                                    256 ; (SP+2) = write
+                                    257 ; function needs to pop single byte SP+2
+      000151                        258 open_file::
+      000151 DD E5            [15]  259 	PUSH	IX
+      000153 DD 21 00 00      [14]  260 	LD		IX,#0
+      000157 DD 39            [15]  261 	ADD		IX,SP
+                                    262 	
+      000159 E5               [11]  263 	PUSH	HL
+      00015A CD 94 00         [17]  264 	CALL	gpu_flush
+      00015D D1               [10]  265 	POP		DE
+                                    266 
+      00015E 21 00 0C         [10]  267 	LD		HL,#IO_BUFFER
+      000161 36 05            [10]  268 	LD		(HL),#5
+      000163 23               [ 6]  269 	INC		HL
+      000164 DD 7E 04         [19]  270 	LD		A,4(IX)
+      000167 77               [ 7]  271 	LD		(HL),A
+      000168 21 06 0C         [10]  272 	LD		HL,#(IO_BUFFER+6)		; filename buffer
+      00016B EB               [ 4]  273 	EX		DE,HL
+      00016C CD 2A 00         [17]  274 	CALL	strcpy
+      00016F CD C8 00         [17]  275 	CALL	set_disk_cmd
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 6.
+Hexadecimal [24-Bits]
+
+
+
+      000172 3E 01            [ 7]  276 	LD		A,#1
+      000174 D3 00            [11]  277 	OUT		(0),A
+      000176 CD D1 00         [17]  278 	CALL	wait_for_disk
+      000179 21 01 0C         [10]  279 	LD		HL,#(IO_BUFFER+1)
+      00017C 7E               [ 7]  280 	LD		A,(HL)
+                                    281 	
+      00017D DD E1            [14]  282 	POP		IX
+      00017F E1               [10]  283 	POP		HL
+      000180 33               [ 6]  284 	INC		SP ;	pop write
+      000181 E9               [ 4]  285 	JP		(HL)
+                                    286 
+                                    287 
+                                    288 ; word read_file(byte handle, byte* buffer, word size)
+                                    289 ; A=handle
+                                    290 ; DE=buffer
+                                    291 ; (SP+2)=size
+                                    292 ; function needs to pop 2 bytes for (SP+2)
+                                    293 ; return word in DE
+      000182                        294 read_file::
+      000182 DD E5            [15]  295 	PUSH	IX
+      000184 DD 21 00 00      [14]  296 	LD		IX,#0
+      000188 DD 39            [15]  297 	ADD		IX,SP
+                                    298 	
+      00018A F5               [11]  299 	PUSH	AF
+      00018B CD 94 00         [17]  300 	CALL	gpu_flush
+      00018E F1               [10]  301 	POP		AF
+                                    302 	
+      00018F 21 00 0C         [10]  303 	LD		HL,#IO_BUFFER
+      000192 36 06            [10]  304 	LD		(HL),#6
+      000194 23               [ 6]  305 	INC		HL
+      000195 77               [ 7]  306 	LD		(HL),A
+      000196 23               [ 6]  307 	INC		HL
+      000197 DD 4E 04         [19]  308 	LD		C,4(IX)
+      00019A DD 46 05         [19]  309 	LD		B,5(IX)
+      00019D 71               [ 7]  310 	LD		(HL),C
+      00019E 23               [ 6]  311 	INC		HL
+      00019F 70               [ 7]  312 	LD		(HL),B
+      0001A0 23               [ 6]  313 	INC		HL
+      0001A1 73               [ 7]  314 	LD		(HL),E
+      0001A2 23               [ 6]  315 	INC		HL
+      0001A3 72               [ 7]  316 	LD		(HL),D
+      0001A4 CD C8 00         [17]  317 	CALL	set_disk_cmd
+      0001A7 3E 01            [ 7]  318 	LD		A,#1
+      0001A9 D3 00            [11]  319 	OUT		(0),A
+      0001AB CD D1 00         [17]  320 	CALL	wait_for_disk
+      0001AE 21 02 0C         [10]  321 	LD		HL,#(IO_BUFFER+2)
+      0001B1 5E               [ 7]  322 	LD		E,(HL)
+      0001B2 23               [ 6]  323 	INC		HL
+      0001B3 56               [ 7]  324 	LD		D,(HL)
+                                    325 	
+      0001B4 DD E1            [14]  326 	POP		IX
+      0001B6 E1               [10]  327 	POP		HL	; return address
+      0001B7 C1               [10]  328 	POP		BC	; pop size
+      0001B8 E9               [ 4]  329 	JP		(HL)
+                                    330 
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 7.
+Hexadecimal [24-Bits]
+
+
+
+                                    331 
+      0001B9                        332 close_file::
+      0001B9 DD E5            [15]  333 	PUSH	IX
+      0001BB DD 21 00 00      [14]  334 	LD		IX,#0
+      0001BF DD 39            [15]  335 	ADD		IX,SP
+                                    336 	
+      0001C1 F5               [11]  337 	PUSH	AF
+      0001C2 CD 94 00         [17]  338 	CALL	gpu_flush
+      0001C5 F1               [10]  339 	POP		AF
+                                    340 	
+      0001C6 21 00 0C         [10]  341 	LD		HL,#IO_BUFFER
+      0001C9 36 08            [10]  342 	LD		(HL),#8
+      0001CB 23               [ 6]  343 	INC		HL
+      0001CC 77               [ 7]  344 	LD		(HL),A
+      0001CD CD C8 00         [17]  345 	CALL	set_disk_cmd
+      0001D0 3E 01            [ 7]  346 	LD		A,#1
+      0001D2 D3 00            [11]  347 	OUT		(0),A
+      0001D4 CD D1 00         [17]  348 	CALL	wait_for_disk
+                                    349 	
+      0001D7 DD E1            [14]  350 	POP		IX
+      0001D9 C9               [10]  351 	RET
+                                    352 
+                                    353 
+                                    354 ; HL = filename
+                                    355 ; (SP+2) = index
+                                    356 ; function needs to pop single byte SP+2
+      0001DA                        357 load_sprites::
+      0001DA DD E5            [15]  358 	PUSH	IX
+      0001DC DD 21 00 00      [14]  359 	LD		IX,#0
+      0001E0 DD 39            [15]  360 	ADD		IX,SP
+                                    361 	
+      0001E2 E5               [11]  362 	PUSH	HL
+      0001E3 CD 94 00         [17]  363 	CALL	gpu_flush
+      0001E6 D1               [10]  364 	POP		DE
+                                    365 
+      0001E7 21 00 0C         [10]  366 	LD		HL,#IO_BUFFER
+      0001EA 36 09            [10]  367 	LD		(HL),#9
+      0001EC 23               [ 6]  368 	INC		HL
+      0001ED DD 7E 04         [19]  369 	LD		A,4(IX)
+      0001F0 77               [ 7]  370 	LD		(HL),A
+      0001F1 21 06 0C         [10]  371 	LD		HL,#(IO_BUFFER+6)		; filename buffer
+      0001F4 EB               [ 4]  372 	EX		DE,HL
+      0001F5 CD 2A 00         [17]  373 	CALL	strcpy
+      0001F8 CD C8 00         [17]  374 	CALL	set_disk_cmd
+      0001FB 3E 01            [ 7]  375 	LD		A,#1
+      0001FD D3 00            [11]  376 	OUT		(0),A
+      0001FF CD D1 00         [17]  377 	CALL	wait_for_disk
+                                    378 	
+      000202 DD E1            [14]  379 	POP		IX
+      000204 E1               [10]  380 	POP		HL
+      000205 33               [ 6]  381 	INC		SP ;	pop write
+      000206 E9               [ 4]  382 	JP		(HL)
+                                    383 	
+      000207                        384 _div_mod::
+      000207 5E               [ 7]  385 	LD		E,(HL)
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 8.
+Hexadecimal [24-Bits]
+
+
+
+      000208 23               [ 6]  386 	INC		HL
+      000209 56               [ 7]  387 	LD		D,(HL)
+      00020A 23               [ 6]  388 	INC		HL
+      00020B 4E               [ 7]  389 	LD		C,(HL)
+      00020C E5               [11]  390 	PUSH	HL
+      00020D EB               [ 4]  391 	EX		DE,HL
+      00020E AF               [ 4]  392 	XOR		A
+      00020F 06 10            [ 7]  393 	LD		B,#16
+      000211                        394 _loop_div_mod:
+      000211 29               [11]  395 	ADD		HL, HL
+      000212 17               [ 4]  396 	RLA
+      000213 38 03            [12]  397 	JR		C, _div_mod_j1
+      000215 B9               [ 4]  398 	CP		C
+      000216 38 02            [12]  399 	JR		C, _div_mod_j2
+      000218                        400 _div_mod_j1:
+      000218 91               [ 4]  401 	SUB		C
+      000219 2C               [ 4]  402 	INC		L
+      00021A                        403 _div_mod_j2:
+      00021A 10 F5            [13]  404 	DJNZ	_loop_div_mod
+                                    405 
+      00021C EB               [ 4]  406 	EX	DE,HL
+      00021D E1               [10]  407 	POP	HL
+      00021E 77               [ 7]  408 	LD	(HL),A
+      00021F 2B               [ 6]  409 	DEC	HL
+      000220 72               [ 7]  410 	LD	(HL),D
+      000221 2B               [ 6]  411 	DEC	HL
+      000222 73               [ 7]  412 	LD	(HL),E
+      000223 C9               [10]  413 	RET
+                                    414 	
+      000224                        415 bounds_check::
+      000224 7A               [ 4]  416 	LD		A,D
+      000225 BC               [ 4]  417 	CP		H
+      000226 38 04            [12]  418 	JR		C, _bounds_error	; D-H < 0  -> error
+      000228 C0               [11]  419 	RET		NZ					; D-H > 0  -> no error
+      000229 7B               [ 4]  420 	LD  	A,E
+      00022A BD               [ 4]  421 	CP		L
+      00022B D0               [11]  422 	RET		NC	; H=D & L<=E  no error
+      00022C                        423 _bounds_error:
+      00022C 21 FF 00         [10]  424 	LD		HL,#0xFF
+      00022F 36 01            [10]  425 	LD		(HL),#1
+      000231 C9               [10]  426 	RET
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 9.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |     IO_BUFFE=  000C00     |   0 _bounds_   00022C R
+  0 _div_mod   000207 GR  |   0 _div_mod   000218 R   |   0 _div_mod   00021A R
+  0 _gpu_byt   0000A7 GR  |     _input_r   ****** GX  |     _input_w   ****** GX
+  0 _loop_di   000211 R   |   0 bounds_c   000224 GR  |   0 clear_gp   0000BF R
+  0 close_fi   0001B9 GR  |   0 cls        000067 GR  |   0 gpu_bloc   000073 GR
+  0 gpu_bloc   000077 GR  |   0 gpu_byte   0000A6 GR  |   0 gpu_clea   0000B4 GR
+  0 gpu_clea   0000B9 R   |   0 gpu_flus   000094 GR  |   0 input_em   000000 GR
+  0 input_re   00000D GR  |   0 list_dir   0000D9 GR  |   0 list_nex   00011B GR
+  0 load_spr   0001DA GR  |   0 newline    00006D GR  |   0 no_flush   000087 R
+  0 open_fil   000151 GR  |   0 print_te   000036 GR  |   0 read_fil   000182 GR
+  0 rng        00004D GR  |   0 seed1      00004E R   |   0 seed2      00005A R
+  0 set_disk   0000C8 R   |   0 strcpy     00002A GR  |   0 strlen     00001E GR
+  0 timer      0000A2 GR  |   0 wait_for   0000D1 R   |   0 wait_for   0000D5 R
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 10.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size    232   flags    0
+

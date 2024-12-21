@@ -1,0 +1,23 @@
+
+	.globl _rng
+
+	.area _CODE
+	
+_rng::
+	.db 0x21
+seed1:
+	.db 0x0F, 0x27
+	
+	ld b,h
+	ld c,l
+	add hl,hl
+	add hl,hl
+	inc l
+	add hl,bc
+	ld (seed1),hl
+	.db 0x21
+seed2:
+	.db 0xDB, 0x03
+	
+	ret
+	

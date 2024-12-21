@@ -1,0 +1,3 @@
+C:/prg/github/z80pc/v1.8/dev/build/CMakeFiles/fb.dir
+C:/prg/github/z80pc/v1.8/dev/build/CMakeFiles/ALL_BUILD.dir
+C:/prg/github/z80pc/v1.8/dev/build/CMakeFiles/ZERO_CHECK.dir

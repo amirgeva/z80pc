@@ -1,0 +1,33 @@
+	.area _ISRS
+
+_input_isr::
+	PUSH	AF
+	PUSH	HL
+	PUSH	IX
+	PUSH	BC
+	IN		A,(0)
+	OR		A
+	JR		NZ,no_timer
+	LD		HL,#0x1124			; timer
+	INC		(HL)
+	JP		isr_done
+no_timer:	
+	LD		B,A					; Save input data for later
+	LD		IX,#0x1120
+	LD		A,0(IX)			; Write
+	LD		C,1(IX)			; Read
+	DEC		C
+	CP		C
+	JR		Z,isr_done			; If buffer full
+	LD		H,#0x10				; Beginning of input buffer
+	LD		L,A
+	LD		(HL),B				; Store input byte
+	INC		A
+	LD		0(IX),A
+isr_done:
+	POP		BC
+	POP		IX
+	POP		HL
+	POP		AF
+	EI
+	RETI

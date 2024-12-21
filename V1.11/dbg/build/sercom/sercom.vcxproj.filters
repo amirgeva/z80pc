@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\prg\github\z80pc\V1.11\dbg\sercom\src\linux.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\prg\github\z80pc\V1.11\dbg\sercom\src\win.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\prg\github\z80pc\V1.11\dbg\sercom\include\sercom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\prg\github\z80pc\V1.11\dbg\sercom\src\impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\prg\github\z80pc\V1.11\dbg\sercom\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{55C30362-4AB5-3B63-B55A-8BDB29F1A5C3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{FA484BE0-FF3B-39DF-A914-9B1C8F082C4F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

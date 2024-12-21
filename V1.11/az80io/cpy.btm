@@ -1,0 +1,5 @@
+copy ..\z80io\src\*.cpp .
+copy ..\z80io\src\*.h .
+move az80io.cpp az80io.ino
+::tail +2 az80io.cpp > az80io.ino
+::del az80io.cpp

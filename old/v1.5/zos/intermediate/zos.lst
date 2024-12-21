@@ -1,0 +1,397 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ISO C Compiler 
+                                      3 ; Version 4.2.2 #13407 (MINGW64)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module zos
+                                      6 	.optsdcc -mz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _process_command
+                                     12 	.globl _print_text
+                                     13 	.globl _main
+                                     14 	.globl _service6
+                                     15 	.globl _service5
+                                     16 	.globl _service4
+                                     17 	.globl _service3
+                                     18 	.globl _service2
+                                     19 	.globl _service1
+                                     20 	.globl _command_pos
+                                     21 	.globl _command_buffer
+                                     22 	.globl _gdata
+                                     23 	.globl _input_empty
+                                     24 	.globl _input_read
+                                     25 	.globl _strlen
+                                     26 	.globl _strcmp
+                                     27 	.globl _cls
+                                     28 	.globl _print_prompt
+                                     29 	.globl _process_input
+                                     30 ;--------------------------------------------------------
+                                     31 ; special function registers
+                                     32 ;--------------------------------------------------------
+                                     33 ;--------------------------------------------------------
+                                     34 ; ram data
+                                     35 ;--------------------------------------------------------
+                                     36 	.area _DATA
+      000000                         37 _command_buffer::
+      000000                         38 	.ds 32
+      000020                         39 _command_pos::
+      000020                         40 	.ds 1
+                                     41 ;--------------------------------------------------------
+                                     42 ; ram data
+                                     43 ;--------------------------------------------------------
+                                     44 	.area _INITIALIZED
+                                     45 ;--------------------------------------------------------
+                                     46 ; absolute external ram data
+                                     47 ;--------------------------------------------------------
+                                     48 	.area _DABS (ABS)
+                                     49 ;--------------------------------------------------------
+                                     50 ; global & static initialisations
+                                     51 ;--------------------------------------------------------
+                                     52 	.area _HOME
+                                     53 	.area _GSINIT
+                                     54 	.area _GSFINAL
+                                     55 	.area _GSINIT
+                                     56 ;--------------------------------------------------------
+                                     57 ; Home
+                                     58 ;--------------------------------------------------------
+                                     59 	.area _HOME
+                                     60 	.area _HOME
+                                     61 ;--------------------------------------------------------
+                                     62 ; code
+                                     63 ;--------------------------------------------------------
+                                     64 	.area _CODE
+                                     65 ;zos.c:5: byte service1()
+                                     66 ;	---------------------------------
+                                     67 ; Function service1
+                                     68 ; ---------------------------------
+      000000                         69 _service1::
+                                     70 ;zos.c:7: return 0;
+      000000 AF               [ 4]   71 	xor	a, a
+                                     72 ;zos.c:8: }
+      000001 C9               [10]   73 	ret
+      000002                         74 _gdata:
+      000002 0C                      75 	.db #0x0c	; 12
+      000003 4D                      76 	.db #0x4d	; 77	'M'
+      000004 41                      77 	.db #0x41	; 65	'A'
+      000005 FF                      78 	.db #0xff	; 255
+                                     79 ;zos.c:10: byte service2(byte data)
+                                     80 ;	---------------------------------
+                                     81 ; Function service2
+                                     82 ; ---------------------------------
+      000006                         83 _service2::
+                                     84 ;zos.c:13: return 0;
+      000006 AF               [ 4]   85 	xor	a, a
+                                     86 ;zos.c:14: }
+      000007 C9               [10]   87 	ret
+                                     88 ;zos.c:16: byte service3(byte* pointer)
+                                     89 ;	---------------------------------
+                                     90 ; Function service3
+                                     91 ; ---------------------------------
+      000008                         92 _service3::
+                                     93 ;zos.c:19: return 0;
+      000008 AF               [ 4]   94 	xor	a, a
+                                     95 ;zos.c:20: }
+      000009 C9               [10]   96 	ret
+                                     97 ;zos.c:22: byte service4(byte* pointer, byte data)
+                                     98 ;	---------------------------------
+                                     99 ; Function service4
+                                    100 ; ---------------------------------
+      00000A                        101 _service4::
+                                    102 ;zos.c:26: return 0;
+      00000A AF               [ 4]  103 	xor	a, a
+                                    104 ;zos.c:27: }
+      00000B E1               [10]  105 	pop	hl
+      00000C 33               [ 6]  106 	inc	sp
+      00000D E9               [ 4]  107 	jp	(hl)
+                                    108 ;zos.c:29: byte service5()
+                                    109 ;	---------------------------------
+                                    110 ; Function service5
+                                    111 ; ---------------------------------
+      00000E                        112 _service5::
+                                    113 ;zos.c:31: return 0;
+      00000E AF               [ 4]  114 	xor	a, a
+                                    115 ;zos.c:32: }
+      00000F C9               [10]  116 	ret
+                                    117 ;zos.c:34: byte service6()
+                                    118 ;	---------------------------------
+                                    119 ; Function service6
+                                    120 ; ---------------------------------
+      000010                        121 _service6::
+                                    122 ;zos.c:36: return 0;
+      000010 AF               [ 4]  123 	xor	a, a
+                                    124 ;zos.c:37: }
+      000011 C9               [10]  125 	ret
+                                    126 ;zos.c:43: void main()
+                                    127 ;	---------------------------------
+                                    128 ; Function main
+                                    129 ; ---------------------------------
+      000012                        130 _main::
+                                    131 ;zos.c:45: command_pos=0;
+      000012 21r20r00         [10]  132 	ld	hl, #_command_pos
+      000015 36 00            [10]  133 	ld	(hl), #0x00
+                                    134 ;zos.c:46: cls();
+      000017 CDrBFr00         [17]  135 	call	_cls
+                                    136 ;zos.c:47: while (1)
+      00001A                        137 00105$:
+                                    138 ;zos.c:49: print_prompt();
+      00001A CDrC4r00         [17]  139 	call	_print_prompt
+                                    140 ;zos.c:50: while (!process_input());
+      00001D                        141 00101$:
+      00001D CDrE1r00         [17]  142 	call	_process_input
+      000020 B7               [ 4]  143 	or	a, a
+      000021 20 F7            [12]  144 	jr	NZ, 00105$
+                                    145 ;zos.c:52: }
+      000023 18 F8            [12]  146 	jr	00101$
+                                    147 ;zos.c:54: byte input_empty() __naked
+                                    148 ;	---------------------------------
+                                    149 ; Function input_empty
+                                    150 ; ---------------------------------
+      000025                        151 _input_empty::
+                                    152 ;zos.c:64: __endasm;
+      000025 3A F1 00         [13]  153 	LD	A,(#0xF1)
+      000028 21 F0 00         [10]  154 	LD	HL,#0xF0
+      00002B 96               [ 7]  155 	SUB	(HL)
+      00002C 3E 01            [ 7]  156 	LD	A,#1
+      00002E C8               [11]  157 	RET	Z
+      00002F AF               [ 4]  158 	XOR	A
+      000030 C9               [10]  159 	RET
+                                    160 ;zos.c:65: }
+                                    161 ;zos.c:67: byte input_read() __naked
+                                    162 ;	---------------------------------
+                                    163 ; Function input_read
+                                    164 ; ---------------------------------
+      000031                        165 _input_read::
+                                    166 ;zos.c:77: __endasm;
+      000031 3A F1 00         [13]  167 	LD	A,(#0xF1)
+      000034 26 01            [ 7]  168 	LD	H,#1
+      000036 6F               [ 4]  169 	LD	L,A
+      000037 7E               [ 7]  170 	LD	A,(HL)
+      000038 21 F1 00         [10]  171 	LD	HL,#0xF1
+      00003B 34               [11]  172 	INC	(HL)
+      00003C C9               [10]  173 	RET
+                                    174 ;zos.c:78: }
+                                    175 ;zos.c:80: byte strlen(const byte* text)
+                                    176 ;	---------------------------------
+                                    177 ; Function strlen
+                                    178 ; ---------------------------------
+      00003D                        179 _strlen::
+                                    180 ;zos.c:84: return res;
+      00003D 0E 00            [ 7]  181 	ld	c, #0x00
+      00003F                        182 00103$:
+                                    183 ;zos.c:83: for(;*text;++text,++res);
+      00003F 7E               [ 7]  184 	ld	a, (hl)
+      000040 B7               [ 4]  185 	or	a, a
+      000041 28 04            [12]  186 	jr	Z, 00101$
+      000043 23               [ 6]  187 	inc	hl
+      000044 0C               [ 4]  188 	inc	c
+      000045 18 F8            [12]  189 	jr	00103$
+      000047                        190 00101$:
+                                    191 ;zos.c:84: return res;
+      000047 79               [ 4]  192 	ld	a, c
+                                    193 ;zos.c:85: }
+      000048 C9               [10]  194 	ret
+                                    195 ;zos.c:87: char strcmp(const char* a, const char* b)
+                                    196 ;	---------------------------------
+                                    197 ; Function strcmp
+                                    198 ; ---------------------------------
+      000049                        199 _strcmp::
+      000049 DD E5            [15]  200 	push	ix
+      00004B DD 21 00 00      [14]  201 	ld	ix,#0
+      00004F DD 39            [15]  202 	add	ix,sp
+      000051 F5               [11]  203 	push	af
+      000052 4D               [ 4]  204 	ld	c, l
+      000053 44               [ 4]  205 	ld	b, h
+      000054 33               [ 6]  206 	inc	sp
+      000055 33               [ 6]  207 	inc	sp
+      000056 D5               [11]  208 	push	de
+                                    209 ;zos.c:89: if (!a && !b) return 0;
+      000057 78               [ 4]  210 	ld	a, b
+      000058 B1               [ 4]  211 	or	a, c
+      000059 20 0B            [12]  212 	jr	NZ, 00102$
+      00005B DD 7E FF         [19]  213 	ld	a, -1 (ix)
+      00005E DD B6 FE         [19]  214 	or	a, -2 (ix)
+      000061 20 03            [12]  215 	jr	NZ, 00102$
+      000063 AF               [ 4]  216 	xor	a, a
+      000064 18 45            [12]  217 	jr	00120$
+      000066                        218 00102$:
+                                    219 ;zos.c:90: if (!a) return 1;
+      000066 78               [ 4]  220 	ld	a, b
+      000067 B1               [ 4]  221 	or	a, c
+      000068 20 04            [12]  222 	jr	NZ, 00105$
+      00006A 3E 01            [ 7]  223 	ld	a, #0x01
+      00006C 18 3D            [12]  224 	jr	00120$
+      00006E                        225 00105$:
+                                    226 ;zos.c:91: if (!b) return -1;
+      00006E DD 7E FF         [19]  227 	ld	a, -1 (ix)
+      000071 DD B6 FE         [19]  228 	or	a, -2 (ix)
+      000074 20 04            [12]  229 	jr	NZ, 00133$
+      000076 3E FF            [ 7]  230 	ld	a, #0xff
+      000078 18 31            [12]  231 	jr	00120$
+                                    232 ;zos.c:92: while (1)
+      00007A                        233 00133$:
+      00007A E1               [10]  234 	pop	hl
+      00007B E5               [11]  235 	push	hl
+      00007C                        236 00118$:
+                                    237 ;zos.c:94: if (*a==0 && *b==0) return 0;
+      00007C 0A               [ 7]  238 	ld	a, (bc)
+      00007D B7               [ 4]  239 	or	a, a
+      00007E 20 08            [12]  240 	jr	NZ, 00109$
+      000080 5E               [ 7]  241 	ld	e, (hl)
+      000081 1C               [ 4]  242 	inc	e
+      000082 1D               [ 4]  243 	dec	e
+      000083 20 03            [12]  244 	jr	NZ, 00109$
+      000085 7B               [ 4]  245 	ld	a, e
+      000086 18 23            [12]  246 	jr	00120$
+      000088                        247 00109$:
+                                    248 ;zos.c:95: if (*a==0) return 1;
+      000088 B7               [ 4]  249 	or	a, a
+      000089 20 04            [12]  250 	jr	NZ, 00112$
+      00008B 3E 01            [ 7]  251 	ld	a, #0x01
+      00008D 18 1C            [12]  252 	jr	00120$
+      00008F                        253 00112$:
+                                    254 ;zos.c:96: if (*b==0) return -1;
+      00008F 5E               [ 7]  255 	ld	e, (hl)
+      000090 1C               [ 4]  256 	inc	e
+      000091 1D               [ 4]  257 	dec	e
+      000092 20 04            [12]  258 	jr	NZ, 00114$
+      000094 3E FF            [ 7]  259 	ld	a, #0xff
+      000096 18 13            [12]  260 	jr	00120$
+      000098                        261 00114$:
+                                    262 ;zos.c:97: if (*a==*b) 
+      000098 BB               [ 4]  263 	cp	a, e
+      000099 20 04            [12]  264 	jr	NZ, 00116$
+                                    265 ;zos.c:99: ++a;
+                                    266 ;zos.c:100: ++b;
+      00009B 23               [ 6]  267 	inc	hl
+      00009C 03               [ 6]  268 	inc	bc
+                                    269 ;zos.c:101: continue;
+      00009D 18 DD            [12]  270 	jr	00118$
+      00009F                        271 00116$:
+                                    272 ;zos.c:103: return *a<*b?-1:1;
+      00009F 93               [ 4]  273 	sub	a, e
+      0000A0 30 05            [12]  274 	jr	NC, 00122$
+      0000A2 01 FF FF         [10]  275 	ld	bc, #0xffff
+      0000A5 18 03            [12]  276 	jr	00123$
+      0000A7                        277 00122$:
+      0000A7 01 01 00         [10]  278 	ld	bc, #0x0001
+      0000AA                        279 00123$:
+      0000AA 79               [ 4]  280 	ld	a, c
+                                    281 ;zos.c:105: return 0;
+      0000AB                        282 00120$:
+                                    283 ;zos.c:106: }
+      0000AB DD F9            [10]  284 	ld	sp, ix
+      0000AD DD E1            [14]  285 	pop	ix
+      0000AF C9               [10]  286 	ret
+                                    287 ;zos.c:108: void print_text(const char* text)
+                                    288 ;	---------------------------------
+                                    289 ; Function print_text
+                                    290 ; ---------------------------------
+      0000B0                        291 _print_text::
+                                    292 ;zos.c:120: __endasm;
+      0000B0 3E 1E            [ 7]  293 	LD	A,#30
+      0000B2 D3 00            [11]  294 	OUT	(0),A
+      0000B4 E5               [11]  295 	push	HL
+      0000B5 CDr3Dr00         [17]  296 	call	_strlen
+      0000B8 E1               [10]  297 	pop	HL
+      0000B9 D3 00            [11]  298 	OUT	(0),A
+      0000BB 47               [ 4]  299 	LD	B,A
+      0000BC ED B3            [21]  300 	OTIR
+                                    301 ;zos.c:121: }
+      0000BE C9               [10]  302 	ret
+                                    303 ;zos.c:123: void cls()
+                                    304 ;	---------------------------------
+                                    305 ; Function cls
+                                    306 ; ---------------------------------
+      0000BF                        307 _cls::
+                                    308 ;zos.c:128: __endasm;
+      0000BF 3E 01            [ 7]  309 	LD	A,#1
+      0000C1 D3 00            [11]  310 	OUT	(0),A
+                                    311 ;zos.c:129: }
+      0000C3 C9               [10]  312 	ret
+                                    313 ;zos.c:131: void print_prompt()
+                                    314 ;	---------------------------------
+                                    315 ; Function print_prompt
+                                    316 ; ---------------------------------
+      0000C4                        317 _print_prompt::
+                                    318 ;zos.c:133: const char* os_prompt="zOS>";
+                                    319 ;zos.c:134: print_text(os_prompt);
+      0000C4 21rCAr00         [10]  320 	ld	hl, #___str_0
+                                    321 ;zos.c:135: }
+      0000C7 C3rB0r00         [10]  322 	jp	_print_text
+      0000CA                        323 ___str_0:
+      0000CA 7A 4F 53 3E            324 	.ascii "zOS>"
+      0000CE 00                     325 	.db 0x00
+                                    326 ;zos.c:137: void process_command()
+                                    327 ;	---------------------------------
+                                    328 ; Function process_command
+                                    329 ; ---------------------------------
+      0000CF                        330 _process_command::
+                                    331 ;zos.c:141: if (strcmp(command_buffer, "run") == 0)
+      0000CF 11rDDr00         [10]  332 	ld	de, #___str_1
+      0000D2 21r00r00         [10]  333 	ld	hl, #_command_buffer
+      0000D5 CDr49r00         [17]  334 	call	_strcmp
+      0000D8 B7               [ 4]  335 	or	a, a
+                                    336 ;zos.c:142: user_program();
+      0000D9 CA 00 10         [10]  337 	jp	Z,0x1000
+                                    338 ;zos.c:143: }
+      0000DC C9               [10]  339 	ret
+      0000DD                        340 ___str_1:
+      0000DD 72 75 6E               341 	.ascii "run"
+      0000E0 00                     342 	.db 0x00
+                                    343 ;zos.c:145: byte process_input()
+                                    344 ;	---------------------------------
+                                    345 ; Function process_input
+                                    346 ; ---------------------------------
+      0000E1                        347 _process_input::
+                                    348 ;zos.c:147: if (!input_empty())
+      0000E1 CDr25r00         [17]  349 	call	_input_empty
+      0000E4 B7               [ 4]  350 	or	a, a
+      0000E5 20 37            [12]  351 	jr	NZ, 00107$
+                                    352 ;zos.c:149: byte data = input_read();
+      0000E7 CDr31r00         [17]  353 	call	_input_read
+                                    354 ;zos.c:150: if (data==10 || data==13)
+      0000EA 4F               [ 4]  355 	ld	c, a
+      0000EB D6 0A            [ 7]  356 	sub	a, #0x0a
+      0000ED 28 05            [12]  357 	jr	Z, 00101$
+      0000EF 79               [ 4]  358 	ld	a, c
+      0000F0 D6 0D            [ 7]  359 	sub	a, #0x0d
+      0000F2 20 0B            [12]  360 	jr	NZ, 00102$
+      0000F4                        361 00101$:
+                                    362 ;zos.c:152: process_command();
+      0000F4 CDrCFr00         [17]  363 	call	_process_command
+                                    364 ;zos.c:153: command_pos=0;
+      0000F7 21r20r00         [10]  365 	ld	hl, #_command_pos
+      0000FA 36 00            [10]  366 	ld	(hl), #0x00
+                                    367 ;zos.c:154: return 1;
+      0000FC 3E 01            [ 7]  368 	ld	a, #0x01
+      0000FE C9               [10]  369 	ret
+      0000FF                        370 00102$:
+                                    371 ;zos.c:156: if (command_pos < 30)
+      0000FF 3Ar20r00         [13]  372 	ld	a, (_command_pos+0)
+      000102 D6 1E            [ 7]  373 	sub	a, #0x1e
+      000104 30 18            [12]  374 	jr	NC, 00107$
+                                    375 ;zos.c:158: command_buffer[command_pos++]=data;
+      000106 11r00r00         [10]  376 	ld	de, #_command_buffer+0
+      000109 3Ar20r00         [13]  377 	ld	a, (_command_pos+0)
+      00010C 47               [ 4]  378 	ld	b, a
+      00010D 21r20r00         [10]  379 	ld	hl, #_command_pos
+      000110 34               [11]  380 	inc	(hl)
+      000111 68               [ 4]  381 	ld	l, b
+      000112 26 00            [ 7]  382 	ld	h, #0x00
+      000114 19               [11]  383 	add	hl, de
+      000115 71               [ 7]  384 	ld	(hl), c
+                                    385 ;zos.c:159: command_buffer[command_pos]=0;
+      000116 2Ar20r00         [16]  386 	ld	hl, (_command_pos)
+      000119 26 00            [ 7]  387 	ld	h, #0x00
+      00011B 19               [11]  388 	add	hl, de
+      00011C 36 00            [10]  389 	ld	(hl), #0x00
+      00011E                        390 00107$:
+                                    391 ;zos.c:162: return 0;
+      00011E AF               [ 4]  392 	xor	a, a
+                                    393 ;zos.c:163: }
+      00011F C9               [10]  394 	ret
+                                    395 	.area _CODE
+                                    396 	.area _INITIALIZER
+                                    397 	.area _CABS (ABS)

@@ -1,0 +1,66 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+
+
+                                      1 	.area _ISRS
+                                      2 
+      000000                          3 _isr_table::
+                                      4 	.globl isr20
+                                      5 	.globl isr22
+                                      6 	.globl isr24
+                                      7 	.globl isr26
+                                      8 	.globl isr28
+                                      9 	.globl isr2a
+                                     10 	.globl isr2c
+                                     11 	.globl isr2e
+                                     12 	.globl isr30
+                                     13 	.globl isr32
+                                     14 	.globl isr34
+                                     15 	.globl isr36
+                                     16 	.globl isr38
+                                     17 	.globl isr3a
+                                     18 	.globl isr3c
+                                     19 	.globl isr3e
+                                     20 	
+      000000 00 00                   21 	.dw isr20
+      000002 00 00                   22 	.dw isr22
+      000004 00 00                   23 	.dw isr24
+      000006 00 00                   24 	.dw isr26
+      000008 00 00                   25 	.dw isr28
+      00000A 00 00                   26 	.dw isr2a
+      00000C 00 00                   27 	.dw isr2c
+      00000E 00 00                   28 	.dw isr2e
+      000010 00 00                   29 	.dw isr30
+      000012 00 00                   30 	.dw isr32
+      000014 00 00                   31 	.dw isr34
+      000016 00 00                   32 	.dw isr36
+      000018 00 00                   33 	.dw isr38
+      00001A 00 00                   34 	.dw isr3a
+      00001C 00 00                   35 	.dw isr3c
+      00001E 00 00                   36 	.dw isr3e
+                                     37 
+                                     38 
+                                     39 
+                                     40 
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |   1 _isr_tab   000000 GR  |     isr20      ****** GX
+    isr22      ****** GX  |     isr24      ****** GX  |     isr26      ****** GX
+    isr28      ****** GX  |     isr2a      ****** GX  |     isr2c      ****** GX
+    isr2e      ****** GX  |     isr30      ****** GX  |     isr32      ****** GX
+    isr34      ****** GX  |     isr36      ****** GX  |     isr38      ****** GX
+    isr3a      ****** GX  |     isr3c      ****** GX  |     isr3e      ****** GX
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size      0   flags    0
+   1 _ISRS      size     20   flags    0
+

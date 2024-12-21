@@ -1,0 +1,281 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ISO C Compiler 
+                                      3 ; Version 4.2.2 #13407 (MINGW64)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module ll
+                                      6 	.optsdcc -mz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _cls
+                                     12 	.globl _println
+                                     13 	.globl _print
+                                     14 	.globl _printc
+                                     15 	.globl _send_command
+                                     16 	.globl _strlen
+                                     17 	.globl _sendchar
+                                     18 	.globl _strcmp
+                                     19 ;--------------------------------------------------------
+                                     20 ; special function registers
+                                     21 ;--------------------------------------------------------
+                                     22 ;--------------------------------------------------------
+                                     23 ; ram data
+                                     24 ;--------------------------------------------------------
+                                     25 	.area _DATA
+                                     26 ;--------------------------------------------------------
+                                     27 ; ram data
+                                     28 ;--------------------------------------------------------
+                                     29 	.area _INITIALIZED
+                                     30 ;--------------------------------------------------------
+                                     31 ; absolute external ram data
+                                     32 ;--------------------------------------------------------
+                                     33 	.area _DABS (ABS)
+                                     34 ;--------------------------------------------------------
+                                     35 ; global & static initialisations
+                                     36 ;--------------------------------------------------------
+                                     37 	.area _HOME
+                                     38 	.area _GSINIT
+                                     39 	.area _GSFINAL
+                                     40 	.area _GSINIT
+                                     41 ;--------------------------------------------------------
+                                     42 ; Home
+                                     43 ;--------------------------------------------------------
+                                     44 	.area _HOME
+                                     45 	.area _HOME
+                                     46 ;--------------------------------------------------------
+                                     47 ; code
+                                     48 ;--------------------------------------------------------
+                                     49 	.area _CODE
+                                     50 ;ll.c:4: char strcmp(const byte* s1, const byte* s2)
+                                     51 ;	---------------------------------
+                                     52 ; Function strcmp
+                                     53 ; ---------------------------------
+      000000                         54 _strcmp::
+      000000 DD E5            [15]   55 	push	ix
+      000002 DD 21 00 00      [14]   56 	ld	ix,#0
+      000006 DD 39            [15]   57 	add	ix,sp
+      000008 3B               [ 6]   58 	dec	sp
+      000009 4D               [ 4]   59 	ld	c, l
+      00000A 44               [ 4]   60 	ld	b, h
+                                     61 ;ll.c:6: while (1)
+      00000B                         62 00113$:
+                                     63 ;ll.c:8: byte b1=*s1;
+      00000B 0A               [ 7]   64 	ld	a, (bc)
+      00000C 6F               [ 4]   65 	ld	l, a
+                                     66 ;	spillPairReg hl
+                                     67 ;	spillPairReg hl
+                                     68 ;ll.c:9: byte b2=*s2;
+      00000D 1A               [ 7]   69 	ld	a, (de)
+      00000E DD 77 FF         [19]   70 	ld	-1 (ix), a
+                                     71 ;ll.c:10: byte e1=(b1==0);
+      000011 7D               [ 4]   72 	ld	a, l
+      000012 B7               [ 4]   73 	or	a, a
+      000013 3E 01            [ 7]   74 	ld	a, #0x01
+      000015 28 01            [12]   75 	jr	Z, 00153$
+      000017 AF               [ 4]   76 	xor	a, a
+      000018                         77 00153$:
+      000018 67               [ 4]   78 	ld	h, a
+                                     79 ;	spillPairReg hl
+                                     80 ;	spillPairReg hl
+                                     81 ;ll.c:11: byte e2=(b2==0);
+      000019 DD 7E FF         [19]   82 	ld	a, -1 (ix)
+      00001C B7               [ 4]   83 	or	a, a
+      00001D 3E 01            [ 7]   84 	ld	a, #0x01
+      00001F 28 01            [12]   85 	jr	Z, 00155$
+      000021 AF               [ 4]   86 	xor	a, a
+      000022                         87 00155$:
+                                     88 ;ll.c:12: if (e1 && e2) return 0;
+      000022 24               [ 4]   89 	inc	h
+      000023 25               [ 4]   90 	dec	h
+      000024 28 06            [12]   91 	jr	Z, 00102$
+      000026 B7               [ 4]   92 	or	a, a
+      000027 28 03            [12]   93 	jr	Z, 00102$
+      000029 AF               [ 4]   94 	xor	a, a
+      00002A 18 27            [12]   95 	jr	00115$
+      00002C                         96 00102$:
+                                     97 ;ll.c:13: if (e1) return -1;
+      00002C 24               [ 4]   98 	inc	h
+      00002D 25               [ 4]   99 	dec	h
+      00002E 28 04            [12]  100 	jr	Z, 00105$
+      000030 3E FF            [ 7]  101 	ld	a, #0xff
+      000032 18 1F            [12]  102 	jr	00115$
+      000034                        103 00105$:
+                                    104 ;ll.c:14: if (e2) return 1;
+      000034 B7               [ 4]  105 	or	a, a
+      000035 28 04            [12]  106 	jr	Z, 00107$
+      000037 3E 01            [ 7]  107 	ld	a, #0x01
+      000039 18 18            [12]  108 	jr	00115$
+      00003B                        109 00107$:
+                                    110 ;ll.c:15: if (b1>b2) return 1;
+      00003B DD 7E FF         [19]  111 	ld	a, -1 (ix)
+      00003E 95               [ 4]  112 	sub	a, l
+      00003F 30 04            [12]  113 	jr	NC, 00109$
+      000041 3E 01            [ 7]  114 	ld	a, #0x01
+      000043 18 0E            [12]  115 	jr	00115$
+      000045                        116 00109$:
+                                    117 ;ll.c:16: if (b2>b1) return -1;
+      000045 7D               [ 4]  118 	ld	a, l
+      000046 DD 96 FF         [19]  119 	sub	a, -1 (ix)
+      000049 30 04            [12]  120 	jr	NC, 00111$
+      00004B 3E FF            [ 7]  121 	ld	a, #0xff
+      00004D 18 04            [12]  122 	jr	00115$
+      00004F                        123 00111$:
+                                    124 ;ll.c:17: ++s1;
+      00004F 03               [ 6]  125 	inc	bc
+                                    126 ;ll.c:18: ++s2;
+      000050 13               [ 6]  127 	inc	de
+      000051 18 B8            [12]  128 	jr	00113$
+      000053                        129 00115$:
+                                    130 ;ll.c:20: }
+      000053 33               [ 6]  131 	inc	sp
+      000054 DD E1            [14]  132 	pop	ix
+      000056 C9               [10]  133 	ret
+                                    134 ;ll.c:22: void sendchar(byte b)
+                                    135 ;	---------------------------------
+                                    136 ; Function sendchar
+                                    137 ; ---------------------------------
+      000057                        138 _sendchar::
+                                    139 ;ll.c:27: __endasm;
+      000057 D3 00            [11]  140 	out	(0),a
+                                    141 ;ll.c:28: }
+      000059 C9               [10]  142 	ret
+                                    143 ;ll.c:30: byte strlen(const byte* s)
+                                    144 ;	---------------------------------
+                                    145 ; Function strlen
+                                    146 ; ---------------------------------
+      00005A                        147 _strlen::
+                                    148 ;ll.c:34: return res;
+      00005A 0E 00            [ 7]  149 	ld	c, #0x00
+      00005C                        150 00103$:
+                                    151 ;ll.c:33: for(;*s;++s,++res);
+      00005C 7E               [ 7]  152 	ld	a, (hl)
+      00005D B7               [ 4]  153 	or	a, a
+      00005E 28 04            [12]  154 	jr	Z, 00101$
+      000060 23               [ 6]  155 	inc	hl
+      000061 0C               [ 4]  156 	inc	c
+      000062 18 F8            [12]  157 	jr	00103$
+      000064                        158 00101$:
+                                    159 ;ll.c:34: return res;
+      000064 79               [ 4]  160 	ld	a, c
+                                    161 ;ll.c:35: }
+      000065 C9               [10]  162 	ret
+                                    163 ;ll.c:37: void send_command(const byte* data, byte len)
+                                    164 ;	---------------------------------
+                                    165 ; Function send_command
+                                    166 ; ---------------------------------
+      000066                        167 _send_command::
+                                    168 ;ll.c:44: __endasm;
+      000066 47               [ 4]  169 	ld	b,a
+      000067 ED B3            [21]  170 	otir
+                                    171 ;ll.c:45: }
+      000069 E1               [10]  172 	pop	hl
+      00006A 33               [ 6]  173 	inc	sp
+      00006B E9               [ 4]  174 	jp	(hl)
+                                    175 ;ll.c:47: void printc(byte c)
+                                    176 ;	---------------------------------
+                                    177 ; Function printc
+                                    178 ; ---------------------------------
+      00006C                        179 _printc::
+                                    180 ;ll.c:50: {
+      00006C 4F               [ 4]  181 	ld	c, a
+      00006D D6 0D            [ 7]  182 	sub	a, #0x0d
+      00006F 20 05            [12]  183 	jr	NZ, 00102$
+                                    184 ;ll.c:52: }
+      000071 3E 04            [ 7]  185 	ld	a, #0x04
+      000073 C3r57r00         [10]  186 	jp	_sendchar
+      000076                        187 00102$:
+                                    188 ;ll.c:56: 
+      000076 C5               [11]  189 	push	bc
+      000077 3E 1E            [ 7]  190 	ld	a, #0x1e
+      000079 CDr57r00         [17]  191 	call	_sendchar
+      00007C 3E 01            [ 7]  192 	ld	a, #0x01
+      00007E CDr57r00         [17]  193 	call	_sendchar
+      000081 C1               [10]  194 	pop	bc
+                                    195 ;ll.c:58: {
+      000082 79               [ 4]  196 	ld	a, c
+                                    197 ;ll.c:60: header[0]=30;
+      000083 C3r57r00         [10]  198 	jp	_sendchar
+                                    199 ;ll.c:63: send_command(s,header[1]);
+                                    200 ;	---------------------------------
+                                    201 ; Function print
+                                    202 ; ---------------------------------
+      000086                        203 _print::
+      000086 DD E5            [15]  204 	push	ix
+      000088 DD 21 00 00      [14]  205 	ld	ix,#0
+      00008C DD 39            [15]  206 	add	ix,sp
+      00008E F5               [11]  207 	push	af
+      00008F EB               [ 4]  208 	ex	de, hl
+                                    209 ;ll.c:66: void println(const byte* s)
+      000090 DD 36 FE 1E      [19]  210 	ld	-2 (ix), #0x1e
+                                    211 ;ll.c:67: {
+                                    212 ;	spillPairReg hl
+                                    213 ;	spillPairReg hl
+      000094 EB               [ 4]  214 	ex	de, hl
+      000095 E5               [11]  215 	push	hl
+                                    216 ;	spillPairReg hl
+                                    217 ;	spillPairReg hl
+      000096 CDr5Ar00         [17]  218 	call	_strlen
+                                    219 ;ll.c:68: print(s);
+      000099 DD 77 FF         [19]  220 	ld	-1 (ix), a
+      00009C 3E 02            [ 7]  221 	ld	a, #0x02
+      00009E F5               [11]  222 	push	af
+      00009F 33               [ 6]  223 	inc	sp
+      0000A0 21 03 00         [10]  224 	ld	hl, #3
+      0000A3 39               [11]  225 	add	hl, sp
+      0000A4 CDr66r00         [17]  226 	call	_send_command
+      0000A7 D1               [10]  227 	pop	de
+                                    228 ;ll.c:69: sendchar(4);
+      0000A8 DD 7E FF         [19]  229 	ld	a, -1 (ix)
+      0000AB F5               [11]  230 	push	af
+      0000AC 33               [ 6]  231 	inc	sp
+      0000AD EB               [ 4]  232 	ex	de, hl
+      0000AE CDr66r00         [17]  233 	call	_send_command
+                                    234 ;ll.c:70: }
+      0000B1 DD F9            [10]  235 	ld	sp, ix
+      0000B3 DD E1            [14]  236 	pop	ix
+      0000B5 C9               [10]  237 	ret
+                                    238 ;ll.c:72: 
+                                    239 ;	---------------------------------
+                                    240 ; Function println
+                                    241 ; ---------------------------------
+      0000B6                        242 _println::
+                                    243 ;ll.c:74: {
+      0000B6 CDr86r00         [17]  244 	call	_print
+                                    245 ;ll.c:75: byte cmd[2];
+      0000B9 3E 04            [ 7]  246 	ld	a, #0x04
+                                    247 ;ll.c:76: cmd[0]=0;
+      0000BB C3r57r00         [10]  248 	jp	_sendchar
+                                    249 ;ll.c:79: }
+                                    250 ;	---------------------------------
+                                    251 ; Function cls
+                                    252 ; ---------------------------------
+      0000BE                        253 _cls::
+      0000BE F5               [11]  254 	push	af
+                                    255 ;ll.c:82: ERROR: no line number 82 in file ll.c
+      0000BF 21 00 00         [10]  256 	ld	hl, #0
+      0000C2 39               [11]  257 	add	hl, sp
+      0000C3 EB               [ 4]  258 	ex	de, hl
+      0000C4 AF               [ 4]  259 	xor	a, a
+      0000C5 12               [ 7]  260 	ld	(de), a
+                                    261 ;ll.c:83: ERROR: no line number 83 in file ll.c
+      0000C6 6B               [ 4]  262 	ld	l, e
+                                    263 ;	spillPairReg hl
+                                    264 ;	spillPairReg hl
+      0000C7 62               [ 4]  265 	ld	h, d
+                                    266 ;	spillPairReg hl
+                                    267 ;	spillPairReg hl
+      0000C8 23               [ 6]  268 	inc	hl
+      0000C9 36 01            [10]  269 	ld	(hl), #0x01
+                                    270 ;ll.c:84: ERROR: no line number 84 in file ll.c
+      0000CB 3E 02            [ 7]  271 	ld	a, #0x02
+      0000CD F5               [11]  272 	push	af
+      0000CE 33               [ 6]  273 	inc	sp
+      0000CF EB               [ 4]  274 	ex	de, hl
+      0000D0 CDr66r00         [17]  275 	call	_send_command
+                                    276 ;ll.c:85: ERROR: no line number 85 in file ll.c
+      0000D3 F1               [10]  277 	pop	af
+      0000D4 C9               [10]  278 	ret
+                                    279 	.area _CODE
+                                    280 	.area _INITIALIZER
+                                    281 	.area _CABS (ABS)

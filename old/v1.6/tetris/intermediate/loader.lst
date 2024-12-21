@@ -1,0 +1,27 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+
+
+                                      1 	.module loader
+                                      2 	.optsdcc -mz80
+                                      3 
+                                      4 	.globl _main
+                                      5 	.area _CODE
+      000000                          6 _start_loader::
+      000000 C3 00 00         [10]    7 	jp    _main
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |     _main      ****** GX  |   0 _start_l   000000 GR
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size      3   flags    0
+

@@ -1,0 +1,421 @@
+	.area _CODE
+	.globl _main
+	
+	.globl _input_write_ptr
+	.globl _input_read_ptr
+	.globl _globals_area
+
+	
+.define DISK_ARG1 (#0xE0)
+.define DISK_ARG2 (#0xE2)
+.define DISK_ARG3 (#0xE4)
+
+.define CMD_LIST_DIR      #1
+.define CMD_LIST_NEXT     #2
+.define CMD_OPEN_FILE     #3
+.define CMD_READ_FILE     #4
+.define CMD_WRITE_FILE    #5
+.define CMD_CLOSE_FILE    #6
+.define CMD_LOAD_SPRITES  #7
+
+
+
+
+_init::
+	LD		HL,#0xFF00	; Initialize stack pointer
+	LD		SP,HL
+	XOR		A			;\ I=0
+	LD		I,A			;/
+	IM		2			; Interrupt mode 2
+	EI					; Enable interrupts
+	JP		_main
+
+
+;	AREA 0xF0 - 0xFF  contains the CPU state
+;	0xF0	AF
+;	0xF2	BC
+;	0xF4	DE
+;	0xF6	HL
+;	0xF8	SP
+;	0xFA	IX
+;	0xFC	IY
+;	0xFE	PC
+isr20::
+	EXX
+	POP		HL		; Get the return address, which is the next PC
+	PUSH	HL		; Place it back on stack
+	LD		(#0XFE),HL
+	PUSH	AF
+	POP		HL
+	LD		(#0xF0),HL
+	EXX
+	LD		(#0xF2),BC
+	LD		(#0xF4),DE
+	LD		(#0xF6),HL
+	LD		(#0xF8),SP
+	LD		(#0xFA),IX
+	LD		(#0xFC),IY
+	OUT		(3),A	; Tell the IO controller the state is ready in RAM
+	EI
+	RETI
+
+isr22::
+	PUSH	IX
+	PUSH	HL
+	PUSH	AF
+	LD		IX,#_input_write_ptr
+	LD		A,0(IX)
+	INC		A
+	CP		1(IX)
+	JR		Z,isr22_full
+	LD		L,0(IX)
+	LD		H,#1
+	IN		A,(0)
+	LD		(HL),A
+	INC		L
+	LD		0(IX),L
+isr22_full:
+	POP		AF
+	POP		HL
+	POP		IX
+	EI
+	RETI
+
+isr24::
+	EI
+	RETI
+
+isr26::
+	EI
+	RETI
+
+isr28::
+	EI
+	RETI
+
+isr2a::
+	EI
+	RETI
+
+isr2c::
+	EI
+	RETI
+
+isr2e::
+	EI
+	RETI
+
+isr30::
+	EI
+	RETI
+
+isr32::
+	EI
+	RETI
+
+isr34::
+	EI
+	RETI
+
+isr36::
+	EI
+	RETI
+
+isr38::
+	EI
+	RETI
+
+isr3a::
+	EI
+	RETI
+
+isr3c::
+	EI
+	RETI
+
+isr3e::
+	EI
+	RETI
+
+input_empty::
+	LD		A,(#_input_write_ptr)
+	LD		L,A
+	LD		A,(#_input_read_ptr)
+	SUB		L
+	LD		A,#1
+	RET		Z
+	XOR		A
+	RET
+
+input_read::
+	LD		A,(#_input_read_ptr)
+	LD		H,#1    ; Input buffer at 0x0100, so H=1, L=offset
+	LD		L,A
+	LD		C,(HL)	; Byte read
+	INC		A
+	LD		(#_input_read_ptr),A
+	LD		A,C
+	RET
+
+strlen::
+	LD		BC,#255
+	XOR		A
+	CPIR
+	LD		A,C
+	NEG
+	SUB		#2
+	RET
+
+; copy string from HL -> DE
+strcpy::
+	PUSH	HL
+	CALL	strlen
+	LD		B,#0
+	LD		C,A
+	INC		C
+	POP		HL
+	LDIR
+	RET
+
+print_text::
+	LD		A,#30		; Send 30, code for print
+	OUT		(0),A
+	PUSH	HL
+	call	strlen
+	OUT		(0),A	; strlen returns length in A,  send it
+	LD		B,A
+	LD		C,#0
+	POP		HL			; restore text pointer
+	OTIR
+	RET
+	
+rng::
+	.db 0x21
+seed1:
+	.db 0x0F, 0x27
+	LD		B,H
+	LD		C,L
+	ADD		HL,HL
+	ADD		HL,HL
+	INC		L
+	ADD		HL,BC
+	LD		(seed1),HL
+	.db 0x21
+seed2:
+	.db 0xDB, 0x03
+	ADD HL,HL
+	SBC A,A
+	AND #0X2D	;#101101b
+	XOR L
+	LD L,A
+	LD (seed2),HL
+	ADD HL,BC
+	RET
+
+cls::
+	LD		A,#1
+	OUT		(0),A
+	RET
+	
+newline::
+	LD		A,#4
+	OUT		(0),A
+	RET
+
+; copy block starting at HL+1, with length at (HL)
+gpu_block::
+	LD		B,(HL)			; C = number of bytes to copy
+	LD		C,#0			; BC = number of bytes to copy
+	INC		HL				; HL = pointer to data
+	OTIR
+	RET
+
+
+timer::
+	LD		HL,(#0xEC)
+	RET
+
+
+; byte list_dir(const byte* path, byte* filename, word* size)
+list_dir::
+	; HL = path
+	; DE = filename
+	; (SP+2)=pointer to size  (need to remove)
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	LD		DISK_ARG1,HL
+	LD		DISK_ARG2,DE
+	LD		E,4(IX)
+	LD		D,5(IX)
+	LD		DISK_ARG3,DE
+	LD		A,CMD_LIST_DIR
+	OUT		(1),A
+	NOP
+	NOP
+	NOP
+	IN		A,(1)		; Wait for completion and get return code
+	NOP
+	NOP
+	NOP
+	NOP
+	POP		IX
+	POP		HL			; return address
+	POP		DE			; pop size parameter
+	JP		(HL)
+	
+; byte list_next(byte* filename, word* size)
+list_next::
+	; HL=filename
+	; DE=size
+	LD		DISK_ARG2,HL
+	LD		DISK_ARG3,DE
+	LD		A,CMD_LIST_NEXT
+	OUT		(1),A
+	NOP
+	IN		A,(1)		; Wait for completion and get return code
+	RET
+		
+; byte open_file(const char* filename, byte write)
+; HL = filename
+; (SP+2) = write
+; function needs to pop single byte SP+2
+open_file::
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	
+	LD		DISK_ARG1,HL
+	LD		L,4(IX)
+	LD		H,#0
+	LD		DISK_ARG2,HL
+
+	LD		A,CMD_OPEN_FILE
+	OUT		(1),A
+	NOP
+	IN		A,(1)		; Wait for completion and get return code
+
+	POP		IX
+	POP		HL
+	INC		SP ;	pop write parameter
+	JP		(HL)
+
+
+; word read_file(byte handle, byte* buffer, word size)
+; A=handle
+; DE=buffer
+; (SP+2)=size
+; function needs to pop 2 bytes for (SP+2)
+; return word in DE
+read_file::
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	
+	LD		L,A
+	LD		H,#0
+	LD		DISK_ARG1,HL
+	LD		DISK_ARG2,DE
+	LD		E,4(IX)
+	LD		D,5(IX)
+	LD		DISK_ARG3,DE
+	
+	LD		A,CMD_READ_FILE
+	OUT		(1),A
+	NOP
+	IN		A,(1)		; Wait for completion and get return code
+	
+	LD		DE,DISK_ARG3	; Load number of bytes read
+	
+	POP		IX
+	POP		HL	; return address
+	POP		BC	; pop size
+	JP		(HL)
+
+
+; File handle in A
+; Return code also in A
+close_file::
+	LD		L,A
+	LD		H,#0
+	LD		DISK_ARG1,HL
+
+	LD		A,CMD_CLOSE_FILE
+	OUT		(1),A
+	NOP
+	IN		A,(1)		; Wait for completion and get return code
+
+	RET
+
+
+; HL = filename
+; (SP+2) = index
+; function needs to pop single byte SP+2
+load_sprites::
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	
+	LD		DISK_ARG1,HL
+	LD		L,4(IX)
+	LD		H,#0
+	LD		DISK_ARG2,HL
+	
+	LD		A,CMD_LOAD_SPRITES
+	OUT		(1),A
+	NOP
+	IN		A,(1)		; Wait for completion and get return code
+
+	POP		IX
+	POP		HL	;	return address
+	INC		SP  ;	pop index parameter
+	JP		(HL)
+
+
+;
+;
+;
+;
+_div_mod::
+	LD		E,(HL)
+	INC		HL
+	LD		D,(HL)
+	INC		HL
+	LD		C,(HL)
+	PUSH	HL
+	EX		DE,HL
+	XOR		A
+	LD		B,#16
+_loop_div_mod:
+	ADD		HL, HL
+	RLA
+	JR		C, _div_mod_j1
+	CP		C
+	JR		C, _div_mod_j2
+_div_mod_j1:
+	SUB		C
+	INC		L
+_div_mod_j2:
+	DJNZ	_loop_div_mod
+
+	EX	DE,HL
+	POP	HL
+	LD	(HL),A
+	DEC	HL
+	LD	(HL),D
+	DEC	HL
+	LD	(HL),E
+	RET
+	
+bounds_check::
+	LD		A,D
+	CP		H
+	JR		C, _bounds_error	; D-H < 0  -> error
+	RET		NZ					; D-H > 0  -> no error
+	LD  	A,E
+	CP		L
+	RET		NC	; H=D & L<=E  no error
+_bounds_error:
+	LD		HL,#0xFF
+	LD		(HL),#1
+	RET

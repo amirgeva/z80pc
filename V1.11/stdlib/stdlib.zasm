@@ -1,0 +1,78 @@
+	.area _CODE
+
+_cls::
+	EX AF,AF'
+	LD A,#0
+	JP   8
+_print_text::
+	EX AF,AF'
+	LD A,#1
+	JP   8
+_print_word::
+	EX AF,AF'
+	LD A,#2
+	JP   8
+_strlen::
+	EX AF,AF'
+	LD A,#3
+	JP   8
+_input_empty::
+	EX AF,AF'
+	LD A,#4
+	JP   8
+_input_read::
+	EX AF,AF'
+	LD A,#5
+	JP   8
+_strcmp::
+	EX AF,AF'
+	LD A,#6
+	JP   8
+_strncmp::
+	EX AF,AF'
+	LD A,#7
+	JP   8
+_newline::
+	EX AF,AF'
+	LD A,#8
+	JP   8
+_rng::
+	EX AF,AF'
+	LD A,#9
+	JP   8
+_gpu_block::
+	EX AF,AF'
+	LD A,#10
+	JP   8
+_timer::
+	EX AF,AF'
+	LD A,#11
+	JP   8
+_list_dir::
+	EX AF,AF'
+	LD A,#12
+	JP   8
+_list_next::
+	EX AF,AF'
+	LD A,#13
+	JP   8
+_open_file::
+	EX AF,AF'
+	LD A,#14
+	JP   8
+_read_file::
+	EX AF,AF'
+	LD A,#15
+	JP   8
+_close_file::
+	EX AF,AF'
+	LD A,#16
+	JP   8
+_bounds_check::
+	EX AF,AF'
+	LD A,#17
+	JP   8
+_load_sprites::
+	EX AF,AF'
+	LD A,#18
+	JP   8

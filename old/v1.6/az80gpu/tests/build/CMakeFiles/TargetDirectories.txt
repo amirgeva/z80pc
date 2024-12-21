@@ -1,0 +1,4 @@
+C:/prg/github/z80pc/v1.6/az80gpu/tests/build/CMakeFiles/test_font.dir
+C:/prg/github/z80pc/v1.6/az80gpu/tests/build/CMakeFiles/test_buffer.dir
+C:/prg/github/z80pc/v1.6/az80gpu/tests/build/CMakeFiles/ALL_BUILD.dir
+C:/prg/github/z80pc/v1.6/az80gpu/tests/build/CMakeFiles/ZERO_CHECK.dir

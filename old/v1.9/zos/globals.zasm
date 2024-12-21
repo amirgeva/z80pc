@@ -1,0 +1,122 @@
+
+.area _GLOBALS
+
+_services::
+;SERVICES vector table
+	.globl		cls
+	.globl		print_text
+	.globl		_print_word_impl
+	.globl		strlen
+	.globl		input_empty
+	.globl		input_read
+	.globl		_strcmp_impl
+	.globl		_strncmp_impl
+	.globl		newline
+	.globl		rng
+	.globl		gpu_block
+	.globl		gpu_byte
+	.globl		gpu_flush
+	.globl		gpu_clear
+	.globl		timer
+	.globl		list_dir
+	.globl		list_next
+	.globl		open_file
+	.globl		read_file
+	.globl		close_file
+	.globl		bounds_check
+	.globl		load_sprites
+	.dw		cls
+	.dw		print_text
+	.dw		_print_word_impl
+	.dw		strlen
+	.dw		input_empty
+	.dw		input_read
+	.dw		_strcmp_impl
+	.dw		_strncmp_impl
+	.dw		newline
+	.dw		rng
+	.dw		gpu_block
+	.dw		gpu_byte
+	.dw		gpu_flush
+	.dw		gpu_clear
+	.dw		timer
+	.dw		list_dir
+	.dw		list_next
+	.dw		open_file
+	.dw		read_file
+	.dw		close_file
+	.dw		bounds_check
+	.dw		load_sprites
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+	.dw		0
+
+;SERVICES end table
+
+_timer_value::
+	.dw		#0
+_input_write_ptr::
+	.db		#0
+_input_read_ptr::
+	.db		#0
+
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+_input_buffer::

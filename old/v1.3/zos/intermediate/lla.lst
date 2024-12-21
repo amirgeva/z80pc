@@ -1,0 +1,67 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 1
+Hexadecimal [24-Bits]
+
+
+
+                                      1 	.globl _rng
+                                      2 	.globl _nop
+                                      3 
+                                      4 	.area _CODE
+                                      5 ;	---------------------------------
+                                      6 ; Function rng
+                                      7 ; ---------------------------------
+      000000                          8 _rng::
+      000000 F5               [11]    9 	push af
+      000001 E5               [11]   10 	push hl
+      000002 C5               [11]   11 	push bc
+      000003 21                      12 	.db 0x21
+      000004                         13 seed1:
+      000004 0F 27                   14 	.db 0x0F, 0x27
+      000006 44               [ 4]   15 	ld b,h
+      000007 4D               [ 4]   16 	ld c,l
+      000008 29               [11]   17 	add hl,hl
+      000009 29               [11]   18 	add hl,hl
+      00000A 2C               [ 4]   19 	inc l
+      00000B 09               [11]   20 	add hl,bc
+      00000C 22 04 00         [16]   21 	ld (seed1),hl
+      00000F 21                      22 	.db 0x21
+      000010                         23 seed2:
+      000010 DB 03                   24 	.db 0xDB, 0x03
+      000012 29               [11]   25 	add hl,hl
+      000013 9F               [ 4]   26 	sbc a,a
+      000014 E6 2D            [ 7]   27 	and #0x2D	;#101101b
+      000016 AD               [ 4]   28 	xor l
+      000017 6F               [ 4]   29 	ld l,a
+      000018 22 10 00         [16]   30 	ld (seed2),hl
+      00001B 09               [11]   31 	add hl,bc
+      00001C E5               [11]   32 	push hl
+      00001D D1               [10]   33 	pop de
+      00001E C1               [10]   34 	pop bc
+      00001F E1               [10]   35 	pop hl
+      000020 F1               [10]   36 	pop af
+      000021 C9               [10]   37 	ret
+                                     38 
+                                     39 
+                                     40 
+      000022                         41 _nop::
+      000022 F5               [11]   42 	push af
+      000023 3E 00            [ 7]   43 	ld a,#0
+      000025 D3 00            [11]   44 	out	(0),a
+      000027 F1               [10]   45 	pop af
+      000028 C9               [10]   46 	ret
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 2
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |   0 _nop       000022 GR  |   0 _rng       000000 GR
+  0 seed1      000004 R   |   0 seed2      000010 R
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 3
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size     29   flags    0
+

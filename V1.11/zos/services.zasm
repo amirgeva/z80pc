@@ -1,0 +1,42 @@
+
+.area _SERVICES
+
+_services::
+	.globl		cls
+	.globl		print_text
+	.globl		_print_word_impl
+	.globl		strlen
+	.globl		input_empty
+	.globl		input_read
+	.globl		_strcmp_impl
+	.globl		_strncmp_impl
+	.globl		newline
+	.globl		rng
+	.globl		gpu_block
+	.globl		timer
+	.globl		list_dir
+	.globl		list_next
+	.globl		open_file
+	.globl		read_file
+	.globl		close_file
+	.globl		bounds_check
+	.globl		load_sprites
+	.dw		cls
+	.dw		print_text
+	.dw		_print_word_impl
+	.dw		strlen
+	.dw		input_empty
+	.dw		input_read
+	.dw		_strcmp_impl
+	.dw		_strncmp_impl
+	.dw		newline
+	.dw		rng
+	.dw		gpu_block
+	.dw		timer
+	.dw		list_dir
+	.dw		list_next
+	.dw		open_file
+	.dw		read_file
+	.dw		close_file
+	.dw		bounds_check
+	.dw		load_sprites

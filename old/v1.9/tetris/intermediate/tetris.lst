@@ -1,0 +1,1837 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.2.0 #13081 (MINGW64)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module tetris
+                                      6 	.optsdcc -mz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _main
+                                     12 	.globl _draw_game_over
+                                     13 	.globl _draw_frame
+                                     14 	.globl _rotate_piece
+                                     15 	.globl _draw_piece
+                                     16 	.globl _generate_piece
+                                     17 	.globl _place_piece
+                                     18 	.globl _remove_full_rows
+                                     19 	.globl _board_position_free
+                                     20 	.globl _initialize_board
+                                     21 	.globl _wait_key
+                                     22 	.globl _initialize_cubes
+                                     23 	.globl _draw_cube
+                                     24 	.globl _pixel_cursor
+                                     25 	.globl _timer
+                                     26 	.globl _gpu_block
+                                     27 	.globl _rng
+                                     28 	.globl _input_read
+                                     29 	.globl _input_empty
+                                     30 	.globl _cls
+                                     31 	.globl _offsets
+                                     32 	.globl _move_piece
+                                     33 ;--------------------------------------------------------
+                                     34 ; special function registers
+                                     35 ;--------------------------------------------------------
+                                     36 ;--------------------------------------------------------
+                                     37 ; ram data
+                                     38 ;--------------------------------------------------------
+                                     39 	.area _DATA
+                                     40 ;--------------------------------------------------------
+                                     41 ; ram data
+                                     42 ;--------------------------------------------------------
+                                     43 	.area _INITIALIZED
+                                     44 ;--------------------------------------------------------
+                                     45 ; absolute external ram data
+                                     46 ;--------------------------------------------------------
+                                     47 	.area _DABS (ABS)
+                                     48 ;--------------------------------------------------------
+                                     49 ; global & static initialisations
+                                     50 ;--------------------------------------------------------
+                                     51 	.area _HOME
+                                     52 	.area _GSINIT
+                                     53 	.area _GSFINAL
+                                     54 	.area _GSINIT
+                                     55 ;--------------------------------------------------------
+                                     56 ; Home
+                                     57 ;--------------------------------------------------------
+                                     58 	.area _HOME
+                                     59 	.area _HOME
+                                     60 ;--------------------------------------------------------
+                                     61 ; code
+                                     62 ;--------------------------------------------------------
+                                     63 	.area _CODE
+                                     64 ;tetris.c:4: void pixel_cursor(word x, word y)
+                                     65 ;	---------------------------------
+                                     66 ; Function pixel_cursor
+                                     67 ; ---------------------------------
+      000000                         68 _pixel_cursor::
+      000000 DD E5            [15]   69 	push	ix
+      000002 DD 21 00 00      [14]   70 	ld	ix,#0
+      000006 DD 39            [15]   71 	add	ix,sp
+      000008 F5               [11]   72 	push	af
+      000009 F5               [11]   73 	push	af
+      00000A F5               [11]   74 	push	af
+      00000B 4D               [ 4]   75 	ld	c, l
+      00000C 44               [ 4]   76 	ld	b, h
+                                     77 ;tetris.c:7: cmd[0]=5;
+      00000D DD 36 FA 05      [19]   78 	ld	-6 (ix), #0x05
+                                     79 ;tetris.c:8: cmd[1]=5;
+      000011 DD 36 FB 05      [19]   80 	ld	-5 (ix), #0x05
+                                     81 ;tetris.c:9: cmd[2]=x&0xFF;
+      000015 DD 71 FC         [19]   82 	ld	-4 (ix), c
+                                     83 ;tetris.c:10: cmd[3]=(x>>8)&0xFF;
+      000018 DD 70 FD         [19]   84 	ld	-3 (ix), b
+                                     85 ;tetris.c:11: cmd[4]=y&0xFF;
+      00001B DD 73 FE         [19]   86 	ld	-2 (ix), e
+                                     87 ;tetris.c:12: cmd[5]=(y>>8)&0xFF;
+      00001E DD 72 FF         [19]   88 	ld	-1 (ix), d
+                                     89 ;tetris.c:13: gpu_block(cmd);
+      000021 21 00 00         [10]   90 	ld	hl, #0
+      000024 39               [11]   91 	add	hl, sp
+      000025 CDr00r00         [17]   92 	call	_gpu_block
+                                     93 ;tetris.c:14: }
+      000028 DD F9            [10]   94 	ld	sp, ix
+      00002A DD E1            [14]   95 	pop	ix
+      00002C C9               [10]   96 	ret
+                                     97 ;tetris.c:16: void draw_cube(word x, word y, byte color)
+                                     98 ;	---------------------------------
+                                     99 ; Function draw_cube
+                                    100 ; ---------------------------------
+      00002D                        101 _draw_cube::
+      00002D F5               [11]  102 	push	af
+      00002E 3B               [ 6]  103 	dec	sp
+                                    104 ;tetris.c:19: pixel_cursor(x,y);
+      00002F CDr00r00         [17]  105 	call	_pixel_cursor
+                                    106 ;tetris.c:20: cmd[0]=2;
+      000032 21 00 00         [10]  107 	ld	hl, #0
+      000035 39               [11]  108 	add	hl, sp
+      000036 EB               [ 4]  109 	ex	de, hl
+      000037 3E 02            [ 7]  110 	ld	a, #0x02
+      000039 12               [ 7]  111 	ld	(de), a
+                                    112 ;tetris.c:21: cmd[1]=41;
+      00003A 6B               [ 4]  113 	ld	l, e
+                                    114 ;	spillPairReg hl
+                                    115 ;	spillPairReg hl
+      00003B 62               [ 4]  116 	ld	h, d
+                                    117 ;	spillPairReg hl
+                                    118 ;	spillPairReg hl
+      00003C 23               [ 6]  119 	inc	hl
+      00003D 36 29            [10]  120 	ld	(hl), #0x29
+                                    121 ;tetris.c:22: cmd[2]=color;
+      00003F 4B               [ 4]  122 	ld	c, e
+      000040 42               [ 4]  123 	ld	b, d
+      000041 03               [ 6]  124 	inc	bc
+      000042 03               [ 6]  125 	inc	bc
+      000043 FD 21 05 00      [14]  126 	ld	iy, #5
+      000047 FD 39            [15]  127 	add	iy, sp
+      000049 FD 7E 00         [19]  128 	ld	a, 0 (iy)
+      00004C 02               [ 7]  129 	ld	(bc), a
+                                    130 ;tetris.c:23: gpu_block(cmd);
+      00004D EB               [ 4]  131 	ex	de, hl
+      00004E CDr00r00         [17]  132 	call	_gpu_block
+                                    133 ;tetris.c:24: }
+      000051 F1               [10]  134 	pop	af
+      000052 33               [ 6]  135 	inc	sp
+      000053 E1               [10]  136 	pop	hl
+      000054 33               [ 6]  137 	inc	sp
+      000055 E9               [ 4]  138 	jp	(hl)
+                                    139 ;tetris.c:26: void initialize_cubes()
+                                    140 ;	---------------------------------
+                                    141 ; Function initialize_cubes
+                                    142 ; ---------------------------------
+      000056                        143 _initialize_cubes::
+      000056 DD E5            [15]  144 	push	ix
+      000058 DD 21 00 00      [14]  145 	ld	ix,#0
+      00005C DD 39            [15]  146 	add	ix,sp
+      00005E 21 FB FE         [10]  147 	ld	hl, #-261
+      000061 39               [11]  148 	add	hl, sp
+      000062 F9               [ 6]  149 	ld	sp, hl
+                                    150 ;tetris.c:32: header[0]=4;
+      000063 FD 21 00 00      [14]  151 	ld	iy, #0
+      000067 FD 39            [15]  152 	add	iy, sp
+      000069 FD 36 00 04      [19]  153 	ld	0 (iy), #0x04
+                                    154 ;tetris.c:33: header[1]=40; // set sprite command
+      00006D FD 23            [10]  155 	inc	iy
+      00006F FD 36 00 28      [19]  156 	ld	0 (iy), #0x28
+                                    157 ;tetris.c:35: color[0]=254;
+      000073 FD 21 05 00      [14]  158 	ld	iy, #5
+      000077 FD 39            [15]  159 	add	iy, sp
+      000079 FD 36 00 FE      [19]  160 	ld	0 (iy), #0xfe
+                                    161 ;tetris.c:36: for(byte i=0;i<64;++i)
+      00007D 0E 00            [ 7]  162 	ld	c, #0x00
+      00007F                        163 00107$:
+      00007F 79               [ 4]  164 	ld	a, c
+      000080 D6 40            [ 7]  165 	sub	a, #0x40
+      000082 30 3A            [12]  166 	jr	NC, 00109$
+                                    167 ;tetris.c:38: header[2]=i; // sprite id
+      000084 FD 21 02 00      [14]  168 	ld	iy, #2
+      000088 FD 39            [15]  169 	add	iy, sp
+      00008A FD 71 00         [19]  170 	ld	0 (iy), c
+                                    171 ;tetris.c:39: header[3]=i; // sprite color
+      00008D FD 23            [10]  172 	inc	iy
+      00008F FD 71 00         [19]  173 	ld	0 (iy), c
+                                    174 ;tetris.c:40: header[4]=i; // sprite color
+      000092 FD 23            [10]  175 	inc	iy
+      000094 FD 71 00         [19]  176 	ld	0 (iy), c
+                                    177 ;tetris.c:41: for(byte j=0;j<254;++j)
+      000097 06 00            [ 7]  178 	ld	b, #0x00
+      000099                        179 00104$:
+      000099 78               [ 4]  180 	ld	a, b
+      00009A D6 FE            [ 7]  181 	sub	a, #0xfe
+      00009C 30 0D            [12]  182 	jr	NC, 00101$
+                                    183 ;tetris.c:42: color[1+j]=i;
+      00009E 58               [ 4]  184 	ld	e, b
+      00009F 16 00            [ 7]  185 	ld	d, #0x00
+      0000A1 13               [ 6]  186 	inc	de
+      0000A2 21 05 00         [10]  187 	ld	hl, #5
+      0000A5 39               [11]  188 	add	hl, sp
+      0000A6 19               [11]  189 	add	hl, de
+      0000A7 71               [ 7]  190 	ld	(hl), c
+                                    191 ;tetris.c:41: for(byte j=0;j<254;++j)
+      0000A8 04               [ 4]  192 	inc	b
+      0000A9 18 EE            [12]  193 	jr	00104$
+      0000AB                        194 00101$:
+                                    195 ;tetris.c:43: gpu_block(header);
+      0000AB C5               [11]  196 	push	bc
+      0000AC 21 02 00         [10]  197 	ld	hl, #2
+      0000AF 39               [11]  198 	add	hl, sp
+      0000B0 CDr00r00         [17]  199 	call	_gpu_block
+      0000B3 21 07 00         [10]  200 	ld	hl, #7
+      0000B6 39               [11]  201 	add	hl, sp
+      0000B7 CDr00r00         [17]  202 	call	_gpu_block
+      0000BA C1               [10]  203 	pop	bc
+                                    204 ;tetris.c:36: for(byte i=0;i<64;++i)
+      0000BB 0C               [ 4]  205 	inc	c
+      0000BC 18 C1            [12]  206 	jr	00107$
+      0000BE                        207 00109$:
+                                    208 ;tetris.c:46: }
+      0000BE DD F9            [10]  209 	ld	sp, ix
+      0000C0 DD E1            [14]  210 	pop	ix
+      0000C2 C9               [10]  211 	ret
+                                    212 ;tetris.c:48: byte wait_key()
+                                    213 ;	---------------------------------
+                                    214 ; Function wait_key
+                                    215 ; ---------------------------------
+      0000C3                        216 _wait_key::
+                                    217 ;tetris.c:50: if (input_empty()) return 0xFF;
+      0000C3 CDr00r00         [17]  218 	call	_input_empty
+      0000C6 B7               [ 4]  219 	or	a, a
+      0000C7 CAr00r00         [10]  220 	jp	Z,_input_read
+                                    221 ;tetris.c:51: return input_read();
+      0000CA 3E FF            [ 7]  222 	ld	a, #0xff
+                                    223 ;tetris.c:52: }
+      0000CC C9               [10]  224 	ret
+                                    225 ;tetris.c:74: void initialize_board(Board* board)
+                                    226 ;	---------------------------------
+                                    227 ; Function initialize_board
+                                    228 ; ---------------------------------
+      0000CD                        229 _initialize_board::
+      0000CD EB               [ 4]  230 	ex	de, hl
+                                    231 ;tetris.c:76: for (byte i = 0; i < (W * H); ++i)
+      0000CE 0E 00            [ 7]  232 	ld	c, #0x00
+      0000D0                        233 00103$:
+      0000D0 79               [ 4]  234 	ld	a, c
+      0000D1 D6 B0            [ 7]  235 	sub	a, #0xb0
+      0000D3 30 09            [12]  236 	jr	NC, 00101$
+                                    237 ;tetris.c:77: board->grid[i] = 0;
+      0000D5 69               [ 4]  238 	ld	l, c
+      0000D6 26 00            [ 7]  239 	ld	h, #0x00
+      0000D8 19               [11]  240 	add	hl, de
+      0000D9 36 00            [10]  241 	ld	(hl), #0x00
+                                    242 ;tetris.c:76: for (byte i = 0; i < (W * H); ++i)
+      0000DB 0C               [ 4]  243 	inc	c
+      0000DC 18 F2            [12]  244 	jr	00103$
+      0000DE                        245 00101$:
+                                    246 ;tetris.c:78: board->game_over=0;
+      0000DE 21 B0 00         [10]  247 	ld	hl, #0x00b0
+      0000E1 19               [11]  248 	add	hl, de
+      0000E2 36 00            [10]  249 	ld	(hl), #0x00
+                                    250 ;tetris.c:79: }
+      0000E4 C9               [10]  251 	ret
+                                    252 ;tetris.c:81: byte board_position_free(Board* board, byte x, byte y)
+                                    253 ;	---------------------------------
+                                    254 ; Function board_position_free
+                                    255 ; ---------------------------------
+      0000E5                        256 _board_position_free::
+      0000E5 DD E5            [15]  257 	push	ix
+      0000E7 DD 21 00 00      [14]  258 	ld	ix,#0
+      0000EB DD 39            [15]  259 	add	ix,sp
+      0000ED EB               [ 4]  260 	ex	de, hl
+                                    261 ;tetris.c:83: if (x >= W || y >= H) return 0;
+      0000EE DD 7E 04         [19]  262 	ld	a, 4 (ix)
+      0000F1 D6 0B            [ 7]  263 	sub	a, #0x0b
+      0000F3 30 07            [12]  264 	jr	NC, 00101$
+      0000F5 DD 7E 05         [19]  265 	ld	a, 5 (ix)
+      0000F8 D6 10            [ 7]  266 	sub	a, #0x10
+      0000FA 38 03            [12]  267 	jr	C, 00102$
+      0000FC                        268 00101$:
+      0000FC AF               [ 4]  269 	xor	a, a
+      0000FD 18 1A            [12]  270 	jr	00104$
+      0000FF                        271 00102$:
+                                    272 ;tetris.c:84: return board->grid[y * W + x] == 0;
+      0000FF DD 4E 05         [19]  273 	ld	c, 5 (ix)
+      000102 06 00            [ 7]  274 	ld	b, #0x00
+      000104 69               [ 4]  275 	ld	l, c
+      000105 60               [ 4]  276 	ld	h, b
+      000106 29               [11]  277 	add	hl, hl
+      000107 29               [11]  278 	add	hl, hl
+      000108 09               [11]  279 	add	hl, bc
+      000109 29               [11]  280 	add	hl, hl
+      00010A 09               [11]  281 	add	hl, bc
+      00010B DD 4E 04         [19]  282 	ld	c, 4 (ix)
+      00010E 06 00            [ 7]  283 	ld	b, #0x00
+      000110 09               [11]  284 	add	hl, bc
+      000111 19               [11]  285 	add	hl, de
+      000112 7E               [ 7]  286 	ld	a, (hl)
+      000113 B7               [ 4]  287 	or	a, a
+      000114 3E 01            [ 7]  288 	ld	a, #0x01
+      000116 28 01            [12]  289 	jr	Z, 00112$
+      000118 AF               [ 4]  290 	xor	a, a
+      000119                        291 00112$:
+      000119                        292 00104$:
+                                    293 ;tetris.c:85: }
+      000119 DD E1            [14]  294 	pop	ix
+      00011B E1               [10]  295 	pop	hl
+      00011C C1               [10]  296 	pop	bc
+      00011D E9               [ 4]  297 	jp	(hl)
+                                    298 ;tetris.c:87: void remove_full_rows(Board* board)
+                                    299 ;	---------------------------------
+                                    300 ; Function remove_full_rows
+                                    301 ; ---------------------------------
+      00011E                        302 _remove_full_rows::
+      00011E DD E5            [15]  303 	push	ix
+      000120 DD 21 00 00      [14]  304 	ld	ix,#0
+      000124 DD 39            [15]  305 	add	ix,sp
+      000126 F5               [11]  306 	push	af
+      000127 F5               [11]  307 	push	af
+      000128 F5               [11]  308 	push	af
+      000129 4D               [ 4]  309 	ld	c, l
+      00012A 44               [ 4]  310 	ld	b, h
+                                    311 ;tetris.c:90: byte ofs = (H - 1) * W;
+      00012B 1E A5            [ 7]  312 	ld	e, #0xa5
+                                    313 ;tetris.c:91: for (byte y = H - 1; y > 0; --y, ofs-=W)
+      00012D DD 36 FC 0F      [19]  314 	ld	-4 (ix), #0x0f
+      000131 DD 36 FD 00      [19]  315 	ld	-3 (ix), #0x00
+      000135                        316 00127$:
+      000135 DD 7E FC         [19]  317 	ld	a, -4 (ix)
+      000138 B7               [ 4]  318 	or	a, a
+      000139 CArE2r01         [10]  319 	jp	Z, 00109$
+                                    320 ;tetris.c:94: for (byte x = 0; x < W; ++x)
+      00013C DD 36 FE 00      [19]  321 	ld	-2 (ix), #0x00
+      000140 DD 36 FF 00      [19]  322 	ld	-1 (ix), #0x00
+      000144                        323 00115$:
+      000144 DD 7E FF         [19]  324 	ld	a, -1 (ix)
+      000147 D6 0B            [ 7]  325 	sub	a, #0x0b
+      000149 30 1A            [12]  326 	jr	NC, 00103$
+                                    327 ;tetris.c:95: if (board->grid[ofs + x] != 0)
+      00014B 7B               [ 4]  328 	ld	a, e
+      00014C 16 00            [ 7]  329 	ld	d, #0x00
+      00014E DD 6E FF         [19]  330 	ld	l, -1 (ix)
+                                    331 ;	spillPairReg hl
+                                    332 ;	spillPairReg hl
+      000151 26 00            [ 7]  333 	ld	h, #0x00
+                                    334 ;	spillPairReg hl
+                                    335 ;	spillPairReg hl
+      000153 85               [ 4]  336 	add	a, l
+      000154 6F               [ 4]  337 	ld	l, a
+                                    338 ;	spillPairReg hl
+                                    339 ;	spillPairReg hl
+      000155 7A               [ 4]  340 	ld	a, d
+      000156 8C               [ 4]  341 	adc	a, h
+      000157 67               [ 4]  342 	ld	h, a
+                                    343 ;	spillPairReg hl
+                                    344 ;	spillPairReg hl
+      000158 09               [11]  345 	add	hl, bc
+      000159 7E               [ 7]  346 	ld	a, (hl)
+      00015A B7               [ 4]  347 	or	a, a
+      00015B 28 03            [12]  348 	jr	Z, 00116$
+                                    349 ;tetris.c:96: ++count;
+      00015D DD 34 FE         [23]  350 	inc	-2 (ix)
+      000160                        351 00116$:
+                                    352 ;tetris.c:94: for (byte x = 0; x < W; ++x)
+      000160 DD 34 FF         [23]  353 	inc	-1 (ix)
+      000163 18 DF            [12]  354 	jr	00115$
+      000165                        355 00103$:
+                                    356 ;tetris.c:97: if (count == W)
+      000165 DD 7E FE         [19]  357 	ld	a, -2 (ix)
+      000168 D6 0B            [ 7]  358 	sub	a, #0x0b
+      00016A 20 6C            [12]  359 	jr	NZ, 00128$
+                                    360 ;tetris.c:99: full_rows++;
+      00016C DD 34 FD         [23]  361 	inc	-3 (ix)
+                                    362 ;tetris.c:100: byte aofs = ofs;
+      00016F 53               [ 4]  363 	ld	d, e
+                                    364 ;tetris.c:101: for (byte ay = y; ay > 0; --ay)
+      000170 DD 7E FC         [19]  365 	ld	a, -4 (ix)
+      000173 DD 77 FE         [19]  366 	ld	-2 (ix), a
+      000176                        367 00121$:
+      000176 DD 7E FE         [19]  368 	ld	a, -2 (ix)
+      000179 B7               [ 4]  369 	or	a, a
+      00017A 28 45            [12]  370 	jr	Z, 00151$
+                                    371 ;tetris.c:103: for (byte x = 0; x < W; ++x)
+      00017C DD 36 FF 00      [19]  372 	ld	-1 (ix), #0x00
+      000180                        373 00118$:
+      000180 DD 7E FF         [19]  374 	ld	a, -1 (ix)
+      000183 D6 0B            [ 7]  375 	sub	a, #0x0b
+      000185 30 31            [12]  376 	jr	NC, 00104$
+                                    377 ;tetris.c:104: board->grid[aofs + x] = board->grid[aofs + x - W];
+      000187 DD 72 FA         [19]  378 	ld	-6 (ix), d
+      00018A DD 36 FB 00      [19]  379 	ld	-5 (ix), #0x00
+      00018E DD 7E FF         [19]  380 	ld	a, -1 (ix)
+      000191 26 00            [ 7]  381 	ld	h, #0x00
+                                    382 ;	spillPairReg hl
+                                    383 ;	spillPairReg hl
+      000193 DD 86 FA         [19]  384 	add	a, -6 (ix)
+      000196 6F               [ 4]  385 	ld	l, a
+                                    386 ;	spillPairReg hl
+                                    387 ;	spillPairReg hl
+      000197 7C               [ 4]  388 	ld	a, h
+      000198 DD 8E FB         [19]  389 	adc	a, -5 (ix)
+      00019B 67               [ 4]  390 	ld	h, a
+                                    391 ;	spillPairReg hl
+                                    392 ;	spillPairReg hl
+      00019C 79               [ 4]  393 	ld	a, c
+      00019D 85               [ 4]  394 	add	a, l
+      00019E DD 77 FA         [19]  395 	ld	-6 (ix), a
+      0001A1 78               [ 4]  396 	ld	a, b
+      0001A2 8C               [ 4]  397 	adc	a, h
+      0001A3 DD 77 FB         [19]  398 	ld	-5 (ix), a
+      0001A6 7D               [ 4]  399 	ld	a, l
+      0001A7 C6 F5            [ 7]  400 	add	a, #0xf5
+      0001A9 6F               [ 4]  401 	ld	l, a
+                                    402 ;	spillPairReg hl
+                                    403 ;	spillPairReg hl
+      0001AA 7C               [ 4]  404 	ld	a, h
+      0001AB CE FF            [ 7]  405 	adc	a, #0xff
+      0001AD 67               [ 4]  406 	ld	h, a
+                                    407 ;	spillPairReg hl
+                                    408 ;	spillPairReg hl
+      0001AE 09               [11]  409 	add	hl, bc
+      0001AF 7E               [ 7]  410 	ld	a, (hl)
+      0001B0 E1               [10]  411 	pop	hl
+      0001B1 E5               [11]  412 	push	hl
+      0001B2 77               [ 7]  413 	ld	(hl), a
+                                    414 ;tetris.c:103: for (byte x = 0; x < W; ++x)
+      0001B3 DD 34 FF         [23]  415 	inc	-1 (ix)
+      0001B6 18 C8            [12]  416 	jr	00118$
+      0001B8                        417 00104$:
+                                    418 ;tetris.c:105: aofs -= W;
+      0001B8 7A               [ 4]  419 	ld	a, d
+      0001B9 C6 F5            [ 7]  420 	add	a, #0xf5
+      0001BB 57               [ 4]  421 	ld	d, a
+                                    422 ;tetris.c:101: for (byte ay = y; ay > 0; --ay)
+      0001BC DD 35 FE         [23]  423 	dec	-2 (ix)
+      0001BF 18 B5            [12]  424 	jr	00121$
+                                    425 ;tetris.c:107: for (byte x = 0; x < W; ++x)
+      0001C1                        426 00151$:
+      0001C1 16 00            [ 7]  427 	ld	d, #0x00
+      0001C3                        428 00124$:
+      0001C3 7A               [ 4]  429 	ld	a, d
+      0001C4 D6 0B            [ 7]  430 	sub	a, #0x0b
+      0001C6 30 09            [12]  431 	jr	NC, 00106$
+                                    432 ;tetris.c:108: board->grid[x] = 0;
+      0001C8 6A               [ 4]  433 	ld	l, d
+      0001C9 26 00            [ 7]  434 	ld	h, #0x00
+      0001CB 09               [11]  435 	add	hl, bc
+      0001CC 36 00            [10]  436 	ld	(hl), #0x00
+                                    437 ;tetris.c:107: for (byte x = 0; x < W; ++x)
+      0001CE 14               [ 4]  438 	inc	d
+      0001CF 18 F2            [12]  439 	jr	00124$
+      0001D1                        440 00106$:
+                                    441 ;tetris.c:110: ++y;
+      0001D1 DD 34 FC         [23]  442 	inc	-4 (ix)
+                                    443 ;tetris.c:111: ofs += W;
+      0001D4 7B               [ 4]  444 	ld	a, e
+      0001D5 C6 0B            [ 7]  445 	add	a, #0x0b
+      0001D7 5F               [ 4]  446 	ld	e, a
+      0001D8                        447 00128$:
+                                    448 ;tetris.c:91: for (byte y = H - 1; y > 0; --y, ofs-=W)
+      0001D8 DD 35 FC         [23]  449 	dec	-4 (ix)
+      0001DB 7B               [ 4]  450 	ld	a, e
+      0001DC C6 F5            [ 7]  451 	add	a, #0xf5
+      0001DE 5F               [ 4]  452 	ld	e, a
+      0001DF C3r35r01         [10]  453 	jp	00127$
+      0001E2                        454 00109$:
+                                    455 ;tetris.c:114: if (full_rows > 0)
+      0001E2 DD 7E FD         [19]  456 	ld	a, -3 (ix)
+      0001E5 B7               [ 4]  457 	or	a, a
+      0001E6 28 5E            [12]  458 	jr	Z, 00135$
+                                    459 ;tetris.c:116: byte ofs = 0;
+      0001E8 1E 00            [ 7]  460 	ld	e, #0x00
+                                    461 ;tetris.c:117: for (byte by = 0; by < H; ++by)
+      0001EA DD 36 FD 00      [19]  462 	ld	-3 (ix), #0x00
+      0001EE                        463 00133$:
+      0001EE DD 7E FD         [19]  464 	ld	a, -3 (ix)
+      0001F1 D6 10            [ 7]  465 	sub	a, #0x10
+      0001F3 30 51            [12]  466 	jr	NC, 00135$
+                                    467 ;tetris.c:119: word y= ((word)by) << 4;
+      0001F5 DD 6E FD         [19]  468 	ld	l, -3 (ix)
+                                    469 ;	spillPairReg hl
+                                    470 ;	spillPairReg hl
+      0001F8 26 00            [ 7]  471 	ld	h, #0x00
+                                    472 ;	spillPairReg hl
+                                    473 ;	spillPairReg hl
+      0001FA 29               [11]  474 	add	hl, hl
+      0001FB 29               [11]  475 	add	hl, hl
+      0001FC 29               [11]  476 	add	hl, hl
+      0001FD 29               [11]  477 	add	hl, hl
+      0001FE DD 75 FB         [19]  478 	ld	-5 (ix), l
+      000201 DD 74 FC         [19]  479 	ld	-4 (ix), h
+                                    480 ;tetris.c:120: for (byte bx = 0; bx < W; ++bx, ++ofs)
+      000204 DD 36 FE 00      [19]  481 	ld	-2 (ix), #0x00
+      000208 DD 73 FF         [19]  482 	ld	-1 (ix), e
+      00020B                        483 00130$:
+      00020B DD 7E FE         [19]  484 	ld	a, -2 (ix)
+      00020E D6 0B            [ 7]  485 	sub	a, #0x0b
+      000210 30 2C            [12]  486 	jr	NC, 00161$
+                                    487 ;tetris.c:122: word x = ((word)(bx + L)) << 4;
+      000212 DD 5E FE         [19]  488 	ld	e, -2 (ix)
+      000215 16 00            [ 7]  489 	ld	d, #0x00
+      000217 21 07 00         [10]  490 	ld	hl, #0x0007
+      00021A 19               [11]  491 	add	hl, de
+      00021B 29               [11]  492 	add	hl, hl
+      00021C 29               [11]  493 	add	hl, hl
+      00021D 29               [11]  494 	add	hl, hl
+      00021E 29               [11]  495 	add	hl, hl
+                                    496 ;tetris.c:123: draw_cube(x, y, board->grid[ofs]);
+      00021F DD 7E FF         [19]  497 	ld	a, -1 (ix)
+      000222 81               [ 4]  498 	add	a, c
+      000223 5F               [ 4]  499 	ld	e, a
+      000224 3E 00            [ 7]  500 	ld	a, #0x00
+      000226 88               [ 4]  501 	adc	a, b
+      000227 57               [ 4]  502 	ld	d, a
+      000228 1A               [ 7]  503 	ld	a, (de)
+      000229 C5               [11]  504 	push	bc
+      00022A F5               [11]  505 	push	af
+      00022B 33               [ 6]  506 	inc	sp
+      00022C DD 5E FB         [19]  507 	ld	e, -5 (ix)
+      00022F DD 56 FC         [19]  508 	ld	d, -4 (ix)
+      000232 CDr2Dr00         [17]  509 	call	_draw_cube
+      000235 C1               [10]  510 	pop	bc
+                                    511 ;tetris.c:120: for (byte bx = 0; bx < W; ++bx, ++ofs)
+      000236 DD 34 FE         [23]  512 	inc	-2 (ix)
+      000239 DD 34 FF         [23]  513 	inc	-1 (ix)
+      00023C 18 CD            [12]  514 	jr	00130$
+      00023E                        515 00161$:
+      00023E DD 5E FF         [19]  516 	ld	e, -1 (ix)
+                                    517 ;tetris.c:117: for (byte by = 0; by < H; ++by)
+      000241 DD 34 FD         [23]  518 	inc	-3 (ix)
+      000244 18 A8            [12]  519 	jr	00133$
+      000246                        520 00135$:
+                                    521 ;tetris.c:127: }
+      000246 DD F9            [10]  522 	ld	sp, ix
+      000248 DD E1            [14]  523 	pop	ix
+      00024A C9               [10]  524 	ret
+                                    525 ;tetris.c:140: void place_piece(Board* board, Piece* piece)
+                                    526 ;	---------------------------------
+                                    527 ; Function place_piece
+                                    528 ; ---------------------------------
+      00024B                        529 _place_piece::
+      00024B DD E5            [15]  530 	push	ix
+      00024D DD 21 00 00      [14]  531 	ld	ix,#0
+      000251 DD 39            [15]  532 	add	ix,sp
+      000253 FD 21 F6 FF      [14]  533 	ld	iy, #-10
+      000257 FD 39            [15]  534 	add	iy, sp
+      000259 FD F9            [10]  535 	ld	sp, iy
+      00025B DD 75 FD         [19]  536 	ld	-3 (ix), l
+      00025E DD 74 FE         [19]  537 	ld	-2 (ix), h
+                                    538 ;tetris.c:142: for (byte i = 0; i < 4; ++i)
+      000261 21 02 00         [10]  539 	ld	hl, #0x0002
+      000264 19               [11]  540 	add	hl, de
+      000265 E3               [19]  541 	ex	(sp), hl
+      000266 DD 73 F8         [19]  542 	ld	-8 (ix), e
+      000269 DD 72 F9         [19]  543 	ld	-7 (ix), d
+      00026C DD 73 FA         [19]  544 	ld	-6 (ix), e
+      00026F DD 72 FB         [19]  545 	ld	-5 (ix), d
+      000272 DD 36 FF 00      [19]  546 	ld	-1 (ix), #0x00
+      000276                        547 00103$:
+      000276 DD 7E FF         [19]  548 	ld	a, -1 (ix)
+      000279 D6 04            [ 7]  549 	sub	a, #0x04
+      00027B 30 53            [12]  550 	jr	NC, 00101$
+                                    551 ;tetris.c:144: byte x = piece->offsets[i * 2 + 0] + piece->cx;
+      00027D DD 7E FF         [19]  552 	ld	a, -1 (ix)
+      000280 87               [ 4]  553 	add	a, a
+      000281 4F               [ 4]  554 	ld	c, a
+      000282 E1               [10]  555 	pop	hl
+      000283 E5               [11]  556 	push	hl
+      000284 06 00            [ 7]  557 	ld	b, #0x00
+      000286 09               [11]  558 	add	hl, bc
+      000287 1A               [ 7]  559 	ld	a, (de)
+      000288 46               [ 7]  560 	ld	b, (hl)
+      000289 80               [ 4]  561 	add	a, b
+      00028A DD 77 FC         [19]  562 	ld	-4 (ix), a
+                                    563 ;tetris.c:145: byte y = piece->offsets[i * 2 + 1] + piece->cy;
+      00028D 79               [ 4]  564 	ld	a, c
+      00028E 3C               [ 4]  565 	inc	a
+      00028F DD 86 F6         [19]  566 	add	a, -10 (ix)
+      000292 4F               [ 4]  567 	ld	c, a
+      000293 3E 00            [ 7]  568 	ld	a, #0x00
+      000295 DD 8E F7         [19]  569 	adc	a, -9 (ix)
+      000298 47               [ 4]  570 	ld	b, a
+      000299 DD 6E F8         [19]  571 	ld	l, -8 (ix)
+      00029C DD 66 F9         [19]  572 	ld	h, -7 (ix)
+      00029F 23               [ 6]  573 	inc	hl
+      0002A0 6E               [ 7]  574 	ld	l, (hl)
+                                    575 ;	spillPairReg hl
+      0002A1 0A               [ 7]  576 	ld	a, (bc)
+      0002A2 85               [ 4]  577 	add	a, l
+                                    578 ;tetris.c:146: board->grid[y * W + x] = piece->color;
+      0002A3 4F               [ 4]  579 	ld	c, a
+      0002A4 06 00            [ 7]  580 	ld	b, #0x00
+      0002A6 69               [ 4]  581 	ld	l, c
+      0002A7 60               [ 4]  582 	ld	h, b
+      0002A8 29               [11]  583 	add	hl, hl
+      0002A9 29               [11]  584 	add	hl, hl
+      0002AA 09               [11]  585 	add	hl, bc
+      0002AB 29               [11]  586 	add	hl, hl
+      0002AC 09               [11]  587 	add	hl, bc
+      0002AD DD 4E FC         [19]  588 	ld	c, -4 (ix)
+      0002B0 06 00            [ 7]  589 	ld	b, #0x00
+      0002B2 09               [11]  590 	add	hl, bc
+      0002B3 7D               [ 4]  591 	ld	a, l
+      0002B4 DD 86 FD         [19]  592 	add	a, -3 (ix)
+      0002B7 4F               [ 4]  593 	ld	c, a
+      0002B8 7C               [ 4]  594 	ld	a, h
+      0002B9 DD 8E FE         [19]  595 	adc	a, -2 (ix)
+      0002BC 47               [ 4]  596 	ld	b, a
+      0002BD DD 6E FA         [19]  597 	ld	l, -6 (ix)
+      0002C0 DD 66 FB         [19]  598 	ld	h, -5 (ix)
+      0002C3 C5               [11]  599 	push	bc
+      0002C4 01 0A 00         [10]  600 	ld	bc, #0x000a
+      0002C7 09               [11]  601 	add	hl, bc
+      0002C8 C1               [10]  602 	pop	bc
+      0002C9 7E               [ 7]  603 	ld	a, (hl)
+      0002CA 02               [ 7]  604 	ld	(bc), a
+                                    605 ;tetris.c:142: for (byte i = 0; i < 4; ++i)
+      0002CB DD 34 FF         [23]  606 	inc	-1 (ix)
+      0002CE 18 A6            [12]  607 	jr	00103$
+      0002D0                        608 00101$:
+                                    609 ;tetris.c:148: piece->valid = 0;
+      0002D0 21 0B 00         [10]  610 	ld	hl, #0x000b
+      0002D3 19               [11]  611 	add	hl, de
+      0002D4 36 00            [10]  612 	ld	(hl), #0x00
+                                    613 ;tetris.c:149: }
+      0002D6 DD F9            [10]  614 	ld	sp, ix
+      0002D8 DD E1            [14]  615 	pop	ix
+      0002DA C9               [10]  616 	ret
+      0002DB                        617 _offsets:
+      0002DB FE                     618 	.db #0xfe	; 254
+      0002DC 00                     619 	.db #0x00	; 0
+      0002DD FF                     620 	.db #0xff	; 255
+      0002DE 00                     621 	.db #0x00	; 0
+      0002DF 00                     622 	.db #0x00	; 0
+      0002E0 00                     623 	.db #0x00	; 0
+      0002E1 01                     624 	.db #0x01	; 1
+      0002E2 00                     625 	.db #0x00	; 0
+      0002E3 FF                     626 	.db #0xff	; 255
+      0002E4 00                     627 	.db #0x00	; 0
+      0002E5 00                     628 	.db #0x00	; 0
+      0002E6 00                     629 	.db #0x00	; 0
+      0002E7 01                     630 	.db #0x01	; 1
+      0002E8 00                     631 	.db #0x00	; 0
+      0002E9 01                     632 	.db #0x01	; 1
+      0002EA 01                     633 	.db #0x01	; 1
+      0002EB FF                     634 	.db #0xff	; 255
+      0002EC 00                     635 	.db #0x00	; 0
+      0002ED 00                     636 	.db #0x00	; 0
+      0002EE 00                     637 	.db #0x00	; 0
+      0002EF 01                     638 	.db #0x01	; 1
+      0002F0 00                     639 	.db #0x00	; 0
+      0002F1 01                     640 	.db #0x01	; 1
+      0002F2 FF                     641 	.db #0xff	; 255
+      0002F3 FF                     642 	.db #0xff	; 255
+      0002F4 00                     643 	.db #0x00	; 0
+      0002F5 00                     644 	.db #0x00	; 0
+      0002F6 00                     645 	.db #0x00	; 0
+      0002F7 01                     646 	.db #0x01	; 1
+      0002F8 00                     647 	.db #0x00	; 0
+      0002F9 00                     648 	.db #0x00	; 0
+      0002FA 01                     649 	.db #0x01	; 1
+      0002FB FF                     650 	.db #0xff	; 255
+      0002FC 00                     651 	.db #0x00	; 0
+      0002FD 00                     652 	.db #0x00	; 0
+      0002FE 00                     653 	.db #0x00	; 0
+      0002FF 00                     654 	.db #0x00	; 0
+      000300 FF                     655 	.db #0xff	; 255
+      000301 01                     656 	.db #0x01	; 1
+      000302 FF                     657 	.db #0xff	; 255
+      000303 FF                     658 	.db #0xff	; 255
+      000304 00                     659 	.db #0x00	; 0
+      000305 00                     660 	.db #0x00	; 0
+      000306 00                     661 	.db #0x00	; 0
+      000307 00                     662 	.db #0x00	; 0
+      000308 01                     663 	.db #0x01	; 1
+      000309 01                     664 	.db #0x01	; 1
+      00030A 01                     665 	.db #0x01	; 1
+      00030B FF                     666 	.db #0xff	; 255
+      00030C 00                     667 	.db #0x00	; 0
+      00030D 00                     668 	.db #0x00	; 0
+      00030E 00                     669 	.db #0x00	; 0
+      00030F FF                     670 	.db #0xff	; 255
+      000310 01                     671 	.db #0x01	; 1
+      000311 00                     672 	.db #0x00	; 0
+      000312 01                     673 	.db #0x01	; 1
+                                    674 ;tetris.c:151: byte generate_piece(Board* board, Piece* piece)
+                                    675 ;	---------------------------------
+                                    676 ; Function generate_piece
+                                    677 ; ---------------------------------
+      000313                        678 _generate_piece::
+      000313 DD E5            [15]  679 	push	ix
+      000315 DD 21 00 00      [14]  680 	ld	ix,#0
+      000319 DD 39            [15]  681 	add	ix,sp
+      00031B F5               [11]  682 	push	af
+      00031C F5               [11]  683 	push	af
+      00031D F5               [11]  684 	push	af
+      00031E 3B               [ 6]  685 	dec	sp
+      00031F DD 75 FE         [19]  686 	ld	-2 (ix), l
+      000322 DD 74 FF         [19]  687 	ld	-1 (ix), h
+                                    688 ;tetris.c:154: piece->cx = W/2;
+      000325 3E 05            [ 7]  689 	ld	a, #0x05
+      000327 12               [ 7]  690 	ld	(de), a
+                                    691 ;tetris.c:155: piece->cy = 2;
+      000328 6B               [ 4]  692 	ld	l, e
+                                    693 ;	spillPairReg hl
+                                    694 ;	spillPairReg hl
+      000329 62               [ 4]  695 	ld	h, d
+                                    696 ;	spillPairReg hl
+                                    697 ;	spillPairReg hl
+      00032A 23               [ 6]  698 	inc	hl
+      00032B 36 02            [10]  699 	ld	(hl), #0x02
+                                    700 ;tetris.c:156: byte type = rng() & 7;
+      00032D D5               [11]  701 	push	de
+      00032E CDr00r00         [17]  702 	call	_rng
+      000331 EB               [ 4]  703 	ex	de, hl
+      000332 D1               [10]  704 	pop	de
+      000333 7D               [ 4]  705 	ld	a, l
+      000334 E6 07            [ 7]  706 	and	a, #0x07
+                                    707 ;tetris.c:157: if (type < 7)
+      000336 FE 07            [ 7]  708 	cp	a, #0x07
+      000338 30 6A            [12]  709 	jr	NC, 00105$
+                                    710 ;tetris.c:159: byte base = type << 3;
+      00033A 4F               [ 4]  711 	ld	c, a
+      00033B 87               [ 4]  712 	add	a, a
+      00033C 87               [ 4]  713 	add	a, a
+      00033D 87               [ 4]  714 	add	a, a
+      00033E DD 77 F9         [19]  715 	ld	-7 (ix), a
+                                    716 ;tetris.c:160: for (i = 0; i < 8; ++i)
+      000341 21 02 00         [10]  717 	ld	hl, #0x0002
+      000344 19               [11]  718 	add	hl, de
+      000345 DD 75 FA         [19]  719 	ld	-6 (ix), l
+      000348 DD 74 FB         [19]  720 	ld	-5 (ix), h
+      00034B 06 00            [ 7]  721 	ld	b, #0x00
+      00034D                        722 00106$:
+                                    723 ;tetris.c:161: piece->offsets[i] = offsets[base + i];
+      00034D DD 7E FA         [19]  724 	ld	a, -6 (ix)
+      000350 80               [ 4]  725 	add	a, b
+      000351 DD 77 FC         [19]  726 	ld	-4 (ix), a
+      000354 DD 7E FB         [19]  727 	ld	a, -5 (ix)
+      000357 CE 00            [ 7]  728 	adc	a, #0x00
+      000359 DD 77 FD         [19]  729 	ld	-3 (ix), a
+      00035C DD 7E F9         [19]  730 	ld	a, -7 (ix)
+      00035F 80               [ 4]  731 	add	a, b
+      000360 C6rDB            [ 7]  732 	add	a, #<(_offsets)
+      000362 6F               [ 4]  733 	ld	l, a
+                                    734 ;	spillPairReg hl
+                                    735 ;	spillPairReg hl
+      000363 3E 00            [ 7]  736 	ld	a, #0x00
+      000365 CEs02            [ 7]  737 	adc	a, #>(_offsets)
+      000367 67               [ 4]  738 	ld	h, a
+      000368 7E               [ 7]  739 	ld	a, (hl)
+      000369 DD 6E FC         [19]  740 	ld	l, -4 (ix)
+      00036C DD 66 FD         [19]  741 	ld	h, -3 (ix)
+      00036F 77               [ 7]  742 	ld	(hl), a
+                                    743 ;tetris.c:160: for (i = 0; i < 8; ++i)
+      000370 04               [ 4]  744 	inc	b
+      000371 78               [ 4]  745 	ld	a, b
+      000372 D6 08            [ 7]  746 	sub	a, #0x08
+      000374 38 D7            [12]  747 	jr	C, 00106$
+                                    748 ;tetris.c:162: piece->color = type+1;
+      000376 21 0A 00         [10]  749 	ld	hl, #0x000a
+      000379 19               [11]  750 	add	hl, de
+      00037A 0C               [ 4]  751 	inc	c
+      00037B 71               [ 7]  752 	ld	(hl), c
+                                    753 ;tetris.c:163: piece->valid = 1;
+      00037C 21 0B 00         [10]  754 	ld	hl, #0x000b
+      00037F 19               [11]  755 	add	hl, de
+      000380 36 01            [10]  756 	ld	(hl), #0x01
+                                    757 ;tetris.c:164: if (!move_piece(board, piece, 0, 0))
+      000382 AF               [ 4]  758 	xor	a, a
+      000383 F5               [11]  759 	push	af
+      000384 33               [ 6]  760 	inc	sp
+      000385 AF               [ 4]  761 	xor	a, a
+      000386 F5               [11]  762 	push	af
+      000387 33               [ 6]  763 	inc	sp
+      000388 DD 6E FE         [19]  764 	ld	l, -2 (ix)
+                                    765 ;	spillPairReg hl
+                                    766 ;	spillPairReg hl
+      00038B DD 66 FF         [19]  767 	ld	h, -1 (ix)
+                                    768 ;	spillPairReg hl
+                                    769 ;	spillPairReg hl
+      00038E CDr3Fr04         [17]  770 	call	_move_piece
+      000391 B7               [ 4]  771 	or	a, a
+      000392 20 0C            [12]  772 	jr	NZ, 00103$
+                                    773 ;tetris.c:165: board->game_over=1;
+      000394 DD 6E FE         [19]  774 	ld	l, -2 (ix)
+      000397 DD 66 FF         [19]  775 	ld	h, -1 (ix)
+      00039A 11 B0 00         [10]  776 	ld	de, #0x00b0
+      00039D 19               [11]  777 	add	hl, de
+      00039E 36 01            [10]  778 	ld	(hl), #0x01
+      0003A0                        779 00103$:
+                                    780 ;tetris.c:166: return 1;
+      0003A0 3E 01            [ 7]  781 	ld	a, #0x01
+      0003A2 18 01            [12]  782 	jr	00108$
+      0003A4                        783 00105$:
+                                    784 ;tetris.c:168: return 0;
+      0003A4 AF               [ 4]  785 	xor	a, a
+      0003A5                        786 00108$:
+                                    787 ;tetris.c:169: }
+      0003A5 DD F9            [10]  788 	ld	sp, ix
+      0003A7 DD E1            [14]  789 	pop	ix
+      0003A9 C9               [10]  790 	ret
+                                    791 ;tetris.c:171: void draw_piece(Piece* piece, byte erase)
+                                    792 ;	---------------------------------
+                                    793 ; Function draw_piece
+                                    794 ; ---------------------------------
+      0003AA                        795 _draw_piece::
+      0003AA DD E5            [15]  796 	push	ix
+      0003AC DD 21 00 00      [14]  797 	ld	ix,#0
+      0003B0 DD 39            [15]  798 	add	ix,sp
+      0003B2 F5               [11]  799 	push	af
+      0003B3 F5               [11]  800 	push	af
+      0003B4 F5               [11]  801 	push	af
+      0003B5 3B               [ 6]  802 	dec	sp
+      0003B6 4D               [ 4]  803 	ld	c, l
+      0003B7 44               [ 4]  804 	ld	b, h
+                                    805 ;tetris.c:173: byte color = erase ? 0 : piece->color;
+      0003B8 DD 7E 04         [19]  806 	ld	a, 4 (ix)
+      0003BB B7               [ 4]  807 	or	a, a
+      0003BC 28 04            [12]  808 	jr	Z, 00107$
+      0003BE AF               [ 4]  809 	xor	a, a
+      0003BF 5F               [ 4]  810 	ld	e, a
+      0003C0 18 08            [12]  811 	jr	00108$
+      0003C2                        812 00107$:
+      0003C2 C5               [11]  813 	push	bc
+      0003C3 FD E1            [14]  814 	pop	iy
+      0003C5 FD 7E 0A         [19]  815 	ld	a, 10 (iy)
+      0003C8 1E 00            [ 7]  816 	ld	e, #0x00
+      0003CA                        817 00108$:
+      0003CA DD 77 F9         [19]  818 	ld	-7 (ix), a
+                                    819 ;tetris.c:174: for (byte i = 0; i < 4; ++i)
+      0003CD 21 02 00         [10]  820 	ld	hl, #0x0002
+      0003D0 09               [11]  821 	add	hl, bc
+      0003D1 DD 75 FA         [19]  822 	ld	-6 (ix), l
+      0003D4 DD 74 FB         [19]  823 	ld	-5 (ix), h
+      0003D7 DD 71 FC         [19]  824 	ld	-4 (ix), c
+      0003DA DD 70 FD         [19]  825 	ld	-3 (ix), b
+      0003DD DD 36 FF 00      [19]  826 	ld	-1 (ix), #0x00
+      0003E1                        827 00103$:
+      0003E1 DD 7E FF         [19]  828 	ld	a, -1 (ix)
+      0003E4 D6 04            [ 7]  829 	sub	a, #0x04
+      0003E6 30 50            [12]  830 	jr	NC, 00105$
+                                    831 ;tetris.c:176: byte bx = piece->cx + piece->offsets[i * 2 + 0];
+      0003E8 0A               [ 7]  832 	ld	a, (bc)
+      0003E9 57               [ 4]  833 	ld	d, a
+      0003EA DD 7E FF         [19]  834 	ld	a, -1 (ix)
+      0003ED 87               [ 4]  835 	add	a, a
+      0003EE 5F               [ 4]  836 	ld	e, a
+      0003EF DD 86 FA         [19]  837 	add	a, -6 (ix)
+      0003F2 6F               [ 4]  838 	ld	l, a
+                                    839 ;	spillPairReg hl
+                                    840 ;	spillPairReg hl
+      0003F3 3E 00            [ 7]  841 	ld	a, #0x00
+      0003F5 DD 8E FB         [19]  842 	adc	a, -5 (ix)
+      0003F8 67               [ 4]  843 	ld	h, a
+      0003F9 7E               [ 7]  844 	ld	a, (hl)
+      0003FA 82               [ 4]  845 	add	a, d
+      0003FB DD 77 FE         [19]  846 	ld	-2 (ix), a
+                                    847 ;tetris.c:177: byte by = piece->cy + piece->offsets[i * 2 + 1];
+      0003FE DD 6E FC         [19]  848 	ld	l, -4 (ix)
+      000401 DD 66 FD         [19]  849 	ld	h, -3 (ix)
+      000404 23               [ 6]  850 	inc	hl
+      000405 6E               [ 7]  851 	ld	l, (hl)
+                                    852 ;	spillPairReg hl
+      000406 7B               [ 4]  853 	ld	a, e
+      000407 3C               [ 4]  854 	inc	a
+      000408 DD 86 FA         [19]  855 	add	a, -6 (ix)
+      00040B 5F               [ 4]  856 	ld	e, a
+      00040C 3E 00            [ 7]  857 	ld	a, #0x00
+      00040E DD 8E FB         [19]  858 	adc	a, -5 (ix)
+      000411 57               [ 4]  859 	ld	d, a
+      000412 1A               [ 7]  860 	ld	a, (de)
+      000413 85               [ 4]  861 	add	a, l
+      000414 5F               [ 4]  862 	ld	e, a
+                                    863 ;tetris.c:178: bx += L;
+      000415 DD 7E FE         [19]  864 	ld	a, -2 (ix)
+      000418 C6 07            [ 7]  865 	add	a, #0x07
+                                    866 ;tetris.c:179: word x = bx << 4;
+      00041A 26 00            [ 7]  867 	ld	h, #0x00
+                                    868 ;	spillPairReg hl
+                                    869 ;	spillPairReg hl
+      00041C 6F               [ 4]  870 	ld	l, a
+      00041D 29               [11]  871 	add	hl, hl
+      00041E 29               [11]  872 	add	hl, hl
+      00041F 29               [11]  873 	add	hl, hl
+      000420 29               [11]  874 	add	hl, hl
+                                    875 ;tetris.c:180: word y = by << 4;
+      000421 16 00            [ 7]  876 	ld	d, #0x00
+      000423 EB               [ 4]  877 	ex	de, hl
+      000424 29               [11]  878 	add	hl, hl
+      000425 29               [11]  879 	add	hl, hl
+      000426 29               [11]  880 	add	hl, hl
+      000427 29               [11]  881 	add	hl, hl
+                                    882 ;tetris.c:181: draw_cube(x, y, color);
+      000428 C5               [11]  883 	push	bc
+      000429 EB               [ 4]  884 	ex	de, hl
+      00042A DD 7E F9         [19]  885 	ld	a, -7 (ix)
+      00042D F5               [11]  886 	push	af
+      00042E 33               [ 6]  887 	inc	sp
+      00042F CDr2Dr00         [17]  888 	call	_draw_cube
+      000432 C1               [10]  889 	pop	bc
+                                    890 ;tetris.c:174: for (byte i = 0; i < 4; ++i)
+      000433 DD 34 FF         [23]  891 	inc	-1 (ix)
+      000436 18 A9            [12]  892 	jr	00103$
+      000438                        893 00105$:
+                                    894 ;tetris.c:183: }
+      000438 DD F9            [10]  895 	ld	sp, ix
+      00043A DD E1            [14]  896 	pop	ix
+      00043C E1               [10]  897 	pop	hl
+      00043D 33               [ 6]  898 	inc	sp
+      00043E E9               [ 4]  899 	jp	(hl)
+                                    900 ;tetris.c:185: byte move_piece(Board* board, Piece* piece, byte dx, byte dy)
+                                    901 ;	---------------------------------
+                                    902 ; Function move_piece
+                                    903 ; ---------------------------------
+      00043F                        904 _move_piece::
+      00043F DD E5            [15]  905 	push	ix
+      000441 DD 21 00 00      [14]  906 	ld	ix,#0
+      000445 DD 39            [15]  907 	add	ix,sp
+      000447 FD 21 F6 FF      [14]  908 	ld	iy, #-10
+      00044B FD 39            [15]  909 	add	iy, sp
+      00044D FD F9            [10]  910 	ld	sp, iy
+      00044F 4D               [ 4]  911 	ld	c, l
+      000450 44               [ 4]  912 	ld	b, h
+                                    913 ;tetris.c:187: for (byte i = 0; i < 4; ++i)
+      000451 21 02 00         [10]  914 	ld	hl, #0x0002
+      000454 19               [11]  915 	add	hl, de
+      000455 E3               [19]  916 	ex	(sp), hl
+      000456 6B               [ 4]  917 	ld	l, e
+      000457 62               [ 4]  918 	ld	h, d
+      000458 23               [ 6]  919 	inc	hl
+      000459 DD 75 F8         [19]  920 	ld	-8 (ix), l
+      00045C DD 74 F9         [19]  921 	ld	-7 (ix), h
+      00045F DD 7E F8         [19]  922 	ld	a, -8 (ix)
+      000462 DD 77 FA         [19]  923 	ld	-6 (ix), a
+      000465 DD 7E F9         [19]  924 	ld	a, -7 (ix)
+      000468 DD 77 FB         [19]  925 	ld	-5 (ix), a
+      00046B DD 36 FF 00      [19]  926 	ld	-1 (ix), #0x00
+      00046F                        927 00105$:
+      00046F DD 7E FF         [19]  928 	ld	a, -1 (ix)
+      000472 D6 04            [ 7]  929 	sub	a, #0x04
+      000474 30 59            [12]  930 	jr	NC, 00103$
+                                    931 ;tetris.c:189: byte x = piece->offsets[i * 2 + 0] + piece->cx + dx;
+      000476 DD 7E FF         [19]  932 	ld	a, -1 (ix)
+      000479 87               [ 4]  933 	add	a, a
+      00047A DD 77 FE         [19]  934 	ld	-2 (ix), a
+      00047D DD 86 F6         [19]  935 	add	a, -10 (ix)
+      000480 6F               [ 4]  936 	ld	l, a
+                                    937 ;	spillPairReg hl
+                                    938 ;	spillPairReg hl
+      000481 3E 00            [ 7]  939 	ld	a, #0x00
+      000483 DD 8E F7         [19]  940 	adc	a, -9 (ix)
+      000486 67               [ 4]  941 	ld	h, a
+                                    942 ;	spillPairReg hl
+                                    943 ;	spillPairReg hl
+      000487 1A               [ 7]  944 	ld	a, (de)
+      000488 6E               [ 7]  945 	ld	l, (hl)
+                                    946 ;	spillPairReg hl
+      000489 85               [ 4]  947 	add	a, l
+      00048A DD 86 04         [19]  948 	add	a, 4 (ix)
+      00048D DD 77 FC         [19]  949 	ld	-4 (ix), a
+                                    950 ;tetris.c:190: byte y = piece->offsets[i * 2 + 1] + piece->cy + dy;
+      000490 DD 7E FE         [19]  951 	ld	a, -2 (ix)
+      000493 3C               [ 4]  952 	inc	a
+      000494 DD 86 F6         [19]  953 	add	a, -10 (ix)
+      000497 DD 77 FD         [19]  954 	ld	-3 (ix), a
+      00049A 3E 00            [ 7]  955 	ld	a, #0x00
+      00049C DD 8E F7         [19]  956 	adc	a, -9 (ix)
+      00049F DD 77 FE         [19]  957 	ld	-2 (ix), a
+      0004A2 DD 6E FA         [19]  958 	ld	l, -6 (ix)
+      0004A5 DD 66 FB         [19]  959 	ld	h, -5 (ix)
+      0004A8 7E               [ 7]  960 	ld	a, (hl)
+      0004A9 DD 6E FD         [19]  961 	ld	l, -3 (ix)
+      0004AC DD 66 FE         [19]  962 	ld	h, -2 (ix)
+      0004AF 6E               [ 7]  963 	ld	l, (hl)
+                                    964 ;	spillPairReg hl
+      0004B0 85               [ 4]  965 	add	a, l
+      0004B1 DD 86 05         [19]  966 	add	a, 5 (ix)
+                                    967 ;tetris.c:191: if (!board_position_free(board, x, y))
+      0004B4 C5               [11]  968 	push	bc
+      0004B5 D5               [11]  969 	push	de
+      0004B6 F5               [11]  970 	push	af
+      0004B7 33               [ 6]  971 	inc	sp
+      0004B8 DD 7E FC         [19]  972 	ld	a, -4 (ix)
+      0004BB F5               [11]  973 	push	af
+      0004BC 33               [ 6]  974 	inc	sp
+      0004BD 69               [ 4]  975 	ld	l, c
+                                    976 ;	spillPairReg hl
+                                    977 ;	spillPairReg hl
+      0004BE 60               [ 4]  978 	ld	h, b
+                                    979 ;	spillPairReg hl
+                                    980 ;	spillPairReg hl
+      0004BF CDrE5r00         [17]  981 	call	_board_position_free
+      0004C2 D1               [10]  982 	pop	de
+      0004C3 C1               [10]  983 	pop	bc
+      0004C4 B7               [ 4]  984 	or	a, a
+      0004C5 20 03            [12]  985 	jr	NZ, 00106$
+                                    986 ;tetris.c:192: return 0;
+      0004C7 AF               [ 4]  987 	xor	a, a
+      0004C8 18 2C            [12]  988 	jr	00107$
+      0004CA                        989 00106$:
+                                    990 ;tetris.c:187: for (byte i = 0; i < 4; ++i)
+      0004CA DD 34 FF         [23]  991 	inc	-1 (ix)
+      0004CD 18 A0            [12]  992 	jr	00105$
+      0004CF                        993 00103$:
+                                    994 ;tetris.c:194: draw_piece(piece, 1);
+      0004CF D5               [11]  995 	push	de
+      0004D0 3E 01            [ 7]  996 	ld	a, #0x01
+      0004D2 F5               [11]  997 	push	af
+      0004D3 33               [ 6]  998 	inc	sp
+                                    999 ;	spillPairReg hl
+                                   1000 ;	spillPairReg hl
+      0004D4 EB               [ 4] 1001 	ex	de,hl
+                                   1002 ;	spillPairReg hl
+                                   1003 ;	spillPairReg hl
+      0004D5 CDrAAr03         [17] 1004 	call	_draw_piece
+      0004D8 D1               [10] 1005 	pop	de
+                                   1006 ;tetris.c:195: piece->cx += dx;
+      0004D9 1A               [ 7] 1007 	ld	a, (de)
+      0004DA DD 86 04         [19] 1008 	add	a, 4 (ix)
+      0004DD 12               [ 7] 1009 	ld	(de), a
+                                   1010 ;tetris.c:196: piece->cy += dy;
+      0004DE DD 6E F8         [19] 1011 	ld	l, -8 (ix)
+      0004E1 DD 66 F9         [19] 1012 	ld	h, -7 (ix)
+      0004E4 7E               [ 7] 1013 	ld	a, (hl)
+      0004E5 DD 86 05         [19] 1014 	add	a, 5 (ix)
+      0004E8 C1               [10] 1015 	pop	bc
+      0004E9 E1               [10] 1016 	pop	hl
+      0004EA E5               [11] 1017 	push	hl
+      0004EB C5               [11] 1018 	push	bc
+      0004EC 77               [ 7] 1019 	ld	(hl), a
+                                   1020 ;tetris.c:197: draw_piece(piece, 0);
+      0004ED AF               [ 4] 1021 	xor	a, a
+      0004EE F5               [11] 1022 	push	af
+      0004EF 33               [ 6] 1023 	inc	sp
+      0004F0 EB               [ 4] 1024 	ex	de, hl
+      0004F1 CDrAAr03         [17] 1025 	call	_draw_piece
+                                   1026 ;tetris.c:198: return 1;
+      0004F4 3E 01            [ 7] 1027 	ld	a, #0x01
+      0004F6                       1028 00107$:
+                                   1029 ;tetris.c:199: }
+      0004F6 DD F9            [10] 1030 	ld	sp, ix
+      0004F8 DD E1            [14] 1031 	pop	ix
+      0004FA E1               [10] 1032 	pop	hl
+      0004FB C1               [10] 1033 	pop	bc
+      0004FC E9               [ 4] 1034 	jp	(hl)
+                                   1035 ;tetris.c:201: byte rotate_piece(Board* board, Piece* piece)
+                                   1036 ;	---------------------------------
+                                   1037 ; Function rotate_piece
+                                   1038 ; ---------------------------------
+      0004FD                       1039 _rotate_piece::
+      0004FD DD E5            [15] 1040 	push	ix
+      0004FF DD 21 00 00      [14] 1041 	ld	ix,#0
+      000503 DD 39            [15] 1042 	add	ix,sp
+      000505 FD 21 EB FF      [14] 1043 	ld	iy, #-21
+      000509 FD 39            [15] 1044 	add	iy, sp
+      00050B FD F9            [10] 1045 	ld	sp, iy
+      00050D 4D               [ 4] 1046 	ld	c, l
+      00050E 44               [ 4] 1047 	ld	b, h
+      00050F DD 73 FD         [19] 1048 	ld	-3 (ix), e
+      000512 DD 72 FE         [19] 1049 	ld	-2 (ix), d
+                                   1050 ;tetris.c:204: byte j=0;
+      000515 1E 00            [ 7] 1051 	ld	e, #0x00
+                                   1052 ;tetris.c:205: for (byte i = 0; i < 4; ++i, j+=2)
+      000517 DD 7E FD         [19] 1053 	ld	a, -3 (ix)
+      00051A C6 02            [ 7] 1054 	add	a, #0x02
+      00051C DD 77 F3         [19] 1055 	ld	-13 (ix), a
+      00051F DD 7E FE         [19] 1056 	ld	a, -2 (ix)
+      000522 CE 00            [ 7] 1057 	adc	a, #0x00
+      000524 DD 77 F4         [19] 1058 	ld	-12 (ix), a
+      000527 DD 7E F3         [19] 1059 	ld	a, -13 (ix)
+      00052A DD 77 F5         [19] 1060 	ld	-11 (ix), a
+      00052D DD 7E F4         [19] 1061 	ld	a, -12 (ix)
+      000530 DD 77 F6         [19] 1062 	ld	-10 (ix), a
+      000533 DD 7E FD         [19] 1063 	ld	a, -3 (ix)
+      000536 DD 77 F7         [19] 1064 	ld	-9 (ix), a
+      000539 DD 7E FE         [19] 1065 	ld	a, -2 (ix)
+      00053C DD 77 F8         [19] 1066 	ld	-8 (ix), a
+      00053F DD 36 FF 00      [19] 1067 	ld	-1 (ix), #0x00
+      000543                       1068 00106$:
+      000543 DD 7E FF         [19] 1069 	ld	a, -1 (ix)
+      000546 D6 04            [ 7] 1070 	sub	a, #0x04
+      000548 30 7C            [12] 1071 	jr	NC, 00103$
+                                   1072 ;tetris.c:207: offsets[j] = -piece->offsets[j+1];
+      00054A D5               [11] 1073 	push	de
+      00054B 16 00            [ 7] 1074 	ld	d, #0x00
+      00054D 21 02 00         [10] 1075 	ld	hl, #2
+      000550 39               [11] 1076 	add	hl, sp
+      000551 19               [11] 1077 	add	hl, de
+      000552 D1               [10] 1078 	pop	de
+      000553 DD 75 F9         [19] 1079 	ld	-7 (ix), l
+      000556 DD 74 FA         [19] 1080 	ld	-6 (ix), h
+      000559 DD 73 FB         [19] 1081 	ld	-5 (ix), e
+      00055C 53               [ 4] 1082 	ld	d, e
+      00055D 14               [ 4] 1083 	inc	d
+      00055E 7A               [ 4] 1084 	ld	a, d
+      00055F DD 86 F5         [19] 1085 	add	a, -11 (ix)
+      000562 6F               [ 4] 1086 	ld	l, a
+                                   1087 ;	spillPairReg hl
+                                   1088 ;	spillPairReg hl
+      000563 3E 00            [ 7] 1089 	ld	a, #0x00
+      000565 DD 8E F6         [19] 1090 	adc	a, -10 (ix)
+      000568 67               [ 4] 1091 	ld	h, a
+      000569 7E               [ 7] 1092 	ld	a, (hl)
+      00056A ED 44            [ 8] 1093 	neg
+      00056C DD 77 FC         [19] 1094 	ld	-4 (ix), a
+      00056F DD 6E F9         [19] 1095 	ld	l, -7 (ix)
+      000572 DD 66 FA         [19] 1096 	ld	h, -6 (ix)
+      000575 DD 7E FC         [19] 1097 	ld	a, -4 (ix)
+      000578 77               [ 7] 1098 	ld	(hl), a
+                                   1099 ;tetris.c:208: offsets[j+1] = piece->offsets[j];
+      000579 7A               [ 4] 1100 	ld	a, d
+      00057A 6F               [ 4] 1101 	ld	l, a
+                                   1102 ;	spillPairReg hl
+                                   1103 ;	spillPairReg hl
+      00057B 07               [ 4] 1104 	rlca
+      00057C 9F               [ 4] 1105 	sbc	a, a
+      00057D 57               [ 4] 1106 	ld	d, a
+      00057E D5               [11] 1107 	push	de
+      00057F 5D               [ 4] 1108 	ld	e, l
+      000580 21 02 00         [10] 1109 	ld	hl, #2
+      000583 39               [11] 1110 	add	hl, sp
+      000584 19               [11] 1111 	add	hl, de
+      000585 D1               [10] 1112 	pop	de
+      000586 DD 7E F5         [19] 1113 	ld	a, -11 (ix)
+      000589 83               [ 4] 1114 	add	a, e
+      00058A 5F               [ 4] 1115 	ld	e, a
+      00058B DD 7E F6         [19] 1116 	ld	a, -10 (ix)
+      00058E CE 00            [ 7] 1117 	adc	a, #0x00
+      000590 57               [ 4] 1118 	ld	d, a
+      000591 1A               [ 7] 1119 	ld	a, (de)
+      000592 5F               [ 4] 1120 	ld	e, a
+      000593 73               [ 7] 1121 	ld	(hl), e
+                                   1122 ;tetris.c:209: byte x = offsets[j] + piece->cx;
+      000594 DD 6E FD         [19] 1123 	ld	l, -3 (ix)
+      000597 DD 66 FE         [19] 1124 	ld	h, -2 (ix)
+      00059A 7E               [ 7] 1125 	ld	a, (hl)
+      00059B DD 86 FC         [19] 1126 	add	a, -4 (ix)
+      00059E DD 77 FC         [19] 1127 	ld	-4 (ix), a
+                                   1128 ;tetris.c:210: byte y = offsets[j+1] + piece->cy;
+      0005A1 DD 6E F7         [19] 1129 	ld	l, -9 (ix)
+      0005A4 DD 66 F8         [19] 1130 	ld	h, -8 (ix)
+      0005A7 23               [ 6] 1131 	inc	hl
+      0005A8 7E               [ 7] 1132 	ld	a, (hl)
+      0005A9 83               [ 4] 1133 	add	a, e
+                                   1134 ;tetris.c:211: if (!board_position_free(board, x, y))
+      0005AA C5               [11] 1135 	push	bc
+      0005AB F5               [11] 1136 	push	af
+      0005AC 33               [ 6] 1137 	inc	sp
+      0005AD DD 7E FC         [19] 1138 	ld	a, -4 (ix)
+      0005B0 F5               [11] 1139 	push	af
+      0005B1 33               [ 6] 1140 	inc	sp
+      0005B2 69               [ 4] 1141 	ld	l, c
+                                   1142 ;	spillPairReg hl
+                                   1143 ;	spillPairReg hl
+      0005B3 60               [ 4] 1144 	ld	h, b
+                                   1145 ;	spillPairReg hl
+                                   1146 ;	spillPairReg hl
+      0005B4 CDrE5r00         [17] 1147 	call	_board_position_free
+      0005B7 C1               [10] 1148 	pop	bc
+                                   1149 ;tetris.c:212: return 0;
+      0005B8 B7               [ 4] 1150 	or	a,a
+      0005B9 28 5C            [12] 1151 	jr	Z, 00111$
+                                   1152 ;tetris.c:205: for (byte i = 0; i < 4; ++i, j+=2)
+      0005BB DD 34 FF         [23] 1153 	inc	-1 (ix)
+      0005BE DD 5E FB         [19] 1154 	ld	e, -5 (ix)
+      0005C1 1C               [ 4] 1155 	inc	e
+      0005C2 1C               [ 4] 1156 	inc	e
+      0005C3 C3r43r05         [10] 1157 	jp	00106$
+      0005C6                       1158 00103$:
+                                   1159 ;tetris.c:214: draw_piece(piece, 1);
+      0005C6 3E 01            [ 7] 1160 	ld	a, #0x01
+      0005C8 F5               [11] 1161 	push	af
+      0005C9 33               [ 6] 1162 	inc	sp
+      0005CA DD 6E FD         [19] 1163 	ld	l, -3 (ix)
+                                   1164 ;	spillPairReg hl
+                                   1165 ;	spillPairReg hl
+      0005CD DD 66 FE         [19] 1166 	ld	h, -2 (ix)
+                                   1167 ;	spillPairReg hl
+                                   1168 ;	spillPairReg hl
+      0005D0 CDrAAr03         [17] 1169 	call	_draw_piece
+                                   1170 ;tetris.c:215: for (byte i = 0; i < 8; ++i)
+      0005D3 DD 4E F3         [19] 1171 	ld	c, -13 (ix)
+      0005D6 DD 46 F4         [19] 1172 	ld	b, -12 (ix)
+      0005D9 21 00 00         [10] 1173 	ld	hl, #0
+      0005DC 39               [11] 1174 	add	hl, sp
+      0005DD EB               [ 4] 1175 	ex	de, hl
+      0005DE DD 36 FF 00      [19] 1176 	ld	-1 (ix), #0x00
+      0005E2                       1177 00109$:
+      0005E2 DD 7E FF         [19] 1178 	ld	a, -1 (ix)
+      0005E5 D6 08            [ 7] 1179 	sub	a, #0x08
+      0005E7 30 20            [12] 1180 	jr	NC, 00104$
+                                   1181 ;tetris.c:216: piece->offsets[i] = offsets[i];
+      0005E9 79               [ 4] 1182 	ld	a, c
+      0005EA DD 86 FF         [19] 1183 	add	a, -1 (ix)
+      0005ED DD 77 FB         [19] 1184 	ld	-5 (ix), a
+      0005F0 78               [ 4] 1185 	ld	a, b
+      0005F1 CE 00            [ 7] 1186 	adc	a, #0x00
+      0005F3 DD 77 FC         [19] 1187 	ld	-4 (ix), a
+      0005F6 DD 6E FF         [19] 1188 	ld	l, -1 (ix)
+      0005F9 26 00            [ 7] 1189 	ld	h, #0x00
+      0005FB 19               [11] 1190 	add	hl, de
+      0005FC 7E               [ 7] 1191 	ld	a, (hl)
+      0005FD DD 6E FB         [19] 1192 	ld	l, -5 (ix)
+      000600 DD 66 FC         [19] 1193 	ld	h, -4 (ix)
+      000603 77               [ 7] 1194 	ld	(hl), a
+                                   1195 ;tetris.c:215: for (byte i = 0; i < 8; ++i)
+      000604 DD 34 FF         [23] 1196 	inc	-1 (ix)
+      000607 18 D9            [12] 1197 	jr	00109$
+      000609                       1198 00104$:
+                                   1199 ;tetris.c:217: draw_piece(piece, 0);
+      000609 AF               [ 4] 1200 	xor	a, a
+      00060A F5               [11] 1201 	push	af
+      00060B 33               [ 6] 1202 	inc	sp
+      00060C DD 6E FD         [19] 1203 	ld	l, -3 (ix)
+                                   1204 ;	spillPairReg hl
+                                   1205 ;	spillPairReg hl
+      00060F DD 66 FE         [19] 1206 	ld	h, -2 (ix)
+                                   1207 ;	spillPairReg hl
+                                   1208 ;	spillPairReg hl
+      000612 CDrAAr03         [17] 1209 	call	_draw_piece
+                                   1210 ;tetris.c:218: return 1;
+      000615 3E 01            [ 7] 1211 	ld	a, #0x01
+      000617                       1212 00111$:
+                                   1213 ;tetris.c:219: }
+      000617 DD F9            [10] 1214 	ld	sp, ix
+      000619 DD E1            [14] 1215 	pop	ix
+      00061B C9               [10] 1216 	ret
+                                   1217 ;tetris.c:221: void draw_frame()
+                                   1218 ;	---------------------------------
+                                   1219 ; Function draw_frame
+                                   1220 ; ---------------------------------
+      00061C                       1221 _draw_frame::
+                                   1222 ;tetris.c:225: for (word y = 0; y < H; ++y)
+      00061C 01 00 00         [10] 1223 	ld	bc, #0x0000
+      00061F                       1224 00104$:
+      00061F 69               [ 4] 1225 	ld	l, c
+                                   1226 ;	spillPairReg hl
+                                   1227 ;	spillPairReg hl
+      000620 60               [ 4] 1228 	ld	h, b
+                                   1229 ;	spillPairReg hl
+                                   1230 ;	spillPairReg hl
+      000621 7D               [ 4] 1231 	ld	a, l
+      000622 D6 10            [ 7] 1232 	sub	a, #0x10
+      000624 7C               [ 4] 1233 	ld	a, h
+      000625 DE 00            [ 7] 1234 	sbc	a, #0x00
+      000627 30 20            [12] 1235 	jr	NC, 00101$
+                                   1236 ;tetris.c:227: draw_cube(x0, y * 16, 63);
+      000629 29               [11] 1237 	add	hl, hl
+      00062A 29               [11] 1238 	add	hl, hl
+      00062B 29               [11] 1239 	add	hl, hl
+      00062C 29               [11] 1240 	add	hl, hl
+      00062D C5               [11] 1241 	push	bc
+      00062E EB               [ 4] 1242 	ex	de, hl
+      00062F D5               [11] 1243 	push	de
+      000630 3E 3F            [ 7] 1244 	ld	a, #0x3f
+      000632 F5               [11] 1245 	push	af
+      000633 33               [ 6] 1246 	inc	sp
+      000634 21 60 00         [10] 1247 	ld	hl, #0x0060
+      000637 CDr2Dr00         [17] 1248 	call	_draw_cube
+      00063A D1               [10] 1249 	pop	de
+      00063B 3E 3F            [ 7] 1250 	ld	a, #0x3f
+      00063D F5               [11] 1251 	push	af
+      00063E 33               [ 6] 1252 	inc	sp
+      00063F 21 20 01         [10] 1253 	ld	hl, #0x0120
+      000642 CDr2Dr00         [17] 1254 	call	_draw_cube
+      000645 C1               [10] 1255 	pop	bc
+                                   1256 ;tetris.c:225: for (word y = 0; y < H; ++y)
+      000646 03               [ 6] 1257 	inc	bc
+      000647 18 D6            [12] 1258 	jr	00104$
+      000649                       1259 00101$:
+                                   1260 ;tetris.c:231: for (word x = L-1; x <= (L+W); ++x)
+      000649 01 06 00         [10] 1261 	ld	bc, #0x0006
+      00064C                       1262 00107$:
+      00064C 3E 12            [ 7] 1263 	ld	a, #0x12
+      00064E B9               [ 4] 1264 	cp	a, c
+      00064F 3E 00            [ 7] 1265 	ld	a, #0x00
+      000651 98               [ 4] 1266 	sbc	a, b
+      000652 D8               [11] 1267 	ret	C
+                                   1268 ;tetris.c:233: draw_cube(x*16, y1, 63);
+      000653 69               [ 4] 1269 	ld	l, c
+                                   1270 ;	spillPairReg hl
+                                   1271 ;	spillPairReg hl
+      000654 60               [ 4] 1272 	ld	h, b
+                                   1273 ;	spillPairReg hl
+                                   1274 ;	spillPairReg hl
+      000655 29               [11] 1275 	add	hl, hl
+      000656 29               [11] 1276 	add	hl, hl
+      000657 29               [11] 1277 	add	hl, hl
+      000658 29               [11] 1278 	add	hl, hl
+      000659 C5               [11] 1279 	push	bc
+      00065A 3E 3F            [ 7] 1280 	ld	a, #0x3f
+      00065C F5               [11] 1281 	push	af
+      00065D 33               [ 6] 1282 	inc	sp
+      00065E 11 00 01         [10] 1283 	ld	de, #0x0100
+      000661 CDr2Dr00         [17] 1284 	call	_draw_cube
+      000664 C1               [10] 1285 	pop	bc
+                                   1286 ;tetris.c:231: for (word x = L-1; x <= (L+W); ++x)
+      000665 03               [ 6] 1287 	inc	bc
+                                   1288 ;tetris.c:235: }
+      000666 18 E4            [12] 1289 	jr	00107$
+                                   1290 ;tetris.c:237: void draw_game_over()
+                                   1291 ;	---------------------------------
+                                   1292 ; Function draw_game_over
+                                   1293 ; ---------------------------------
+      000668                       1294 _draw_game_over::
+      000668 DD E5            [15] 1295 	push	ix
+      00066A DD 21 00 00      [14] 1296 	ld	ix,#0
+      00066E DD 39            [15] 1297 	add	ix,sp
+      000670 21 47 FF         [10] 1298 	ld	hl, #-185
+      000673 39               [11] 1299 	add	hl, sp
+      000674 F9               [ 6] 1300 	ld	sp, hl
+                                   1301 ;tetris.c:239: const byte coords[] = {
+      000675 21 00 00         [10] 1302 	ld	hl, #0
+      000678 39               [11] 1303 	add	hl, sp
+      000679 4D               [ 4] 1304 	ld	c, l
+      00067A 44               [ 4] 1305 	ld	b, h
+      00067B 36 01            [10] 1306 	ld	(hl), #0x01
+      00067D 59               [ 4] 1307 	ld	e, c
+      00067E 50               [ 4] 1308 	ld	d, b
+      00067F 13               [ 6] 1309 	inc	de
+      000680 AF               [ 4] 1310 	xor	a, a
+      000681 12               [ 7] 1311 	ld	(de), a
+      000682 69               [ 4] 1312 	ld	l, c
+                                   1313 ;	spillPairReg hl
+                                   1314 ;	spillPairReg hl
+      000683 60               [ 4] 1315 	ld	h, b
+                                   1316 ;	spillPairReg hl
+                                   1317 ;	spillPairReg hl
+      000684 23               [ 6] 1318 	inc	hl
+      000685 23               [ 6] 1319 	inc	hl
+      000686 36 02            [10] 1320 	ld	(hl), #0x02
+      000688 59               [ 4] 1321 	ld	e, c
+      000689 50               [ 4] 1322 	ld	d, b
+      00068A 13               [ 6] 1323 	inc	de
+      00068B 13               [ 6] 1324 	inc	de
+      00068C 13               [ 6] 1325 	inc	de
+      00068D AF               [ 4] 1326 	xor	a, a
+      00068E 12               [ 7] 1327 	ld	(de), a
+      00068F 21 04 00         [10] 1328 	ld	hl, #0x0004
+      000692 09               [11] 1329 	add	hl, bc
+      000693 36 03            [10] 1330 	ld	(hl), #0x03
+      000695 21 05 00         [10] 1331 	ld	hl, #0x0005
+      000698 09               [11] 1332 	add	hl, bc
+      000699 36 00            [10] 1333 	ld	(hl), #0x00
+      00069B 21 06 00         [10] 1334 	ld	hl, #0x0006
+      00069E 09               [11] 1335 	add	hl, bc
+      00069F 36 07            [10] 1336 	ld	(hl), #0x07
+      0006A1 21 07 00         [10] 1337 	ld	hl, #0x0007
+      0006A4 09               [11] 1338 	add	hl, bc
+      0006A5 36 00            [10] 1339 	ld	(hl), #0x00
+      0006A7 21 08 00         [10] 1340 	ld	hl, #0x0008
+      0006AA 09               [11] 1341 	add	hl, bc
+      0006AB 36 0B            [10] 1342 	ld	(hl), #0x0b
+      0006AD 21 09 00         [10] 1343 	ld	hl, #0x0009
+      0006B0 09               [11] 1344 	add	hl, bc
+      0006B1 36 00            [10] 1345 	ld	(hl), #0x00
+      0006B3 21 0A 00         [10] 1346 	ld	hl, #0x000a
+      0006B6 09               [11] 1347 	add	hl, bc
+      0006B7 36 0C            [10] 1348 	ld	(hl), #0x0c
+      0006B9 21 0B 00         [10] 1349 	ld	hl, #0x000b
+      0006BC 09               [11] 1350 	add	hl, bc
+      0006BD 36 00            [10] 1351 	ld	(hl), #0x00
+      0006BF 21 0C 00         [10] 1352 	ld	hl, #0x000c
+      0006C2 09               [11] 1353 	add	hl, bc
+      0006C3 36 0E            [10] 1354 	ld	(hl), #0x0e
+      0006C5 21 0D 00         [10] 1355 	ld	hl, #0x000d
+      0006C8 09               [11] 1356 	add	hl, bc
+      0006C9 36 00            [10] 1357 	ld	(hl), #0x00
+      0006CB 21 0E 00         [10] 1358 	ld	hl, #0x000e
+      0006CE 09               [11] 1359 	add	hl, bc
+      0006CF 36 0F            [10] 1360 	ld	(hl), #0x0f
+      0006D1 21 0F 00         [10] 1361 	ld	hl, #0x000f
+      0006D4 09               [11] 1362 	add	hl, bc
+      0006D5 36 00            [10] 1363 	ld	(hl), #0x00
+      0006D7 21 10 00         [10] 1364 	ld	hl, #0x0010
+      0006DA 09               [11] 1365 	add	hl, bc
+      0006DB 36 11            [10] 1366 	ld	(hl), #0x11
+      0006DD 21 11 00         [10] 1367 	ld	hl, #0x0011
+      0006E0 09               [11] 1368 	add	hl, bc
+      0006E1 36 00            [10] 1369 	ld	(hl), #0x00
+      0006E3 21 12 00         [10] 1370 	ld	hl, #0x0012
+      0006E6 09               [11] 1371 	add	hl, bc
+      0006E7 36 12            [10] 1372 	ld	(hl), #0x12
+      0006E9 21 13 00         [10] 1373 	ld	hl, #0x0013
+      0006EC 09               [11] 1374 	add	hl, bc
+      0006ED 36 00            [10] 1375 	ld	(hl), #0x00
+      0006EF 21 14 00         [10] 1376 	ld	hl, #0x0014
+      0006F2 09               [11] 1377 	add	hl, bc
+      0006F3 36 13            [10] 1378 	ld	(hl), #0x13
+      0006F5 21 15 00         [10] 1379 	ld	hl, #0x0015
+      0006F8 09               [11] 1380 	add	hl, bc
+      0006F9 36 00            [10] 1381 	ld	(hl), #0x00
+      0006FB 21 16 00         [10] 1382 	ld	hl, #0x0016
+      0006FE 09               [11] 1383 	add	hl, bc
+      0006FF 36 14            [10] 1384 	ld	(hl), #0x14
+      000701 21 17 00         [10] 1385 	ld	hl, #0x0017
+      000704 09               [11] 1386 	add	hl, bc
+      000705 36 00            [10] 1387 	ld	(hl), #0x00
+      000707 21 18 00         [10] 1388 	ld	hl, #0x0018
+      00070A 09               [11] 1389 	add	hl, bc
+      00070B 36 00            [10] 1390 	ld	(hl), #0x00
+      00070D 21 19 00         [10] 1391 	ld	hl, #0x0019
+      000710 09               [11] 1392 	add	hl, bc
+      000711 36 01            [10] 1393 	ld	(hl), #0x01
+      000713 21 1A 00         [10] 1394 	ld	hl, #0x001a
+      000716 09               [11] 1395 	add	hl, bc
+      000717 36 06            [10] 1396 	ld	(hl), #0x06
+      000719 21 1B 00         [10] 1397 	ld	hl, #0x001b
+      00071C 09               [11] 1398 	add	hl, bc
+      00071D 36 01            [10] 1399 	ld	(hl), #0x01
+      00071F 21 1C 00         [10] 1400 	ld	hl, #0x001c
+      000722 09               [11] 1401 	add	hl, bc
+      000723 36 08            [10] 1402 	ld	(hl), #0x08
+      000725 21 1D 00         [10] 1403 	ld	hl, #0x001d
+      000728 09               [11] 1404 	add	hl, bc
+      000729 36 01            [10] 1405 	ld	(hl), #0x01
+      00072B 21 1E 00         [10] 1406 	ld	hl, #0x001e
+      00072E 09               [11] 1407 	add	hl, bc
+      00072F 36 0B            [10] 1408 	ld	(hl), #0x0b
+      000731 21 1F 00         [10] 1409 	ld	hl, #0x001f
+      000734 09               [11] 1410 	add	hl, bc
+      000735 36 01            [10] 1411 	ld	(hl), #0x01
+      000737 21 20 00         [10] 1412 	ld	hl, #0x0020
+      00073A 09               [11] 1413 	add	hl, bc
+      00073B 36 0D            [10] 1414 	ld	(hl), #0x0d
+      00073D 21 21 00         [10] 1415 	ld	hl, #0x0021
+      000740 09               [11] 1416 	add	hl, bc
+      000741 36 01            [10] 1417 	ld	(hl), #0x01
+      000743 21 22 00         [10] 1418 	ld	hl, #0x0022
+      000746 09               [11] 1419 	add	hl, bc
+      000747 36 0F            [10] 1420 	ld	(hl), #0x0f
+      000749 21 23 00         [10] 1421 	ld	hl, #0x0023
+      00074C 09               [11] 1422 	add	hl, bc
+      00074D 36 01            [10] 1423 	ld	(hl), #0x01
+      00074F 21 24 00         [10] 1424 	ld	hl, #0x0024
+      000752 09               [11] 1425 	add	hl, bc
+      000753 36 11            [10] 1426 	ld	(hl), #0x11
+      000755 21 25 00         [10] 1427 	ld	hl, #0x0025
+      000758 09               [11] 1428 	add	hl, bc
+      000759 36 01            [10] 1429 	ld	(hl), #0x01
+      00075B 21 26 00         [10] 1430 	ld	hl, #0x0026
+      00075E 09               [11] 1431 	add	hl, bc
+      00075F 36 00            [10] 1432 	ld	(hl), #0x00
+      000761 21 27 00         [10] 1433 	ld	hl, #0x0027
+      000764 09               [11] 1434 	add	hl, bc
+      000765 36 02            [10] 1435 	ld	(hl), #0x02
+      000767 21 28 00         [10] 1436 	ld	hl, #0x0028
+      00076A 09               [11] 1437 	add	hl, bc
+      00076B 36 03            [10] 1438 	ld	(hl), #0x03
+      00076D 21 29 00         [10] 1439 	ld	hl, #0x0029
+      000770 09               [11] 1440 	add	hl, bc
+      000771 36 02            [10] 1441 	ld	(hl), #0x02
+      000773 21 2A 00         [10] 1442 	ld	hl, #0x002a
+      000776 09               [11] 1443 	add	hl, bc
+      000777 36 05            [10] 1444 	ld	(hl), #0x05
+      000779 21 2B 00         [10] 1445 	ld	hl, #0x002b
+      00077C 09               [11] 1446 	add	hl, bc
+      00077D 36 02            [10] 1447 	ld	(hl), #0x02
+      00077F 21 2C 00         [10] 1448 	ld	hl, #0x002c
+      000782 09               [11] 1449 	add	hl, bc
+      000783 36 09            [10] 1450 	ld	(hl), #0x09
+      000785 21 2D 00         [10] 1451 	ld	hl, #0x002d
+      000788 09               [11] 1452 	add	hl, bc
+      000789 36 02            [10] 1453 	ld	(hl), #0x02
+      00078B 21 2E 00         [10] 1454 	ld	hl, #0x002e
+      00078E 09               [11] 1455 	add	hl, bc
+      00078F 36 0B            [10] 1456 	ld	(hl), #0x0b
+      000791 21 2F 00         [10] 1457 	ld	hl, #0x002f
+      000794 09               [11] 1458 	add	hl, bc
+      000795 36 02            [10] 1459 	ld	(hl), #0x02
+      000797 21 30 00         [10] 1460 	ld	hl, #0x0030
+      00079A 09               [11] 1461 	add	hl, bc
+      00079B 36 0F            [10] 1462 	ld	(hl), #0x0f
+      00079D 21 31 00         [10] 1463 	ld	hl, #0x0031
+      0007A0 09               [11] 1464 	add	hl, bc
+      0007A1 36 02            [10] 1465 	ld	(hl), #0x02
+      0007A3 21 32 00         [10] 1466 	ld	hl, #0x0032
+      0007A6 09               [11] 1467 	add	hl, bc
+      0007A7 36 11            [10] 1468 	ld	(hl), #0x11
+      0007A9 21 33 00         [10] 1469 	ld	hl, #0x0033
+      0007AC 09               [11] 1470 	add	hl, bc
+      0007AD 36 02            [10] 1471 	ld	(hl), #0x02
+      0007AF 21 34 00         [10] 1472 	ld	hl, #0x0034
+      0007B2 09               [11] 1473 	add	hl, bc
+      0007B3 36 12            [10] 1474 	ld	(hl), #0x12
+      0007B5 21 35 00         [10] 1475 	ld	hl, #0x0035
+      0007B8 09               [11] 1476 	add	hl, bc
+      0007B9 36 02            [10] 1477 	ld	(hl), #0x02
+      0007BB 21 36 00         [10] 1478 	ld	hl, #0x0036
+      0007BE 09               [11] 1479 	add	hl, bc
+      0007BF 36 00            [10] 1480 	ld	(hl), #0x00
+      0007C1 21 37 00         [10] 1481 	ld	hl, #0x0037
+      0007C4 09               [11] 1482 	add	hl, bc
+      0007C5 36 03            [10] 1483 	ld	(hl), #0x03
+      0007C7 FD 21 38 00      [14] 1484 	ld	iy, #56
+      0007CB FD 39            [15] 1485 	add	iy, sp
+      0007CD FD 36 00 03      [19] 1486 	ld	0 (iy), #0x03
+      0007D1 DD 36 80 03      [19] 1487 	ld	-128 (ix), #0x03
+      0007D5 DD 36 81 05      [19] 1488 	ld	-127 (ix), #0x05
+      0007D9 DD 36 82 03      [19] 1489 	ld	-126 (ix), #0x03
+      0007DD DD 36 83 06      [19] 1490 	ld	-125 (ix), #0x06
+      0007E1 DD 36 84 03      [19] 1491 	ld	-124 (ix), #0x03
+      0007E5 DD 36 85 07      [19] 1492 	ld	-123 (ix), #0x07
+      0007E9 DD 36 86 03      [19] 1493 	ld	-122 (ix), #0x03
+      0007ED DD 36 87 08      [19] 1494 	ld	-121 (ix), #0x08
+      0007F1 DD 36 88 03      [19] 1495 	ld	-120 (ix), #0x03
+      0007F5 DD 36 89 09      [19] 1496 	ld	-119 (ix), #0x09
+      0007F9 DD 36 8A 03      [19] 1497 	ld	-118 (ix), #0x03
+      0007FD DD 36 8B 0B      [19] 1498 	ld	-117 (ix), #0x0b
+      000801 DD 36 8C 03      [19] 1499 	ld	-116 (ix), #0x03
+      000805 DD 36 8D 0F      [19] 1500 	ld	-115 (ix), #0x0f
+      000809 DD 36 8E 03      [19] 1501 	ld	-114 (ix), #0x03
+      00080D DD 36 8F 11      [19] 1502 	ld	-113 (ix), #0x11
+      000811 DD 36 90 03      [19] 1503 	ld	-112 (ix), #0x03
+      000815 DD 36 91 01      [19] 1504 	ld	-111 (ix), #0x01
+      000819 DD 36 92 04      [19] 1505 	ld	-110 (ix), #0x04
+      00081D DD 36 93 02      [19] 1506 	ld	-109 (ix), #0x02
+      000821 DD 36 94 04      [19] 1507 	ld	-108 (ix), #0x04
+      000825 DD 36 95 05      [19] 1508 	ld	-107 (ix), #0x05
+      000829 DD 36 96 04      [19] 1509 	ld	-106 (ix), #0x04
+      00082D DD 36 97 09      [19] 1510 	ld	-105 (ix), #0x09
+      000831 DD 36 98 04      [19] 1511 	ld	-104 (ix), #0x04
+      000835 DD 36 99 0B      [19] 1512 	ld	-103 (ix), #0x0b
+      000839 DD 36 9A 04      [19] 1513 	ld	-102 (ix), #0x04
+      00083D DD 36 9B 0F      [19] 1514 	ld	-101 (ix), #0x0f
+      000841 DD 36 9C 04      [19] 1515 	ld	-100 (ix), #0x04
+      000845 DD 36 9D 11      [19] 1516 	ld	-99 (ix), #0x11
+      000849 DD 36 9E 04      [19] 1517 	ld	-98 (ix), #0x04
+      00084D DD 36 9F 12      [19] 1518 	ld	-97 (ix), #0x12
+      000851 DD 36 A0 04      [19] 1519 	ld	-96 (ix), #0x04
+      000855 DD 36 A1 13      [19] 1520 	ld	-95 (ix), #0x13
+      000859 DD 36 A2 04      [19] 1521 	ld	-94 (ix), #0x04
+      00085D DD 36 A3 14      [19] 1522 	ld	-93 (ix), #0x14
+      000861 DD 36 A4 04      [19] 1523 	ld	-92 (ix), #0x04
+      000865 DD 36 A5 01      [19] 1524 	ld	-91 (ix), #0x01
+      000869 DD 36 A6 06      [19] 1525 	ld	-90 (ix), #0x06
+      00086D DD 36 A7 02      [19] 1526 	ld	-89 (ix), #0x02
+      000871 DD 36 A8 06      [19] 1527 	ld	-88 (ix), #0x06
+      000875 DD 36 A9 03      [19] 1528 	ld	-87 (ix), #0x03
+      000879 DD 36 AA 06      [19] 1529 	ld	-86 (ix), #0x06
+      00087D DD 36 AB 06      [19] 1530 	ld	-85 (ix), #0x06
+      000881 DD 36 AC 06      [19] 1531 	ld	-84 (ix), #0x06
+      000885 DD 36 AD 0A      [19] 1532 	ld	-83 (ix), #0x0a
+      000889 DD 36 AE 06      [19] 1533 	ld	-82 (ix), #0x06
+      00088D DD 36 AF 0C      [19] 1534 	ld	-81 (ix), #0x0c
+      000891 DD 36 B0 06      [19] 1535 	ld	-80 (ix), #0x06
+      000895 DD 36 B1 0D      [19] 1536 	ld	-79 (ix), #0x0d
+      000899 DD 36 B2 06      [19] 1537 	ld	-78 (ix), #0x06
+      00089D DD 36 B3 0E      [19] 1538 	ld	-77 (ix), #0x0e
+      0008A1 DD 36 B4 06      [19] 1539 	ld	-76 (ix), #0x06
+      0008A5 DD 36 B5 0F      [19] 1540 	ld	-75 (ix), #0x0f
+      0008A9 DD 36 B6 06      [19] 1541 	ld	-74 (ix), #0x06
+      0008AD DD 36 B7 11      [19] 1542 	ld	-73 (ix), #0x11
+      0008B1 DD 36 B8 06      [19] 1543 	ld	-72 (ix), #0x06
+      0008B5 DD 36 B9 12      [19] 1544 	ld	-71 (ix), #0x12
+      0008B9 DD 36 BA 06      [19] 1545 	ld	-70 (ix), #0x06
+      0008BD DD 36 BB 13      [19] 1546 	ld	-69 (ix), #0x13
+      0008C1 DD 36 BC 06      [19] 1547 	ld	-68 (ix), #0x06
+      0008C5 DD 36 BD 00      [19] 1548 	ld	-67 (ix), #0x00
+      0008C9 DD 36 BE 07      [19] 1549 	ld	-66 (ix), #0x07
+      0008CD DD 36 BF 04      [19] 1550 	ld	-65 (ix), #0x04
+      0008D1 DD 36 C0 07      [19] 1551 	ld	-64 (ix), #0x07
+      0008D5 DD 36 C1 06      [19] 1552 	ld	-63 (ix), #0x06
+      0008D9 DD 36 C2 07      [19] 1553 	ld	-62 (ix), #0x07
+      0008DD DD 36 C3 0A      [19] 1554 	ld	-61 (ix), #0x0a
+      0008E1 DD 36 C4 07      [19] 1555 	ld	-60 (ix), #0x07
+      0008E5 DD 36 C5 0C      [19] 1556 	ld	-59 (ix), #0x0c
+      0008E9 DD 36 C6 07      [19] 1557 	ld	-58 (ix), #0x07
+      0008ED DD 36 C7 11      [19] 1558 	ld	-57 (ix), #0x11
+      0008F1 DD 36 C8 07      [19] 1559 	ld	-56 (ix), #0x07
+      0008F5 DD 36 C9 14      [19] 1560 	ld	-55 (ix), #0x14
+      0008F9 DD 36 CA 07      [19] 1561 	ld	-54 (ix), #0x07
+      0008FD DD 36 CB 00      [19] 1562 	ld	-53 (ix), #0x00
+      000901 DD 36 CC 08      [19] 1563 	ld	-52 (ix), #0x08
+      000905 DD 36 CD 04      [19] 1564 	ld	-51 (ix), #0x04
+      000909 DD 36 CE 08      [19] 1565 	ld	-50 (ix), #0x08
+      00090D DD 36 CF 07      [19] 1566 	ld	-49 (ix), #0x07
+      000911 DD 36 D0 08      [19] 1567 	ld	-48 (ix), #0x08
+      000915 DD 36 D1 09      [19] 1568 	ld	-47 (ix), #0x09
+      000919 DD 36 D2 08      [19] 1569 	ld	-46 (ix), #0x08
+      00091D DD 36 D3 0C      [19] 1570 	ld	-45 (ix), #0x0c
+      000921 DD 36 D4 08      [19] 1571 	ld	-44 (ix), #0x08
+      000925 DD 36 D5 0D      [19] 1572 	ld	-43 (ix), #0x0d
+      000929 DD 36 D6 08      [19] 1573 	ld	-42 (ix), #0x08
+      00092D DD 36 D7 11      [19] 1574 	ld	-41 (ix), #0x11
+      000931 DD 36 D8 08      [19] 1575 	ld	-40 (ix), #0x08
+      000935 DD 36 D9 12      [19] 1576 	ld	-39 (ix), #0x12
+      000939 DD 36 DA 08      [19] 1577 	ld	-38 (ix), #0x08
+      00093D DD 36 DB 13      [19] 1578 	ld	-37 (ix), #0x13
+      000941 DD 36 DC 08      [19] 1579 	ld	-36 (ix), #0x08
+      000945 DD 36 DD 00      [19] 1580 	ld	-35 (ix), #0x00
+      000949 DD 36 DE 09      [19] 1581 	ld	-34 (ix), #0x09
+      00094D DD 36 DF 04      [19] 1582 	ld	-33 (ix), #0x04
+      000951 DD 36 E0 09      [19] 1583 	ld	-32 (ix), #0x09
+      000955 DD 36 E1 07      [19] 1584 	ld	-31 (ix), #0x07
+      000959 DD 36 E2 09      [19] 1585 	ld	-30 (ix), #0x09
+      00095D DD 36 E3 09      [19] 1586 	ld	-29 (ix), #0x09
+      000961 DD 36 E4 09      [19] 1587 	ld	-28 (ix), #0x09
+      000965 DD 36 E5 0C      [19] 1588 	ld	-27 (ix), #0x0c
+      000969 DD 36 E6 09      [19] 1589 	ld	-26 (ix), #0x09
+      00096D DD 36 E7 11      [19] 1590 	ld	-25 (ix), #0x11
+      000971 DD 36 E8 09      [19] 1591 	ld	-24 (ix), #0x09
+      000975 DD 36 E9 14      [19] 1592 	ld	-23 (ix), #0x14
+      000979 DD 36 EA 09      [19] 1593 	ld	-22 (ix), #0x09
+      00097D DD 36 EB 01      [19] 1594 	ld	-21 (ix), #0x01
+      000981 DD 36 EC 0A      [19] 1595 	ld	-20 (ix), #0x0a
+      000985 DD 36 ED 02      [19] 1596 	ld	-19 (ix), #0x02
+      000989 DD 36 EE 0A      [19] 1597 	ld	-18 (ix), #0x0a
+      00098D DD 36 EF 03      [19] 1598 	ld	-17 (ix), #0x03
+      000991 DD 36 F0 0A      [19] 1599 	ld	-16 (ix), #0x0a
+      000995 DD 36 F1 08      [19] 1600 	ld	-15 (ix), #0x08
+      000999 DD 36 F2 0A      [19] 1601 	ld	-14 (ix), #0x0a
+      00099D DD 36 F3 0C      [19] 1602 	ld	-13 (ix), #0x0c
+      0009A1 DD 36 F4 0A      [19] 1603 	ld	-12 (ix), #0x0a
+      0009A5 DD 36 F5 0D      [19] 1604 	ld	-11 (ix), #0x0d
+      0009A9 DD 36 F6 0A      [19] 1605 	ld	-10 (ix), #0x0a
+      0009AD DD 36 F7 0E      [19] 1606 	ld	-9 (ix), #0x0e
+      0009B1 DD 36 F8 0A      [19] 1607 	ld	-8 (ix), #0x0a
+      0009B5 DD 36 F9 0F      [19] 1608 	ld	-7 (ix), #0x0f
+      0009B9 DD 36 FA 0A      [19] 1609 	ld	-6 (ix), #0x0a
+      0009BD DD 36 FB 11      [19] 1610 	ld	-5 (ix), #0x11
+      0009C1 DD 36 FC 0A      [19] 1611 	ld	-4 (ix), #0x0a
+      0009C5 DD 36 FD 14      [19] 1612 	ld	-3 (ix), #0x14
+      0009C9 DD 36 FE 0A      [19] 1613 	ld	-2 (ix), #0x0a
+                                   1614 ;tetris.c:250: const byte* ptr=coords;
+                                   1615 ;tetris.c:251: for(byte i=0;i<n;++i)
+      0009CD DD 36 FF 00      [19] 1616 	ld	-1 (ix), #0x00
+      0009D1                       1617 00103$:
+      0009D1 DD 7E FF         [19] 1618 	ld	a, -1 (ix)
+      0009D4 D6 5C            [ 7] 1619 	sub	a, #0x5c
+      0009D6 30 22            [12] 1620 	jr	NC, 00105$
+                                   1621 ;tetris.c:253: word x=((word)*ptr++) * 16;
+      0009D8 0A               [ 7] 1622 	ld	a, (bc)
+      0009D9 03               [ 6] 1623 	inc	bc
+      0009DA 26 00            [ 7] 1624 	ld	h, #0x00
+                                   1625 ;	spillPairReg hl
+                                   1626 ;	spillPairReg hl
+      0009DC 6F               [ 4] 1627 	ld	l, a
+      0009DD 29               [11] 1628 	add	hl, hl
+      0009DE 29               [11] 1629 	add	hl, hl
+      0009DF 29               [11] 1630 	add	hl, hl
+      0009E0 29               [11] 1631 	add	hl, hl
+                                   1632 ;tetris.c:254: word y=((word)*ptr++) * 16;
+      0009E1 0A               [ 7] 1633 	ld	a, (bc)
+      0009E2 03               [ 6] 1634 	inc	bc
+      0009E3 5F               [ 4] 1635 	ld	e, a
+      0009E4 16 00            [ 7] 1636 	ld	d, #0x00
+      0009E6 EB               [ 4] 1637 	ex	de, hl
+      0009E7 29               [11] 1638 	add	hl, hl
+      0009E8 29               [11] 1639 	add	hl, hl
+      0009E9 29               [11] 1640 	add	hl, hl
+      0009EA 29               [11] 1641 	add	hl, hl
+                                   1642 ;tetris.c:255: draw_cube(x,y,4);
+      0009EB C5               [11] 1643 	push	bc
+      0009EC EB               [ 4] 1644 	ex	de, hl
+      0009ED 3E 04            [ 7] 1645 	ld	a, #0x04
+      0009EF F5               [11] 1646 	push	af
+      0009F0 33               [ 6] 1647 	inc	sp
+      0009F1 CDr2Dr00         [17] 1648 	call	_draw_cube
+      0009F4 C1               [10] 1649 	pop	bc
+                                   1650 ;tetris.c:251: for(byte i=0;i<n;++i)
+      0009F5 DD 34 FF         [23] 1651 	inc	-1 (ix)
+      0009F8 18 D7            [12] 1652 	jr	00103$
+      0009FA                       1653 00105$:
+                                   1654 ;tetris.c:257: }
+      0009FA DD F9            [10] 1655 	ld	sp, ix
+      0009FC DD E1            [14] 1656 	pop	ix
+      0009FE C9               [10] 1657 	ret
+                                   1658 ;tetris.c:259: void main()
+                                   1659 ;	---------------------------------
+                                   1660 ; Function main
+                                   1661 ; ---------------------------------
+      0009FF                       1662 _main::
+      0009FF DD E5            [15] 1663 	push	ix
+      000A01 DD 21 00 00      [14] 1664 	ld	ix,#0
+      000A05 DD 39            [15] 1665 	add	ix,sp
+      000A07 21 41 FF         [10] 1666 	ld	hl, #-191
+      000A0A 39               [11] 1667 	add	hl, sp
+      000A0B F9               [ 6] 1668 	ld	sp, hl
+                                   1669 ;tetris.c:263: initialize_cubes();
+      000A0C CDr56r00         [17] 1670 	call	_initialize_cubes
+                                   1671 ;tetris.c:264: cls();
+      000A0F CDr00r00         [17] 1672 	call	_cls
+                                   1673 ;tetris.c:265: initialize_board(&board);
+      000A12 21 00 00         [10] 1674 	ld	hl, #0
+      000A15 39               [11] 1675 	add	hl, sp
+      000A16 CDrCDr00         [17] 1676 	call	_initialize_board
+                                   1677 ;tetris.c:266: piece.valid = 0;
+      000A19 DD 36 FD 00      [19] 1678 	ld	-3 (ix), #0x00
+                                   1679 ;tetris.c:267: draw_frame();
+      000A1D CDr1Cr06         [17] 1680 	call	_draw_frame
+                                   1681 ;tetris.c:268: word last_timer=0;
+      000A20 AF               [ 4] 1682 	xor	a, a
+      000A21 DD 77 FE         [19] 1683 	ld	-2 (ix), a
+      000A24 DD 77 FF         [19] 1684 	ld	-1 (ix), a
+                                   1685 ;tetris.c:269: while (1)
+      000A27                       1686 00127$:
+                                   1687 ;tetris.c:271: if (piece.valid == 0)
+      000A27 DD 7E FD         [19] 1688 	ld	a, -3 (ix)
+      000A2A B7               [ 4] 1689 	or	a, a
+      000A2B 20 26            [12] 1690 	jr	NZ, 00109$
+                                   1691 ;tetris.c:273: while (!generate_piece(&board, &piece));
+      000A2D                       1692 00101$:
+      000A2D 21 B1 00         [10] 1693 	ld	hl, #177
+      000A30 39               [11] 1694 	add	hl, sp
+      000A31 EB               [ 4] 1695 	ex	de, hl
+      000A32 21 00 00         [10] 1696 	ld	hl, #0
+      000A35 39               [11] 1697 	add	hl, sp
+      000A36 CDr13r03         [17] 1698 	call	_generate_piece
+      000A39 B7               [ 4] 1699 	or	a, a
+      000A3A 28 F1            [12] 1700 	jr	Z, 00101$
+                                   1701 ;tetris.c:274: if (piece.valid)
+      000A3C DD 7E FD         [19] 1702 	ld	a, -3 (ix)
+      000A3F B7               [ 4] 1703 	or	a, a
+      000A40 28 0A            [12] 1704 	jr	Z, 00105$
+                                   1705 ;tetris.c:275: draw_piece(&piece, 0);
+      000A42 AF               [ 4] 1706 	xor	a, a
+      000A43 F5               [11] 1707 	push	af
+      000A44 33               [ 6] 1708 	inc	sp
+      000A45 21 B2 00         [10] 1709 	ld	hl, #178
+      000A48 39               [11] 1710 	add	hl, sp
+      000A49 CDrAAr03         [17] 1711 	call	_draw_piece
+      000A4C                       1712 00105$:
+                                   1713 ;tetris.c:276: if (board.game_over) break;
+      000A4C DD 7E F1         [19] 1714 	ld	a, -15 (ix)
+      000A4F B7               [ 4] 1715 	or	a, a
+      000A50 C2rF4r0A         [10] 1716 	jp	NZ, 00128$
+      000A53                       1717 00109$:
+                                   1718 ;tetris.c:278: byte key = wait_key();
+      000A53 CDrC3r00         [17] 1719 	call	_wait_key
+                                   1720 ;tetris.c:279: if (key == '4')
+      000A56 FE 34            [ 7] 1721 	cp	a, #0x34
+      000A58 20 12            [12] 1722 	jr	NZ, 00124$
+                                   1723 ;tetris.c:280: move_piece(&board, &piece, 0xFF, 0);
+      000A5A 21 FF 00         [10] 1724 	ld	hl, #0xff
+      000A5D E5               [11] 1725 	push	hl
+      000A5E 21 B3 00         [10] 1726 	ld	hl, #179
+      000A61 39               [11] 1727 	add	hl, sp
+      000A62 EB               [ 4] 1728 	ex	de, hl
+      000A63 21 02 00         [10] 1729 	ld	hl, #2
+      000A66 39               [11] 1730 	add	hl, sp
+      000A67 CDr3Fr04         [17] 1731 	call	_move_piece
+      000A6A 18 BB            [12] 1732 	jr	00127$
+      000A6C                       1733 00124$:
+                                   1734 ;tetris.c:282: if (key == '6')
+      000A6C FE 36            [ 7] 1735 	cp	a, #0x36
+      000A6E 20 12            [12] 1736 	jr	NZ, 00121$
+                                   1737 ;tetris.c:283: move_piece(&board, &piece, 1, 0);
+      000A70 21 01 00         [10] 1738 	ld	hl, #0x01
+      000A73 E5               [11] 1739 	push	hl
+      000A74 21 B3 00         [10] 1740 	ld	hl, #179
+      000A77 39               [11] 1741 	add	hl, sp
+      000A78 EB               [ 4] 1742 	ex	de, hl
+      000A79 21 02 00         [10] 1743 	ld	hl, #2
+      000A7C 39               [11] 1744 	add	hl, sp
+      000A7D CDr3Fr04         [17] 1745 	call	_move_piece
+      000A80 18 A5            [12] 1746 	jr	00127$
+      000A82                       1747 00121$:
+                                   1748 ;tetris.c:285: if (key == '2')
+      000A82 FE 32            [ 7] 1749 	cp	a, #0x32
+      000A84 20 12            [12] 1750 	jr	NZ, 00118$
+                                   1751 ;tetris.c:286: move_piece(&board, &piece, 0, 1);
+      000A86 21 00 01         [10] 1752 	ld	hl, #0x100
+      000A89 E5               [11] 1753 	push	hl
+      000A8A 21 B3 00         [10] 1754 	ld	hl, #179
+      000A8D 39               [11] 1755 	add	hl, sp
+      000A8E EB               [ 4] 1756 	ex	de, hl
+      000A8F 21 02 00         [10] 1757 	ld	hl, #2
+      000A92 39               [11] 1758 	add	hl, sp
+      000A93 CDr3Fr04         [17] 1759 	call	_move_piece
+      000A96 18 8F            [12] 1760 	jr	00127$
+      000A98                       1761 00118$:
+                                   1762 ;tetris.c:288: if (key == '5')
+      000A98 D6 35            [ 7] 1763 	sub	a, #0x35
+      000A9A 20 0F            [12] 1764 	jr	NZ, 00115$
+                                   1765 ;tetris.c:289: rotate_piece(&board, &piece);
+      000A9C 21 B1 00         [10] 1766 	ld	hl, #177
+      000A9F 39               [11] 1767 	add	hl, sp
+      000AA0 EB               [ 4] 1768 	ex	de, hl
+      000AA1 21 00 00         [10] 1769 	ld	hl, #0
+      000AA4 39               [11] 1770 	add	hl, sp
+      000AA5 CDrFDr04         [17] 1771 	call	_rotate_piece
+      000AA8 C3r27r0A         [10] 1772 	jp	00127$
+      000AAB                       1773 00115$:
+                                   1774 ;tetris.c:292: word cur_timer = timer();
+      000AAB CDr00r00         [17] 1775 	call	_timer
+                                   1776 ;tetris.c:293: word diff = cur_timer - last_timer;
+      000AAE 7B               [ 4] 1777 	ld	a, e
+      000AAF DD 96 FE         [19] 1778 	sub	a, -2 (ix)
+      000AB2 4F               [ 4] 1779 	ld	c, a
+      000AB3 7A               [ 4] 1780 	ld	a, d
+      000AB4 DD 9E FF         [19] 1781 	sbc	a, -1 (ix)
+                                   1782 ;tetris.c:294: if (diff > 50)
+      000AB7 47               [ 4] 1783 	ld	b, a
+      000AB8 3E 32            [ 7] 1784 	ld	a, #0x32
+      000ABA B9               [ 4] 1785 	cp	a, c
+      000ABB 3E 00            [ 7] 1786 	ld	a, #0x00
+      000ABD 98               [ 4] 1787 	sbc	a, b
+      000ABE D2r27r0A         [10] 1788 	jp	NC, 00127$
+                                   1789 ;tetris.c:296: last_timer=cur_timer;
+      000AC1 DD 73 FE         [19] 1790 	ld	-2 (ix), e
+      000AC4 DD 72 FF         [19] 1791 	ld	-1 (ix), d
+                                   1792 ;tetris.c:297: if (!move_piece(&board, &piece, 0, 1))
+      000AC7 3E 01            [ 7] 1793 	ld	a, #0x01
+      000AC9 F5               [11] 1794 	push	af
+      000ACA 33               [ 6] 1795 	inc	sp
+      000ACB AF               [ 4] 1796 	xor	a, a
+      000ACC F5               [11] 1797 	push	af
+      000ACD 33               [ 6] 1798 	inc	sp
+      000ACE 21 B3 00         [10] 1799 	ld	hl, #179
+      000AD1 39               [11] 1800 	add	hl, sp
+      000AD2 EB               [ 4] 1801 	ex	de, hl
+      000AD3 21 02 00         [10] 1802 	ld	hl, #2
+      000AD6 39               [11] 1803 	add	hl, sp
+      000AD7 CDr3Fr04         [17] 1804 	call	_move_piece
+      000ADA B7               [ 4] 1805 	or	a, a
+      000ADB C2r27r0A         [10] 1806 	jp	NZ, 00127$
+                                   1807 ;tetris.c:299: place_piece(&board, &piece);
+      000ADE 21 B1 00         [10] 1808 	ld	hl, #177
+      000AE1 39               [11] 1809 	add	hl, sp
+      000AE2 EB               [ 4] 1810 	ex	de, hl
+      000AE3 21 00 00         [10] 1811 	ld	hl, #0
+      000AE6 39               [11] 1812 	add	hl, sp
+      000AE7 CDr4Br02         [17] 1813 	call	_place_piece
+                                   1814 ;tetris.c:300: remove_full_rows(&board);
+      000AEA 21 00 00         [10] 1815 	ld	hl, #0
+      000AED 39               [11] 1816 	add	hl, sp
+      000AEE CDr1Er01         [17] 1817 	call	_remove_full_rows
+      000AF1 C3r27r0A         [10] 1818 	jp	00127$
+      000AF4                       1819 00128$:
+                                   1820 ;tetris.c:305: cls();
+      000AF4 CDr00r00         [17] 1821 	call	_cls
+                                   1822 ;tetris.c:306: draw_game_over();
+      000AF7 CDr68r06         [17] 1823 	call	_draw_game_over
+                                   1824 ;tetris.c:307: while (wait_key()==0xFF);
+      000AFA                       1825 00129$:
+      000AFA CDrC3r00         [17] 1826 	call	_wait_key
+      000AFD 3C               [ 4] 1827 	inc	a
+      000AFE 28 FA            [12] 1828 	jr	Z, 00129$
+                                   1829 ;tetris.c:308: cls();
+      000B00 CDr00r00         [17] 1830 	call	_cls
+                                   1831 ;tetris.c:309: }
+      000B03 DD F9            [10] 1832 	ld	sp, ix
+      000B05 DD E1            [14] 1833 	pop	ix
+      000B07 C9               [10] 1834 	ret
+                                   1835 	.area _CODE
+                                   1836 	.area _INITIALIZER
+                                   1837 	.area _CABS (ABS)

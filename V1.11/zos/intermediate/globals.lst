@@ -1,0 +1,56 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+
+
+                                      1 
+                                      2 .area _GLOBALS
+      000000                          3 _globals_area::		; 0xE0 - 0xFF
+      000000 00 00                    4 	.dw		#0		; 0xE0
+      000002 00 00                    5 	.dw		#0		; 0xE2
+      000004 00 00                    6 	.dw		#0		; 0xE4
+      000006 00 00                    7 	.dw		#0		; 0xE6
+      000008 00 00                    8 	.dw		#0		; 0xE8
+      00000A 00 00                    9 	.dw		#0		; 0xEA
+                                     10 
+      00000C                         11 _timer_value::		; 0xEC
+      00000C 00 00                   12 	.dw		#0
+      00000E                         13 _input_write_ptr::	; 0xEE
+      00000E 00                      14 	.db		#0
+      00000F                         15 _input_read_ptr::	; 0xEF
+      00000F 00                      16 	.db		#0
+                                     17 
+      000010 00                      18 	.db		#0		; 0xF0-0xFF    Debugging state
+      000011 00                      19 	.db		#0
+      000012 00                      20 	.db		#0
+      000013 00                      21 	.db		#0
+      000014 00                      22 	.db		#0
+      000015 00                      23 	.db		#0
+      000016 00                      24 	.db		#0
+      000017 00                      25 	.db		#0
+      000018 00                      26 	.db		#0
+      000019 00                      27 	.db		#0
+      00001A 00                      28 	.db		#0
+      00001B 00                      29 	.db		#0
+      00001C 00                      30 	.db		#0
+      00001D 00                      31 	.db		#0
+      00001E 00                      32 	.db		#0
+      00001F 00                      33 	.db		#0
+      000020                         34 _input_buffer::
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |   1 _globals   000000 GR  |   1 _input_b   000020 GR
+  1 _input_r   00000F GR  |   1 _input_w   00000E GR  |   1 _timer_v   00000C GR
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size      0   flags    0
+   1 _GLOBALS   size     20   flags    0
+

@@ -1,0 +1,18 @@
+ORG		0h
+		jp main
+text:
+		ds 'Hello'
+		
+ORG		100h
+main:
+		ld HL,text
+		ld B,5
+		ld C,0
+		ld A,30
+		out (0),A
+		ld A,5
+		out (0),A
+		OTIR
+		
+loop:
+		jp loop

@@ -1,0 +1,3 @@
+del isrs.lst
+C:\prg\ext\sdcc-4.2.0\bin_vc\sdasz80 -l -o isrs.rel isrs.zasm
+type isrs.lst

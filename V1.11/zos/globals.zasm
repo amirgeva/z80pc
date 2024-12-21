@@ -1,0 +1,34 @@
+
+.area _GLOBALS
+_globals_area::		; 0xE0 - 0xFF
+	.dw		#0		; 0xE0
+	.dw		#0		; 0xE2
+	.dw		#0		; 0xE4
+	.dw		#0		; 0xE6
+	.dw		#0		; 0xE8
+	.dw		#0		; 0xEA
+
+_timer_value::		; 0xEC
+	.dw		#0
+_input_write_ptr::	; 0xEE
+	.db		#0
+_input_read_ptr::	; 0xEF
+	.db		#0
+
+	.db		#0		; 0xF0-0xFF    Debugging state
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+	.db		#0
+_input_buffer::

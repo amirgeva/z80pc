@@ -1,0 +1,95 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeCXXInformation.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeCommonLanguageInclude.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeDependentOption.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeFindDependencyMacro.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeGenericSystem.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeInitializeConfigs.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeLanguageInformation.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeRCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeSystemSpecificInformation.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CMakeSystemSpecificInitialize.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CheckCSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CheckIncludeFile.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/CheckLibraryExists.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Compiler/MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Compiler/MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Compiler/MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/FindHDF5.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/FindLibArchive.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/FindTIFF.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/FindThreads.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/FindZLIB.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Internal/CheckSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Platform/Windows-MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Platform/Windows-MSVC-CXX.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Platform/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Platform/Windows.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/Platform/WindowsPaths.cmake
+C:/Program Files/CMake/share/cmake-3.24/Modules/SelectLibraryConfigurations.cmake
+C:/prg/github/z80pc/v1.6/az80gpu/tests/CMakeLists.txt
+C:/prg/github/z80pc/v1.6/az80gpu/tests/build/CMakeFiles/3.24.0/CMakeCCompiler.cmake
+C:/prg/github/z80pc/v1.6/az80gpu/tests/build/CMakeFiles/3.24.0/CMakeCXXCompiler.cmake
+C:/prg/github/z80pc/v1.6/az80gpu/tests/build/CMakeFiles/3.24.0/CMakeRCCompiler.cmake
+C:/prg/github/z80pc/v1.6/az80gpu/tests/build/CMakeFiles/3.24.0/CMakeSystem.cmake
+C:/prg/vcpkg/installed/x64-windows/share/WebP/WebPConfig.cmake
+C:/prg/vcpkg/installed/x64-windows/share/WebP/WebPConfigVersion.cmake
+C:/prg/vcpkg/installed/x64-windows/share/WebP/WebPTargets-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/WebP/WebPTargets-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/WebP/WebPTargets.cmake
+C:/prg/vcpkg/installed/x64-windows/share/curl/CURLConfig.cmake
+C:/prg/vcpkg/installed/x64-windows/share/curl/CURLConfigVersion.cmake
+C:/prg/vcpkg/installed/x64-windows/share/curl/CURLTargets-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/curl/CURLTargets-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/curl/CURLTargets.cmake
+C:/prg/vcpkg/installed/x64-windows/share/curl/vcpkg-cmake-wrapper.cmake
+C:/prg/vcpkg/installed/x64-windows/share/hdf5/hdf5-config-version.cmake
+C:/prg/vcpkg/installed/x64-windows/share/hdf5/hdf5-config.cmake
+C:/prg/vcpkg/installed/x64-windows/share/hdf5/hdf5-targets-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/hdf5/hdf5-targets-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/hdf5/hdf5-targets.cmake
+C:/prg/vcpkg/installed/x64-windows/share/hdf5/vcpkg-cmake-wrapper.cmake
+C:/prg/vcpkg/installed/x64-windows/share/leptonica/LeptonicaConfig-version.cmake
+C:/prg/vcpkg/installed/x64-windows/share/leptonica/LeptonicaConfig.cmake
+C:/prg/vcpkg/installed/x64-windows/share/leptonica/LeptonicaTargets-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/leptonica/LeptonicaTargets-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/leptonica/LeptonicaTargets.cmake
+C:/prg/vcpkg/installed/x64-windows/share/libarchive/vcpkg-cmake-wrapper.cmake
+C:/prg/vcpkg/installed/x64-windows/share/opencv/OpenCVConfig-version.cmake
+C:/prg/vcpkg/installed/x64-windows/share/opencv/OpenCVConfig.cmake
+C:/prg/vcpkg/installed/x64-windows/share/opencv/OpenCVModules-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/opencv/OpenCVModules-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/opencv/OpenCVModules.cmake
+C:/prg/vcpkg/installed/x64-windows/share/openjpeg/OpenJPEGConfig.cmake
+C:/prg/vcpkg/installed/x64-windows/share/openjpeg/OpenJPEGConfigVersion.cmake
+C:/prg/vcpkg/installed/x64-windows/share/openjpeg/OpenJPEGTargets-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/openjpeg/OpenJPEGTargets-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/openjpeg/OpenJPEGTargets.cmake
+C:/prg/vcpkg/installed/x64-windows/share/protobuf/protobuf-config-version.cmake
+C:/prg/vcpkg/installed/x64-windows/share/protobuf/protobuf-config.cmake
+C:/prg/vcpkg/installed/x64-windows/share/protobuf/protobuf-module.cmake
+C:/prg/vcpkg/installed/x64-windows/share/protobuf/protobuf-options.cmake
+C:/prg/vcpkg/installed/x64-windows/share/protobuf/protobuf-targets-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/protobuf/protobuf-targets-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/protobuf/protobuf-targets.cmake
+C:/prg/vcpkg/installed/x64-windows/share/protobuf/vcpkg-cmake-wrapper.cmake
+C:/prg/vcpkg/installed/x64-windows/share/quirc/quirc-config-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/quirc/quirc-config-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/quirc/quirc-config.cmake
+C:/prg/vcpkg/installed/x64-windows/share/szip/szip-config-version.cmake
+C:/prg/vcpkg/installed/x64-windows/share/szip/szip-config.cmake
+C:/prg/vcpkg/installed/x64-windows/share/szip/szip-targets-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/szip/szip-targets-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/szip/szip-targets.cmake
+C:/prg/vcpkg/installed/x64-windows/share/tesseract/TesseractConfig.cmake
+C:/prg/vcpkg/installed/x64-windows/share/tesseract/TesseractConfigVersion.cmake
+C:/prg/vcpkg/installed/x64-windows/share/tesseract/TesseractTargets-debug.cmake
+C:/prg/vcpkg/installed/x64-windows/share/tesseract/TesseractTargets-release.cmake
+C:/prg/vcpkg/installed/x64-windows/share/tesseract/TesseractTargets.cmake
+C:/prg/vcpkg/installed/x64-windows/share/tiff/vcpkg-cmake-wrapper.cmake
+C:/prg/vcpkg/installed/x64-windows/share/zlib/vcpkg-cmake-wrapper.cmake
+C:/prg/vcpkg/scripts/buildsystems/vcpkg.cmake

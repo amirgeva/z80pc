@@ -1,0 +1,6 @@
+C:/prg/github/z80pc/V1.11/dbg/build/CMakeFiles/sdbg.dir
+C:/prg/github/z80pc/V1.11/dbg/build/CMakeFiles/ALL_BUILD.dir
+C:/prg/github/z80pc/V1.11/dbg/build/CMakeFiles/ZERO_CHECK.dir
+C:/prg/github/z80pc/V1.11/dbg/build/sercom/CMakeFiles/sercom.dir
+C:/prg/github/z80pc/V1.11/dbg/build/sercom/CMakeFiles/ALL_BUILD.dir
+C:/prg/github/z80pc/V1.11/dbg/build/sercom/sample/CMakeFiles/sample.dir

@@ -1,0 +1,45 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 1
+Hexadecimal [24-Bits]
+
+
+
+                                      1 
+                                      2 .area _GLOBALS
+                                      3 
+      000000                          4 _input_write_ptr::
+      000000 00                       5 	.db		#0
+      000001                          6 _input_read_ptr::
+      000001 00                       7 	.db		#0
+      000002 00                       8 	.db		#0
+      000003 00                       9 	.db		#0
+      000004 00                      10 	.db		#0
+      000005 00                      11 	.db		#0
+      000006 00                      12 	.db		#0
+      000007 00                      13 	.db		#0
+      000008 00                      14 	.db		#0
+      000009 00                      15 	.db		#0
+      00000A 00                      16 	.db		#0
+      00000B 00                      17 	.db		#0
+      00000C 00                      18 	.db		#0
+      00000D 00                      19 	.db		#0
+      00000E 00                      20 	.db		#0
+      00000F 00                      21 	.db		#0
+      000010                         22 _input_buffer::
+                                     23 
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 2
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |   1 _input_b   000010 GR  |   1 _input_r   000001 GR
+  1 _input_w   000000 GR
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 3
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size      0   flags    0
+   1 _GLOBALS   size     10   flags    0
+

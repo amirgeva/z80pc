@@ -1,0 +1,41 @@
+XL3
+H 2 areas 15 global symbols
+S cls Ref000000
+S rng Ref000000
+S load_sprites Ref000000
+S _strcmp_impl Ref000000
+S print_text Ref000000
+S close_file Ref000000
+S strlen Ref000000
+S list_next Ref000000
+S list_dir Ref000000
+S read_file Ref000000
+S .__.ABS. Def000000
+S timer Ref000000
+S bounds_check Ref000000
+S input_read Ref000000
+S open_file Ref000000
+S newline Ref000000
+S gpu_block Ref000000
+S _strncmp_impl Ref000000
+S _print_word_impl Ref000000
+S input_empty Ref000000
+A _CODE size 0 flags 0 addr 0
+A _SERVICES size 26 flags 0 addr 0
+S _services Def000000
+T 00 00 00
+R 00 00 01 00
+T 00 00 00 00 00 00 00 00 00
+R 00 00 01 00 02 03 00 00 02 05 04 00 02 07 12 00
+T 06 00 00 00 00 00 00 00 00
+R 00 00 01 00 02 03 06 00 02 05 13 00 02 07 0D 00
+T 0C 00 00 00 00 00 00 00 00
+R 00 00 01 00 02 03 03 00 02 05 11 00 02 07 0F 00
+T 12 00 00 00 00 00 00 00 00
+R 00 00 01 00 02 03 01 00 02 05 10 00 02 07 0B 00
+T 18 00 00 00 00 00 00 00 00
+R 00 00 01 00 02 03 08 00 02 05 07 00 02 07 0E 00
+T 1E 00 00 00 00 00 00 00 00
+R 00 00 01 00 02 03 09 00 02 05 05 00 02 07 0C 00
+T 24 00 00 00 00
+R 00 00 01 00 02 03 02 00

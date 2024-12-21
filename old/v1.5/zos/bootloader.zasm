@@ -1,0 +1,97 @@
+;--------------------------------------------------------
+; File Created by SDCC : free open source ANSI-C Compiler
+; Version 4.1.0 #12072 (MINGW64)
+;--------------------------------------------------------
+	.module bootloader
+	.optsdcc -mz80
+	
+;--------------------------------------------------------
+; Public variables in this module
+;--------------------------------------------------------
+	.globl _start_bootloader
+	.globl _service1
+	.globl _service2
+	.globl _service3
+	.globl _service4
+	.globl _service5
+	.globl _service6
+	.globl _init
+;--------------------------------------------------------
+; special function registers
+;--------------------------------------------------------
+;--------------------------------------------------------
+; ram data
+;--------------------------------------------------------
+	.area _DATA
+;--------------------------------------------------------
+; ram data
+;--------------------------------------------------------
+	.area _INITIALIZED
+;--------------------------------------------------------
+; absolute external ram data
+;--------------------------------------------------------
+	.area _DABS (ABS)
+;--------------------------------------------------------
+; global & static initialisations
+;--------------------------------------------------------
+	.area _HOME
+	.area _GSINIT
+	.area _GSFINAL
+	.area _GSINIT
+;--------------------------------------------------------
+; Home
+;--------------------------------------------------------
+	.area _HOME
+	.area _HOME
+;--------------------------------------------------------
+; code
+;--------------------------------------------------------
+	.area _BOOT
+;bootloader.c:6: void start_bootloader()
+;	---------------------------------
+; Function start_bootloader
+; ---------------------------------
+_start_bootloader::
+;bootloader.c:8: main();
+;bootloader.c:14: __endasm;
+	jp    _init
+	nop
+	nop
+	nop
+	nop
+	jp    _service1
+	nop
+	nop
+	nop
+	nop
+	nop
+	jp    _service2
+	nop
+	nop
+	nop
+	nop
+	nop
+	jp    _service3
+	nop
+	nop
+	nop
+	nop
+	nop
+	jp    _service4
+	nop
+	nop
+	nop
+	nop
+	nop
+	jp    _service5
+	nop
+	nop
+	nop
+	nop
+	nop
+	jp    _service6
+
+;bootloader.c:37: }
+	.area _BOOT
+	.area _INITIALIZER
+	.area _CABS (ABS)

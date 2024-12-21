@@ -1,0 +1,430 @@
+	.area _CODE
+	
+IO_BUFFER = 0x0C00
+	
+	.globl _input_write_ptr
+	.globl _input_read_ptr
+	
+.define DISK_CMD 0(IY)
+.define DISK_ARG1 1(IY)
+.define DISK_ARG2 2(IY)
+.define DISK_ARG3 4(IY)
+
+input_empty::
+	LD		A,(#_input_write_ptr)
+	LD		L,A
+	LD		A,(#_input_read_ptr)
+	SUB		L
+	LD		A,#1
+	RET		Z
+	XOR		A
+	RET
+
+input_read::
+	LD		A,(#_input_read_ptr)
+	LD		H,#1    ; Input buffer at 0x0100, so H=1, L=offset
+	LD		L,A
+	LD		C,(HL)	; Byte read
+	LD		HL,#_input_read_ptr
+	LD		A,#0x1F ; size of buffer - 1
+	INC		(HL)
+	AND		(HL)
+	LD		(HL),A
+	LD		A,C
+	RET
+
+strlen::
+	LD		BC,#255
+	XOR		A
+	CPIR
+	LD		A,C
+	NEG
+	SUB		#2
+	RET
+
+; copy string from HL -> DE
+strcpy::
+	PUSH	HL
+	CALL	strlen
+	LD		B,#0
+	LD		C,A
+	INC		C
+	POP		HL
+	LDIR
+	RET
+
+print_text::
+	PUSH	HL			; save text pointer
+	LD		A,#30		; Send 30, code for print
+	CALL	_gpu_byte_a
+	POP		HL
+	PUSH	HL
+	call	strlen
+	PUSH	AF
+	CALL	_gpu_byte_a	; strlen returns length in A,  send it
+	POP		AF
+	LD		C,A
+	LD		B,#0
+	POP		HL			; restore text pointer
+	JP		gpu_block_bc
+	
+rng::
+	.db 0x21
+seed1:
+	.db 0x0F, 0x27
+	LD		B,H
+	LD		C,L
+	ADD		HL,HL
+	ADD		HL,HL
+	INC		L
+	ADD		HL,BC
+	LD		(seed1),HL
+	.db 0x21
+seed2:
+	.db 0xDB, 0x03
+	ADD HL,HL
+	SBC A,A
+	AND #0X2D	;#101101b
+	XOR L
+	LD L,A
+	LD (seed2),HL
+	ADD HL,BC
+	RET
+
+cls::
+	LD		A,#1
+	CALL	_gpu_byte_a
+	RET
+	
+newline::
+	LD		A,#4
+	CALL	_gpu_byte_a
+	RET
+
+; copy block starting at HL+1, with length at (HL)
+gpu_block::
+	LD		C,(HL)			; C = number of bytes to copy
+	LD		B,#0			; BC = number of bytes to copy
+	INC		HL				; HL = pointer to data
+gpu_block_bc::
+	PUSH	HL
+	LD		HL,(#IO_BUFFER-2)
+	PUSH	HL				;\
+	ADD		HL,BC			;| Increment data count
+	LD		A,#4			;| Check for buffer overflow
+	CP		H				;|
+	JR		NZ, no_flush	;|
+	CALL	gpu_flush		;| Too much data, flush first
+	PUSH	BC				;|
+	POP		HL				;|
+no_flush:					;|
+	LD		(#IO_BUFFER-2),HL	;|
+	POP		HL				;/
+	LD		DE,#IO_BUFFER
+	ADD		HL,DE
+	EX		DE,HL			; DE = target pointer
+	POP		HL				; HL = source pointer
+	LDIR					; copy block
+	RET
+
+gpu_flush::
+	LD		HL,#IO_BUFFER-2
+	LD		A,(HL)
+	INC		HL
+	OR		(HL)
+	RET		Z
+	XOR		A
+	OUT		(0),A
+	LD		(HL),A
+	DEC		HL
+	LD		(HL),A
+	RET
+	
+timer::
+	LD		HL,(#0xEC)
+	RET
+
+gpu_byte::
+	LD		A,(HL)
+_gpu_byte_a::
+	LD		HL,(#IO_BUFFER-2)    ; size of existing data
+	INC		HL
+	LD		(#IO_BUFFER-2),HL	; store increased size
+	LD		BC,#(IO_BUFFER-1)
+	ADD		HL,BC
+	LD		(HL),A
+	RET
+	
+gpu_clear::
+	LD		HL,#(IO_BUFFER-2)
+	LD		B,#10
+gpu_clear_loop:
+	LD		(HL),#0
+	INC		HL
+	DJNZ	gpu_clear_loop
+	RET
+
+
+clear_gpu_cmd:
+	LD		HL,#(IO_BUFFER-2)
+	LD		(HL),#0
+	INC		HL
+	LD		(HL),#0
+	RET
+
+set_disk_cmd:
+	LD		HL,#(IO_BUFFER-2)
+	LD		(HL),#255
+	INC		HL
+	LD		(HL),#255
+	RET
+
+wait_for_disk:
+	LD		HL,#(IO_BUFFER-2)
+	XOR		A
+wait_for_disk_loop:
+	CP		(HL)
+	JR		NZ, wait_for_disk_loop
+	RET
+
+; byte list_dir(const byte* path, byte* filename, word* size)
+list_dir::
+	; DE = filename
+	; HL = path
+	; (SP+2)=pointer to size
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	PUSH	DE
+	PUSH	HL
+	CALL	gpu_flush
+	LD		IY,#IO_BUFFER
+	LD		DISK_CMD,#1
+	LD		DE,#(IO_BUFFER+6)
+	POP		HL
+	CALL	strcpy
+	CALL	set_disk_cmd
+	LD		A,#1
+	OUT		(0),A
+	CALL	wait_for_disk
+	POP		DE
+	LD		HL,#(IO_BUFFER+6)
+	CALL	strcpy
+	LD		HL,#(IO_BUFFER+2)
+	LD		E,4(IX)
+	LD		D,5(IX)
+	LD		C,#2
+	LD		B,#0
+	LDIR
+	
+	LD		A,DISK_CMD
+	
+	POP		IX
+	RET
+	
+; byte list_next(byte* filename, word* size)
+list_next::
+	; HL=filename
+	; DE=size
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	PUSH	DE
+	PUSH	HL
+	CALL	gpu_flush
+	LD		HL,#IO_BUFFER
+	LD		(HL),#2
+	CALL	set_disk_cmd
+	LD		A,#1
+	OUT		(0),A
+	CALL	wait_for_disk
+	POP		DE
+	LD		HL,#(IO_BUFFER+6)
+	CALL	strcpy
+	POP		HL
+	LD		E,(HL)
+	INC		HL
+	LD		D,(HL)
+	LD		HL,#(IO_BUFFER+2)
+	LD		BC,#2
+	LDIR
+	
+	LD		HL,#IO_BUFFER
+	LD		A,(HL)
+
+	POP		IX
+	RET
+	
+; byte open_file(const char* filename, byte write)
+; HL = filename
+; (SP+2) = write
+; function needs to pop single byte SP+2
+open_file::
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	
+	PUSH	HL
+	CALL	gpu_flush
+	POP		DE
+
+	LD		HL,#IO_BUFFER
+	LD		(HL),#5
+	INC		HL
+	LD		A,4(IX)
+	LD		(HL),A
+	LD		HL,#(IO_BUFFER+6)		; filename buffer
+	EX		DE,HL
+	CALL	strcpy
+	CALL	set_disk_cmd
+	LD		A,#1
+	OUT		(0),A
+	CALL	wait_for_disk
+	LD		HL,#(IO_BUFFER+1)
+	LD		A,(HL)
+	
+	POP		IX
+	POP		HL
+	INC		SP ;	pop write
+	JP		(HL)
+
+
+; word read_file(byte handle, byte* buffer, word size)
+; A=handle
+; DE=buffer
+; (SP+2)=size
+; function needs to pop 2 bytes for (SP+2)
+; return word in DE
+read_file::
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	
+	PUSH	AF
+	CALL	gpu_flush
+	POP		AF
+	
+	LD		HL,#IO_BUFFER
+	LD		(HL),#6
+	INC		HL
+	LD		(HL),A
+	INC		HL
+	LD		C,4(IX)
+	LD		B,5(IX)
+	LD		(HL),C
+	INC		HL
+	LD		(HL),B
+	INC		HL
+	LD		(HL),E
+	INC		HL
+	LD		(HL),D
+	CALL	set_disk_cmd
+	LD		A,#1
+	OUT		(0),A
+	CALL	wait_for_disk
+	LD		HL,#(IO_BUFFER+2)
+	LD		E,(HL)
+	INC		HL
+	LD		D,(HL)
+	
+	POP		IX
+	POP		HL	; return address
+	POP		BC	; pop size
+	JP		(HL)
+
+
+close_file::
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	
+	PUSH	AF
+	CALL	gpu_flush
+	POP		AF
+	
+	LD		HL,#IO_BUFFER
+	LD		(HL),#8
+	INC		HL
+	LD		(HL),A
+	CALL	set_disk_cmd
+	LD		A,#1
+	OUT		(0),A
+	CALL	wait_for_disk
+	
+	POP		IX
+	RET
+
+
+; HL = filename
+; (SP+2) = index
+; function needs to pop single byte SP+2
+load_sprites::
+	PUSH	IX
+	LD		IX,#0
+	ADD		IX,SP
+	
+	PUSH	HL
+	CALL	gpu_flush
+	POP		DE
+
+	LD		HL,#IO_BUFFER
+	LD		(HL),#9
+	INC		HL
+	LD		A,4(IX)
+	LD		(HL),A
+	LD		HL,#(IO_BUFFER+6)		; filename buffer
+	EX		DE,HL
+	CALL	strcpy
+	CALL	set_disk_cmd
+	LD		A,#1
+	OUT		(0),A
+	CALL	wait_for_disk
+	
+	POP		IX
+	POP		HL
+	INC		SP ;	pop write
+	JP		(HL)
+	
+_div_mod::
+	LD		E,(HL)
+	INC		HL
+	LD		D,(HL)
+	INC		HL
+	LD		C,(HL)
+	PUSH	HL
+	EX		DE,HL
+	XOR		A
+	LD		B,#16
+_loop_div_mod:
+	ADD		HL, HL
+	RLA
+	JR		C, _div_mod_j1
+	CP		C
+	JR		C, _div_mod_j2
+_div_mod_j1:
+	SUB		C
+	INC		L
+_div_mod_j2:
+	DJNZ	_loop_div_mod
+
+	EX	DE,HL
+	POP	HL
+	LD	(HL),A
+	DEC	HL
+	LD	(HL),D
+	DEC	HL
+	LD	(HL),E
+	RET
+	
+bounds_check::
+	LD		A,D
+	CP		H
+	JR		C, _bounds_error	; D-H < 0  -> error
+	RET		NZ					; D-H > 0  -> no error
+	LD  	A,E
+	CP		L
+	RET		NC	; H=D & L<=E  no error
+_bounds_error:
+	LD		HL,#0xFF
+	LD		(HL),#1
+	RET

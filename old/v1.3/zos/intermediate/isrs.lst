@@ -1,0 +1,55 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 1
+Hexadecimal [24-Bits]
+
+
+
+                                      1 	.area _ISRS
+                                      2 
+      000000                          3 _input_isr::
+      000000 F5               [11]    4 	PUSH	AF
+      000001 E5               [11]    5 	PUSH	HL
+      000002 DD E5            [15]    6 	PUSH	IX
+      000004 C5               [11]    7 	PUSH	BC
+      000005 DB 00            [11]    8 	IN		A,(0)
+      000007 B7               [ 4]    9 	OR		A
+      000008 20 07            [12]   10 	JR		NZ,no_timer
+      00000A 21 24 11         [10]   11 	LD		HL,#0x1124			; timer
+      00000D 34               [11]   12 	INC		(HL)
+      00000E C3 28 00         [10]   13 	JP		isr_done
+      000011                         14 no_timer:	
+      000011 47               [ 4]   15 	LD		B,A					; Save input data for later
+      000012 DD 21 20 11      [14]   16 	LD		IX,#0x1120
+      000016 DD 7E 00         [19]   17 	LD		A,0(IX)			; Write
+      000019 DD 4E 01         [19]   18 	LD		C,1(IX)			; Read
+      00001C 0D               [ 4]   19 	DEC		C
+      00001D B9               [ 4]   20 	CP		C
+      00001E 28 08            [12]   21 	JR		Z,isr_done			; If buffer full
+      000020 26 10            [ 7]   22 	LD		H,#0x10				; Beginning of input buffer
+      000022 6F               [ 4]   23 	LD		L,A
+      000023 70               [ 7]   24 	LD		(HL),B				; Store input byte
+      000024 3C               [ 4]   25 	INC		A
+      000025 DD 77 00         [19]   26 	LD		0(IX),A
+      000028                         27 isr_done:
+      000028 C1               [10]   28 	POP		BC
+      000029 DD E1            [14]   29 	POP		IX
+      00002B E1               [10]   30 	POP		HL
+      00002C F1               [10]   31 	POP		AF
+      00002D FB               [ 4]   32 	EI
+      00002E ED 4D            [14]   33 	RETI
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 2
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |   1 _input_i   000000 GR  |   1 isr_done   000028 R
+  1 no_timer   000011 R
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 3
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size      0   flags    0
+   1 _ISRS      size     30   flags    0
+

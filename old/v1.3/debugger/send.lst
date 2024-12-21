@@ -1,0 +1,19 @@
+0x0000 2    c3 00 01         jp main
+0x0003 4    48 65 6c 6c 6f   ds 'Hello'
+0x0100 9    3e 00            ld A,0
+0x0102 11   d3 00            out (0),A
+0x0104 12   3e 00            ld A,0
+0x0106 14   d3 00            out (0),A
+0x0108 16   3e 00            ld A,0
+0x010a 18   d3 00            out (0),A
+0x010c 20   3e 01            ld A,1
+0x010e 22   d3 00            out (0),A
+0x0110 24   21 03 00         ld HL,text
+0x0113 25   06 05            ld B,5
+0x0115 26   0e 00            ld C,0
+0x0117 27   3e 1e            ld A,30
+0x0119 28   d3 00            out (0),A
+0x011b 29   78               ld A,B
+0x011c 30   d3 00            out (0),A
+0x011e 31   ed b3            OTIR
+0x0120 34   c3 00 01         jp main

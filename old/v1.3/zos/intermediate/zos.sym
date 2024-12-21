@@ -1,0 +1,44 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 1
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000000 L
+  0 ___str_0                                                       000058 R
+  0 ___str_1                                                       00005C R
+  0 ___str_2                                                       000118 R
+    _cls                                                           ****** GX
+    _g                                                          =  001000 G
+  0 _get_key                                                       0000D6 GR
+  0 _main                                                          000017 GR
+    _print                                                         ****** GX
+    _printc                                                        ****** GX
+    _println                                                       ****** GX
+  0 _process_command                                               000042 GR
+  0 _receive                                                       0000F3 GR
+    _rng                                                           ****** GX
+  0 _scan_input                                                    00006C GR
+  0 _send_prompt                                                   000112 GR
+  0 _service1                                                      000000 GR
+    _strcmp                                                        ****** GX
+  1 _user_program                                                  000000 GR
+
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80)                   Page 2
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size    11D   flags    0
+   1 _DATA                                      size      2   flags    0
+   2 _INITIALIZED                               size      0   flags    0
+   3 _DABS                                      size      0   flags    8
+   4 _HOME                                      size      0   flags    0
+   5 _GSINIT                                    size      0   flags    0
+   6 _GSFINAL                                   size      0   flags    0
+   7 _INITIALIZER                               size      0   flags    0
+   8 _CABS                                      size      0   flags    8
+

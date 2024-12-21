@@ -1,0 +1,7 @@
+	.module loader
+	.optsdcc -mz80
+
+	.globl _main
+	.area _CODE
+_start_loader::
+	jp    _main

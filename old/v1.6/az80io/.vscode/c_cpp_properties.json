@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "c:\\Users\\amir\\appdata\\Local\\Arduino15\\packages\\MegaCore\\hardware\\avr\\2.2.0\\libraries\\SD\\src",
+                "c:\\Users\\amir\\appdata\\Local\\Arduino15\\packages\\MegaCore\\hardware\\avr\\2.2.0\\variants\\64-pin-avr",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\avr\\include",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\lib\\gcc\\avr\\7.3.0\\include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        }
+    ],
+    "version": 4
+}

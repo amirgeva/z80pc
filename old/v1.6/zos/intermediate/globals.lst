@@ -1,0 +1,158 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+
+
+                                      1 
+                                      2 .area _GLOBALS
+                                      3 
+      000000                          4 _services::
+                                      5 ;SERVICES vector table
+                                      6 	.globl		cls
+                                      7 	.globl		print_text
+                                      8 	.globl		_print_word_impl
+                                      9 	.globl		strlen
+                                     10 	.globl		input_empty
+                                     11 	.globl		input_read
+                                     12 	.globl		_strcmp_impl
+                                     13 	.globl		_strncmp_impl
+                                     14 	.globl		newline
+                                     15 	.globl		rng
+                                     16 	.globl		gpu_block
+                                     17 	.globl		gpu_byte
+                                     18 	.globl		gpu_flush
+                                     19 	.globl		timer
+                                     20 	.globl		list_dir
+                                     21 	.globl		list_next
+                                     22 	.globl		open_file
+                                     23 	.globl		read_file
+                                     24 	.globl		close_file
+                                     25 	.globl		bounds_check
+      000000 00 00                   26 	.dw		cls
+      000002 00 00                   27 	.dw		print_text
+      000004 00 00                   28 	.dw		_print_word_impl
+      000006 00 00                   29 	.dw		strlen
+      000008 00 00                   30 	.dw		input_empty
+      00000A 00 00                   31 	.dw		input_read
+      00000C 00 00                   32 	.dw		_strcmp_impl
+      00000E 00 00                   33 	.dw		_strncmp_impl
+      000010 00 00                   34 	.dw		newline
+      000012 00 00                   35 	.dw		rng
+      000014 00 00                   36 	.dw		gpu_block
+      000016 00 00                   37 	.dw		gpu_byte
+      000018 00 00                   38 	.dw		gpu_flush
+      00001A 00 00                   39 	.dw		timer
+      00001C 00 00                   40 	.dw		list_dir
+      00001E 00 00                   41 	.dw		list_next
+      000020 00 00                   42 	.dw		open_file
+      000022 00 00                   43 	.dw		read_file
+      000024 00 00                   44 	.dw		close_file
+      000026 00 00                   45 	.dw		bounds_check
+      000028 00 00                   46 	.dw		0
+      00002A 00 00                   47 	.dw		0
+      00002C 00 00                   48 	.dw		0
+      00002E 00 00                   49 	.dw		0
+      000030 00 00                   50 	.dw		0
+      000032 00 00                   51 	.dw		0
+      000034 00 00                   52 	.dw		0
+      000036 00 00                   53 	.dw		0
+      000038 00 00                   54 	.dw		0
+      00003A 00 00                   55 	.dw		0
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+
+
+      00003C 00 00                   56 	.dw		0
+      00003E 00 00                   57 	.dw		0
+      000040 00 00                   58 	.dw		0
+      000042 00 00                   59 	.dw		0
+      000044 00 00                   60 	.dw		0
+      000046 00 00                   61 	.dw		0
+      000048 00 00                   62 	.dw		0
+      00004A 00 00                   63 	.dw		0
+      00004C 00 00                   64 	.dw		0
+      00004E 00 00                   65 	.dw		0
+      000050 00 00                   66 	.dw		0
+      000052 00 00                   67 	.dw		0
+      000054 00 00                   68 	.dw		0
+      000056 00 00                   69 	.dw		0
+      000058 00 00                   70 	.dw		0
+      00005A 00 00                   71 	.dw		0
+      00005C 00 00                   72 	.dw		0
+      00005E 00 00                   73 	.dw		0
+      000060 00 00                   74 	.dw		0
+      000062 00 00                   75 	.dw		0
+      000064 00 00                   76 	.dw		0
+      000066 00 00                   77 	.dw		0
+      000068 00 00                   78 	.dw		0
+      00006A 00 00                   79 	.dw		0
+      00006C 00 00                   80 	.dw		0
+      00006E 00 00                   81 	.dw		0
+      000070 00 00                   82 	.dw		0
+      000072 00 00                   83 	.dw		0
+      000074 00 00                   84 	.dw		0
+      000076 00 00                   85 	.dw		0
+      000078 00 00                   86 	.dw		0
+      00007A 00 00                   87 	.dw		0
+      00007C 00 00                   88 	.dw		0
+      00007E 00 00                   89 	.dw		0
+      000080 00 00                   90 	.dw		0
+      000082 00 00                   91 	.dw		0
+      000084 00 00                   92 	.dw		0
+      000086 00 00                   93 	.dw		0
+      000088 00 00                   94 	.dw		0
+                                     95 
+                                     96 ;SERVICES end table
+                                     97 
+                                     98 
+      00008A                         99 _input_write_ptr::
+      00008A 00                     100 	.db		#0
+      00008B                        101 _input_read_ptr::
+      00008B 00                     102 	.db		#0
+      00008C 00                     103 	.db		#0
+      00008D 00                     104 	.db		#0
+      00008E 00                     105 	.db		#0
+      00008F 00                     106 	.db		#0
+      000090 00                     107 	.db		#0
+      000091 00                     108 	.db		#0
+      000092 00                     109 	.db		#0
+      000093 00                     110 	.db		#0
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+
+
+      000094 00                     111 	.db		#0
+      000095 00                     112 	.db		#0
+      000096 00                     113 	.db		#0
+      000097 00                     114 	.db		#0
+      000098 00                     115 	.db		#0
+      000099 00                     116 	.db		#0
+      00009A 00                     117 	.db		#0
+      00009B 00                     118 	.db		#0
+      00009C                        119 _input_buffer::
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 4.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |   1 _input_b   00009C GR  |   1 _input_r   00008B GR
+  1 _input_w   00008A GR  |     _print_w   ****** GX  |   1 _service   000000 GR
+    _strcmp_   ****** GX  |     _strncmp   ****** GX  |     bounds_c   ****** GX
+    close_fi   ****** GX  |     cls        ****** GX  |     gpu_bloc   ****** GX
+    gpu_byte   ****** GX  |     gpu_flus   ****** GX  |     input_em   ****** GX
+    input_re   ****** GX  |     list_dir   ****** GX  |     list_nex   ****** GX
+    newline    ****** GX  |     open_fil   ****** GX  |     print_te   ****** GX
+    read_fil   ****** GX  |     rng        ****** GX  |     strlen     ****** GX
+    timer      ****** GX
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 5.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size      0   flags    0
+   1 _GLOBALS   size     9C   flags    0
+

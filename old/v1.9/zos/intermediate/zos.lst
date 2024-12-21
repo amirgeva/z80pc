@@ -1,0 +1,486 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.2.0 #13081 (MINGW64)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module zos
+                                      6 	.optsdcc -mz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _main
+                                     12 	.globl _process_input
+                                     13 	.globl _backspace
+                                     14 	.globl _print_char
+                                     15 	.globl _process_command
+                                     16 	.globl _cat_file
+                                     17 	.globl _lsp_file
+                                     18 	.globl _dir
+                                     19 	.globl _load_program
+                                     20 	.globl _print_prompt
+                                     21 	.globl _load_sprites
+                                     22 	.globl _close_file
+                                     23 	.globl _read_file
+                                     24 	.globl _open_file
+                                     25 	.globl _list_next
+                                     26 	.globl _list_dir
+                                     27 	.globl _gpu_clear
+                                     28 	.globl _gpu_flush
+                                     29 	.globl _newline
+                                     30 	.globl _strncmp
+                                     31 	.globl _strcmp
+                                     32 	.globl _input_read
+                                     33 	.globl _input_empty
+                                     34 	.globl _print_word
+                                     35 	.globl _print_text
+                                     36 	.globl _cls
+                                     37 	.globl _command_pos
+                                     38 	.globl _command_buffer
+                                     39 ;--------------------------------------------------------
+                                     40 ; special function registers
+                                     41 ;--------------------------------------------------------
+                                     42 ;--------------------------------------------------------
+                                     43 ; ram data
+                                     44 ;--------------------------------------------------------
+                                     45 	.area _DATA
+      000000                         46 _command_buffer::
+      000000                         47 	.ds 32
+      000020                         48 _command_pos::
+      000020                         49 	.ds 1
+                                     50 ;--------------------------------------------------------
+                                     51 ; ram data
+                                     52 ;--------------------------------------------------------
+                                     53 	.area _INITIALIZED
+                                     54 ;--------------------------------------------------------
+                                     55 ; absolute external ram data
+                                     56 ;--------------------------------------------------------
+                                     57 	.area _DABS (ABS)
+                                     58 ;--------------------------------------------------------
+                                     59 ; global & static initialisations
+                                     60 ;--------------------------------------------------------
+                                     61 	.area _HOME
+                                     62 	.area _GSINIT
+                                     63 	.area _GSFINAL
+                                     64 	.area _GSINIT
+                                     65 ;--------------------------------------------------------
+                                     66 ; Home
+                                     67 ;--------------------------------------------------------
+                                     68 	.area _HOME
+                                     69 	.area _HOME
+                                     70 ;--------------------------------------------------------
+                                     71 ; code
+                                     72 ;--------------------------------------------------------
+                                     73 	.area _CODE
+                                     74 ;zos.c:7: void print_prompt()
+                                     75 ;	---------------------------------
+                                     76 ; Function print_prompt
+                                     77 ; ---------------------------------
+      000000                         78 _print_prompt::
+                                     79 ;zos.c:9: const char* os_prompt="zOS>";
+                                     80 ;zos.c:10: print_text(os_prompt);
+      000000 21r06r00         [10]   81 	ld	hl, #___str_0
+                                     82 ;zos.c:11: }
+      000003 C3r00r00         [10]   83 	jp	_print_text
+      000006                         84 ___str_0:
+      000006 7A 4F 53 3E             85 	.ascii "zOS>"
+      00000A 00                      86 	.db 0x00
+                                     87 ;zos.c:14: void load_program(const char* filename)
+                                     88 ;	---------------------------------
+                                     89 ; Function load_program
+                                     90 ; ---------------------------------
+      00000B                         91 _load_program::
+                                     92 ;zos.c:16: byte handle = open_file(filename,0);
+      00000B AF               [ 4]   93 	xor	a, a
+      00000C F5               [11]   94 	push	af
+      00000D 33               [ 6]   95 	inc	sp
+      00000E CDr00r00         [17]   96 	call	_open_file
+                                     97 ;zos.c:17: if (handle != 0xFF)
+      000011 4F               [ 4]   98 	ld	c, a
+      000012 3C               [ 4]   99 	inc	a
+      000013 28 11            [12]  100 	jr	Z, 00102$
+                                    101 ;zos.c:20: read_file(handle, program_buffer, 0xE000);
+      000015 C5               [11]  102 	push	bc
+      000016 21 00 E0         [10]  103 	ld	hl, #0xe000
+      000019 E5               [11]  104 	push	hl
+      00001A 11 00 10         [10]  105 	ld	de, #0x1000
+      00001D 79               [ 4]  106 	ld	a, c
+      00001E CDr00r00         [17]  107 	call	_read_file
+      000021 C1               [10]  108 	pop	bc
+                                    109 ;zos.c:21: close_file(handle);
+      000022 79               [ 4]  110 	ld	a, c
+      000023 C3r00r00         [10]  111 	jp	_close_file
+      000026                        112 00102$:
+                                    113 ;zos.c:25: print_text("File not found");
+      000026 21r2Cr00         [10]  114 	ld	hl, #___str_1
+                                    115 ;zos.c:27: }
+      000029 C3r00r00         [10]  116 	jp	_print_text
+      00002C                        117 ___str_1:
+      00002C 46 69 6C 65 20 6E 6F   118 	.ascii "File not found"
+             74 20 66 6F 75 6E 64
+      00003A 00                     119 	.db 0x00
+                                    120 ;zos.c:30: void dir()
+                                    121 ;	---------------------------------
+                                    122 ; Function dir
+                                    123 ; ---------------------------------
+      00003B                        124 _dir::
+      00003B DD E5            [15]  125 	push	ix
+      00003D DD 21 00 00      [14]  126 	ld	ix,#0
+      000041 DD 39            [15]  127 	add	ix,sp
+      000043 F5               [11]  128 	push	af
+                                    129 ;zos.c:33: byte rc=list_dir("/",command_buffer,&size);
+      000044 21 00 00         [10]  130 	ld	hl, #0
+      000047 39               [11]  131 	add	hl, sp
+      000048 E5               [11]  132 	push	hl
+      000049 11r00r00         [10]  133 	ld	de, #_command_buffer
+      00004C 21r82r00         [10]  134 	ld	hl, #___str_2
+      00004F CDr00r00         [17]  135 	call	_list_dir
+      000052 4F               [ 4]  136 	ld	c, a
+                                    137 ;zos.c:34: while (rc==200)
+      000053                        138 00101$:
+      000053 79               [ 4]  139 	ld	a, c
+      000054 D6 C8            [ 7]  140 	sub	a, #0xc8
+      000056 20 25            [12]  141 	jr	NZ, 00104$
+                                    142 ;zos.c:36: print_text(command_buffer);
+      000058 21r00r00         [10]  143 	ld	hl, #_command_buffer
+      00005B CDr00r00         [17]  144 	call	_print_text
+                                    145 ;zos.c:37: print_text("  ");
+      00005E 21r84r00         [10]  146 	ld	hl, #___str_3
+      000061 CDr00r00         [17]  147 	call	_print_text
+                                    148 ;zos.c:38: print_word(size);
+      000064 E1               [10]  149 	pop	hl
+      000065 E5               [11]  150 	push	hl
+      000066 CDr00r00         [17]  151 	call	_print_word
+                                    152 ;zos.c:39: newline();
+      000069 CDr00r00         [17]  153 	call	_newline
+                                    154 ;zos.c:40: gpu_flush();
+      00006C CDr00r00         [17]  155 	call	_gpu_flush
+                                    156 ;zos.c:41: rc=list_next(command_buffer,&size);
+      00006F 21 00 00         [10]  157 	ld	hl, #0
+      000072 39               [11]  158 	add	hl, sp
+      000073 EB               [ 4]  159 	ex	de, hl
+      000074 21r00r00         [10]  160 	ld	hl, #_command_buffer
+      000077 CDr00r00         [17]  161 	call	_list_next
+      00007A 4F               [ 4]  162 	ld	c, a
+      00007B 18 D6            [12]  163 	jr	00101$
+      00007D                        164 00104$:
+                                    165 ;zos.c:43: }
+      00007D DD F9            [10]  166 	ld	sp, ix
+      00007F DD E1            [14]  167 	pop	ix
+      000081 C9               [10]  168 	ret
+      000082                        169 ___str_2:
+      000082 2F                     170 	.ascii "/"
+      000083 00                     171 	.db 0x00
+      000084                        172 ___str_3:
+      000084 20 20                  173 	.ascii "  "
+      000086 00                     174 	.db 0x00
+                                    175 ;zos.c:45: void lsp_file(const char* filename)
+                                    176 ;	---------------------------------
+                                    177 ; Function lsp_file
+                                    178 ; ---------------------------------
+      000087                        179 _lsp_file::
+                                    180 ;zos.c:47: load_sprites(filename,0);
+      000087 AF               [ 4]  181 	xor	a, a
+      000088 F5               [11]  182 	push	af
+      000089 33               [ 6]  183 	inc	sp
+      00008A CDr00r00         [17]  184 	call	_load_sprites
+                                    185 ;zos.c:48: }
+      00008D C9               [10]  186 	ret
+                                    187 ;zos.c:50: void cat_file(const char* filename)
+                                    188 ;	---------------------------------
+                                    189 ; Function cat_file
+                                    190 ; ---------------------------------
+      00008E                        191 _cat_file::
+                                    192 ;zos.c:52: byte handle = open_file(filename,0);
+      00008E AF               [ 4]  193 	xor	a, a
+      00008F F5               [11]  194 	push	af
+      000090 33               [ 6]  195 	inc	sp
+      000091 CDr00r00         [17]  196 	call	_open_file
+                                    197 ;zos.c:53: if (handle != 0xFF)
+      000094 4F               [ 4]  198 	ld	c, a
+      000095 3C               [ 4]  199 	inc	a
+      000096 C8               [11]  200 	ret	Z
+                                    201 ;zos.c:55: word act=1;
+      000097 11 01 00         [10]  202 	ld	de, #0x0001
+                                    203 ;zos.c:56: while (act>0)
+      00009A                        204 00103$:
+      00009A 7A               [ 4]  205 	ld	a, d
+      00009B B3               [ 4]  206 	or	a, e
+      00009C 28 23            [12]  207 	jr	Z, 00105$
+                                    208 ;zos.c:58: act = read_file(handle, command_buffer, 30);
+      00009E C5               [11]  209 	push	bc
+      00009F 21 1E 00         [10]  210 	ld	hl, #0x001e
+      0000A2 E5               [11]  211 	push	hl
+      0000A3 11r00r00         [10]  212 	ld	de, #_command_buffer
+      0000A6 79               [ 4]  213 	ld	a, c
+      0000A7 CDr00r00         [17]  214 	call	_read_file
+      0000AA C1               [10]  215 	pop	bc
+                                    216 ;zos.c:59: if (act>0)
+      0000AB 7A               [ 4]  217 	ld	a, d
+      0000AC B3               [ 4]  218 	or	a, e
+      0000AD 28 EB            [12]  219 	jr	Z, 00103$
+                                    220 ;zos.c:61: command_buffer[act]=0;
+      0000AF 21r00r00         [10]  221 	ld	hl, #_command_buffer
+      0000B2 19               [11]  222 	add	hl, de
+      0000B3 36 00            [10]  223 	ld	(hl), #0x00
+                                    224 ;zos.c:62: print_text(command_buffer);
+      0000B5 C5               [11]  225 	push	bc
+      0000B6 D5               [11]  226 	push	de
+      0000B7 21r00r00         [10]  227 	ld	hl, #_command_buffer
+      0000BA CDr00r00         [17]  228 	call	_print_text
+      0000BD D1               [10]  229 	pop	de
+      0000BE C1               [10]  230 	pop	bc
+      0000BF 18 D9            [12]  231 	jr	00103$
+      0000C1                        232 00105$:
+                                    233 ;zos.c:65: close_file(handle);
+      0000C1 79               [ 4]  234 	ld	a, c
+      0000C2 CDr00r00         [17]  235 	call	_close_file
+                                    236 ;zos.c:66: gpu_flush();
+                                    237 ;zos.c:68: }
+      0000C5 C3r00r00         [10]  238 	jp	_gpu_flush
+                                    239 ;zos.c:70: void process_command()
+                                    240 ;	---------------------------------
+                                    241 ; Function process_command
+                                    242 ; ---------------------------------
+      0000C8                        243 _process_command::
+                                    244 ;zos.c:74: if (strcmp(command_buffer, "run") == 0)
+      0000C8 11r53r01         [10]  245 	ld	de, #___str_4
+      0000CB 21r00r00         [10]  246 	ld	hl, #_command_buffer
+      0000CE CDr00r00         [17]  247 	call	_strcmp
+      0000D1 4F               [ 4]  248 	ld	c, a
+      0000D2 B7               [ 4]  249 	or	a, a
+                                    250 ;zos.c:75: user_program();
+      0000D3 CA 00 10         [10]  251 	jp	Z,0x1000
+                                    252 ;zos.c:77: if (strcmp(command_buffer, "cls") == 0)
+      0000D6 11r57r01         [10]  253 	ld	de, #___str_5
+      0000D9 21r00r00         [10]  254 	ld	hl, #_command_buffer
+      0000DC CDr00r00         [17]  255 	call	_strcmp
+      0000DF B7               [ 4]  256 	or	a, a
+                                    257 ;zos.c:78: cls();
+      0000E0 CAr00r00         [10]  258 	jp	Z,_cls
+                                    259 ;zos.c:80: if (strcmp(command_buffer, "dir") == 0)
+      0000E3 11r5Br01         [10]  260 	ld	de, #___str_6
+      0000E6 21r00r00         [10]  261 	ld	hl, #_command_buffer
+      0000E9 CDr00r00         [17]  262 	call	_strcmp
+      0000EC B7               [ 4]  263 	or	a, a
+                                    264 ;zos.c:81: dir();
+      0000ED CAr3Br00         [10]  265 	jp	Z,_dir
+                                    266 ;zos.c:84: lsp_file(command_buffer+4);
+                                    267 ;zos.c:83: if (command_pos>4 && strncmp(command_buffer, "lsp ", 4)==0)
+      0000F0 3E 04            [ 7]  268 	ld	a, #0x04
+      0000F2 21r20r00         [10]  269 	ld	hl, #_command_pos
+      0000F5 96               [ 7]  270 	sub	a, (hl)
+      0000F6 30 16            [12]  271 	jr	NC, 00110$
+      0000F8 3E 04            [ 7]  272 	ld	a, #0x04
+      0000FA F5               [11]  273 	push	af
+      0000FB 33               [ 6]  274 	inc	sp
+      0000FC 11r5Fr01         [10]  275 	ld	de, #___str_7
+      0000FF 21r00r00         [10]  276 	ld	hl, #_command_buffer
+      000102 CDr00r00         [17]  277 	call	_strncmp
+      000105 B7               [ 4]  278 	or	a, a
+      000106 20 06            [12]  279 	jr	NZ, 00110$
+                                    280 ;zos.c:84: lsp_file(command_buffer+4);
+      000108 21r04r00         [10]  281 	ld	hl, #(_command_buffer + 4)
+      00010B C3r87r00         [10]  282 	jp	_lsp_file
+      00010E                        283 00110$:
+                                    284 ;zos.c:86: if (command_pos>4 && strncmp(command_buffer, "cat ", 4)==0)
+      00010E 3E 04            [ 7]  285 	ld	a, #0x04
+      000110 21r20r00         [10]  286 	ld	hl, #_command_pos
+      000113 96               [ 7]  287 	sub	a, (hl)
+      000114 30 16            [12]  288 	jr	NC, 00106$
+      000116 3E 04            [ 7]  289 	ld	a, #0x04
+      000118 F5               [11]  290 	push	af
+      000119 33               [ 6]  291 	inc	sp
+      00011A 11r64r01         [10]  292 	ld	de, #___str_8
+      00011D 21r00r00         [10]  293 	ld	hl, #_command_buffer
+      000120 CDr00r00         [17]  294 	call	_strncmp
+      000123 B7               [ 4]  295 	or	a, a
+      000124 20 06            [12]  296 	jr	NZ, 00106$
+                                    297 ;zos.c:87: cat_file(command_buffer+4);
+      000126 21r04r00         [10]  298 	ld	hl, #(_command_buffer + 4)
+      000129 C3r8Er00         [10]  299 	jp	_cat_file
+      00012C                        300 00106$:
+                                    301 ;zos.c:89: if (command_pos>5 && strncmp(command_buffer, "load ", 5)==0)
+      00012C 3E 05            [ 7]  302 	ld	a, #0x05
+      00012E 21r20r00         [10]  303 	ld	hl, #_command_pos
+      000131 96               [ 7]  304 	sub	a, (hl)
+      000132 30 16            [12]  305 	jr	NC, 00102$
+      000134 3E 05            [ 7]  306 	ld	a, #0x05
+      000136 F5               [11]  307 	push	af
+      000137 33               [ 6]  308 	inc	sp
+      000138 11r69r01         [10]  309 	ld	de, #___str_9
+      00013B 21r00r00         [10]  310 	ld	hl, #_command_buffer
+      00013E CDr00r00         [17]  311 	call	_strncmp
+      000141 B7               [ 4]  312 	or	a, a
+      000142 20 06            [12]  313 	jr	NZ, 00102$
+                                    314 ;zos.c:90: load_program(command_buffer+5);
+      000144 21r05r00         [10]  315 	ld	hl, #(_command_buffer + 5)
+      000147 C3r0Br00         [10]  316 	jp	_load_program
+      00014A                        317 00102$:
+                                    318 ;zos.c:93: print_text("Unknown Command");
+      00014A 21r6Fr01         [10]  319 	ld	hl, #___str_10
+      00014D CDr00r00         [17]  320 	call	_print_text
+                                    321 ;zos.c:94: newline();
+                                    322 ;zos.c:96: }
+      000150 C3r00r00         [10]  323 	jp	_newline
+      000153                        324 ___str_4:
+      000153 72 75 6E               325 	.ascii "run"
+      000156 00                     326 	.db 0x00
+      000157                        327 ___str_5:
+      000157 63 6C 73               328 	.ascii "cls"
+      00015A 00                     329 	.db 0x00
+      00015B                        330 ___str_6:
+      00015B 64 69 72               331 	.ascii "dir"
+      00015E 00                     332 	.db 0x00
+      00015F                        333 ___str_7:
+      00015F 6C 73 70 20            334 	.ascii "lsp "
+      000163 00                     335 	.db 0x00
+      000164                        336 ___str_8:
+      000164 63 61 74 20            337 	.ascii "cat "
+      000168 00                     338 	.db 0x00
+      000169                        339 ___str_9:
+      000169 6C 6F 61 64 20         340 	.ascii "load "
+      00016E 00                     341 	.db 0x00
+      00016F                        342 ___str_10:
+      00016F 55 6E 6B 6E 6F 77 6E   343 	.ascii "Unknown Command"
+             20 43 6F 6D 6D 61 6E
+             64
+      00017E 00                     344 	.db 0x00
+                                    345 ;zos.c:98: void print_char(byte b)
+                                    346 ;	---------------------------------
+                                    347 ; Function print_char
+                                    348 ; ---------------------------------
+      00017F                        349 _print_char::
+      00017F F5               [11]  350 	push	af
+      000180 4F               [ 4]  351 	ld	c, a
+                                    352 ;zos.c:101: text[0]=b;
+      000181 21 00 00         [10]  353 	ld	hl, #0
+      000184 39               [11]  354 	add	hl, sp
+      000185 EB               [ 4]  355 	ex	de, hl
+      000186 79               [ 4]  356 	ld	a, c
+      000187 12               [ 7]  357 	ld	(de), a
+                                    358 ;zos.c:102: text[1]=0;
+      000188 4B               [ 4]  359 	ld	c, e
+      000189 42               [ 4]  360 	ld	b, d
+      00018A 03               [ 6]  361 	inc	bc
+      00018B AF               [ 4]  362 	xor	a, a
+      00018C 02               [ 7]  363 	ld	(bc), a
+                                    364 ;zos.c:103: print_text(text);
+      00018D EB               [ 4]  365 	ex	de, hl
+      00018E CDr00r00         [17]  366 	call	_print_text
+                                    367 ;zos.c:104: }
+      000191 F1               [10]  368 	pop	af
+      000192 C9               [10]  369 	ret
+                                    370 ;zos.c:106: void backspace()
+                                    371 ;	---------------------------------
+                                    372 ; Function backspace
+                                    373 ; ---------------------------------
+      000193                        374 _backspace::
+                                    375 ;zos.c:107: {}
+      000193 C9               [10]  376 	ret
+                                    377 ;zos.c:109: byte process_input()
+                                    378 ;	---------------------------------
+                                    379 ; Function process_input
+                                    380 ; ---------------------------------
+      000194                        381 _process_input::
+                                    382 ;zos.c:111: if (!input_empty())
+      000194 CDr00r00         [17]  383 	call	_input_empty
+      000197 B7               [ 4]  384 	or	a, a
+      000198 20 5C            [12]  385 	jr	NZ, 00111$
+                                    386 ;zos.c:113: byte data = input_read();
+      00019A CDr00r00         [17]  387 	call	_input_read
+                                    388 ;zos.c:114: if (data==10 || data==13)
+      00019D 4F               [ 4]  389 	ld	c, a
+      00019E D6 0A            [ 7]  390 	sub	a, #0x0a
+      0001A0 28 05            [12]  391 	jr	Z, 00101$
+      0001A2 79               [ 4]  392 	ld	a, c
+      0001A3 D6 0D            [ 7]  393 	sub	a, #0x0d
+      0001A5 20 0E            [12]  394 	jr	NZ, 00102$
+      0001A7                        395 00101$:
+                                    396 ;zos.c:116: newline();
+      0001A7 CDr00r00         [17]  397 	call	_newline
+                                    398 ;zos.c:117: process_command();
+      0001AA CDrC8r00         [17]  399 	call	_process_command
+                                    400 ;zos.c:118: command_pos=0;
+      0001AD 21r20r00         [10]  401 	ld	hl, #_command_pos
+      0001B0 36 00            [10]  402 	ld	(hl), #0x00
+                                    403 ;zos.c:119: return 1;
+      0001B2 3E 01            [ 7]  404 	ld	a, #0x01
+      0001B4 C9               [10]  405 	ret
+      0001B5                        406 00102$:
+                                    407 ;zos.c:121: if (data == 8 && command_pos>0)
+      0001B5 79               [ 4]  408 	ld	a, c
+      0001B6 D6 08            [ 7]  409 	sub	a, #0x08
+      0001B8 20 0F            [12]  410 	jr	NZ, 00105$
+      0001BA 3Ar20r00         [13]  411 	ld	a, (_command_pos+0)
+      0001BD B7               [ 4]  412 	or	a, a
+      0001BE 28 09            [12]  413 	jr	Z, 00105$
+                                    414 ;zos.c:123: backspace();
+      0001C0 CDr93r01         [17]  415 	call	_backspace
+                                    416 ;zos.c:124: --command_pos;
+      0001C3 21r20r00         [10]  417 	ld	hl, #_command_pos
+      0001C6 35               [11]  418 	dec	(hl)
+                                    419 ;zos.c:125: return 0;
+      0001C7 AF               [ 4]  420 	xor	a, a
+      0001C8 C9               [10]  421 	ret
+      0001C9                        422 00105$:
+                                    423 ;zos.c:127: if (data>=32 && command_pos < 30)
+      0001C9 79               [ 4]  424 	ld	a, c
+      0001CA D6 20            [ 7]  425 	sub	a, #0x20
+      0001CC 38 28            [12]  426 	jr	C, 00111$
+      0001CE 3Ar20r00         [13]  427 	ld	a, (_command_pos+0)
+      0001D1 D6 1E            [ 7]  428 	sub	a, #0x1e
+      0001D3 30 21            [12]  429 	jr	NC, 00111$
+                                    430 ;zos.c:129: command_buffer[command_pos++]=data;
+      0001D5 11r00r00         [10]  431 	ld	de, #_command_buffer+0
+      0001D8 3Ar20r00         [13]  432 	ld	a, (_command_pos+0)
+      0001DB 47               [ 4]  433 	ld	b, a
+      0001DC 21r20r00         [10]  434 	ld	hl, #_command_pos
+      0001DF 34               [11]  435 	inc	(hl)
+      0001E0 68               [ 4]  436 	ld	l, b
+      0001E1 26 00            [ 7]  437 	ld	h, #0x00
+      0001E3 19               [11]  438 	add	hl, de
+      0001E4 71               [ 7]  439 	ld	(hl), c
+                                    440 ;zos.c:130: print_char(data);
+      0001E5 D5               [11]  441 	push	de
+      0001E6 79               [ 4]  442 	ld	a, c
+      0001E7 CDr7Fr01         [17]  443 	call	_print_char
+      0001EA CDr00r00         [17]  444 	call	_gpu_flush
+      0001ED D1               [10]  445 	pop	de
+                                    446 ;zos.c:132: command_buffer[command_pos]=0;
+      0001EE 2Ar20r00         [16]  447 	ld	hl, (_command_pos)
+      0001F1 26 00            [ 7]  448 	ld	h, #0x00
+      0001F3 19               [11]  449 	add	hl, de
+      0001F4 36 00            [10]  450 	ld	(hl), #0x00
+      0001F6                        451 00111$:
+                                    452 ;zos.c:135: return 0;
+      0001F6 AF               [ 4]  453 	xor	a, a
+                                    454 ;zos.c:136: }
+      0001F7 C9               [10]  455 	ret
+                                    456 ;zos.c:138: void main()
+                                    457 ;	---------------------------------
+                                    458 ; Function main
+                                    459 ; ---------------------------------
+      0001F8                        460 _main::
+                                    461 ;zos.c:140: gpu_clear();
+      0001F8 CDr00r00         [17]  462 	call	_gpu_clear
+                                    463 ;zos.c:141: command_pos=0;
+      0001FB 21r20r00         [10]  464 	ld	hl, #_command_pos
+      0001FE 36 00            [10]  465 	ld	(hl), #0x00
+                                    466 ;zos.c:142: cls();
+      000200 CDr00r00         [17]  467 	call	_cls
+                                    468 ;zos.c:143: while (1)
+      000203                        469 00105$:
+                                    470 ;zos.c:145: print_prompt();
+      000203 CDr00r00         [17]  471 	call	_print_prompt
+                                    472 ;zos.c:146: gpu_flush();
+      000206 CDr00r00         [17]  473 	call	_gpu_flush
+                                    474 ;zos.c:147: while (!process_input());
+      000209                        475 00101$:
+      000209 CDr94r01         [17]  476 	call	_process_input
+      00020C B7               [ 4]  477 	or	a, a
+      00020D 20 F4            [12]  478 	jr	NZ, 00105$
+                                    479 ;zos.c:149: }
+      00020F 18 F8            [12]  480 	jr	00101$
+                                    481 	.area _CODE
+                                    482 	.area _INITIALIZER
+                                    483 	.area _CABS (ABS)

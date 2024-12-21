@@ -1,0 +1,40 @@
+	.area _ISRS
+
+_isr_table::
+	.globl isr20
+	.globl isr22
+	.globl isr24
+	.globl isr26
+	.globl isr28
+	.globl isr2a
+	.globl isr2c
+	.globl isr2e
+	.globl isr30
+	.globl isr32
+	.globl isr34
+	.globl isr36
+	.globl isr38
+	.globl isr3a
+	.globl isr3c
+	.globl isr3e
+	
+	.dw isr20
+	.dw isr22
+	.dw isr24
+	.dw isr26
+	.dw isr28
+	.dw isr2a
+	.dw isr2c
+	.dw isr2e
+	.dw isr30
+	.dw isr32
+	.dw isr34
+	.dw isr36
+	.dw isr38
+	.dw isr3a
+	.dw isr3c
+	.dw isr3e
+
+
+
+

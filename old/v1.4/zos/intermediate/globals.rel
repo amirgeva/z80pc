@@ -1,0 +1,20 @@
+XL3
+H 2 areas 4 global symbols
+S .__.ABS. Def000000
+A _CODE size 0 flags 0 addr 0
+A _GLOBALS size 10 flags 0 addr 0
+S _input_write_ptr Def000000
+S _input_buffer Def000010
+S _input_read_ptr Def000001
+T 00 00 00
+R 00 00 01 00
+T 00 00 00 00
+R 00 00 01 00
+T 01 00 00
+R 00 00 01 00
+T 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+R 00 00 01 00
+T 0E 00 00 00 00
+R 00 00 01 00
+T 10 00 00
+R 00 00 01 00

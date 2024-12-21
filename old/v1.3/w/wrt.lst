@@ -1,0 +1,11 @@
+0x0000 3    c3 00 01         jp main
+0x0003 7    48 65 6c 6c 6f   ds 'Hello'
+0x0100 15   21 03 00         ld HL,text
+0x0103 17   06 05            ld B,5
+0x0105 19   0e 00            ld C,0
+0x0107 21   3e 1e            ld A,30
+0x0109 23   d3 00            out (0),A
+0x010b 25   3e 05            ld A,5
+0x010d 27   d3 00            out (0),A
+0x010f 29   ed b3            OTIR
+0x0111 35   c3 11 01         jp loop
