@@ -151,10 +151,12 @@ input_read::
 	LD		A,(#_input_read_ptr)
 	LD		H,#1    ; Input buffer at 0x0100, so H=1, L=offset
 	LD		L,A
-	LD		C,(HL)	; Byte read
-	INC		A
+	LD		E,(HL)	; Byte read
+	INC		HL
+	LD		D,(HL)
+	INC		L
+	LD		A,L
 	LD		(#_input_read_ptr),A
-	LD		A,C
 	RET
 
 strlen::
@@ -376,7 +378,7 @@ load_sprites::
 ;
 ;
 ;
-_div_mod::
+div_mod::
 	LD		E,(HL)
 	INC		HL
 	LD		D,(HL)

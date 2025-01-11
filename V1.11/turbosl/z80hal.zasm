@@ -1,0 +1,80 @@
+	.area _CODE
+
+	.globl _main
+	.globl _hal_color
+	.globl _exit
+	.globl _hal_draw_char
+	.globl _hal_init
+	.globl _hal_move
+	.globl _hal_shutdown
+	.globl entry_point
+
+entry_point::
+	jp	_main
+
+_exit::
+	rst 0
+
+_hal_init::
+	ret
+	
+_hal_draw_char::
+	push af
+	ld a,#30
+	out (0),a
+	ld a,#1
+	out (0),a
+	pop af
+	out (0),a
+	ret
+
+_hal_rept_char::
+;	Draw character in A,   L times
+	push af
+	ld a,#30
+	out (0),a
+	ld a,l
+	out (0),a
+	pop af
+	ld b,l
+hal_rept_loop:
+	out (0),a
+	djnz hal_rept_loop
+	ret
+
+_hal_color::
+	push	af
+	ld		a,#7
+	out		(0),a
+	pop		af
+	out		(0),a
+	ld		a,#8
+	out		(0),a
+	ld		a,l
+	out		(0),a
+	ret
+	
+	
+_hal_move::
+;HL=x, DE=y
+;3 bytes: 6, x, y
+	ld		a,#6
+	out		(0),a
+	ld		a,L
+	out		(0),a
+	ld		a,E
+	out		(0),a
+	ret
+	
+
+_hal_shutdown::
+	ret
+	
+_hal_blink::
+	push af
+	ld	a,#11
+	out (0),a
+	pop af
+	out (0),a
+	ret
+	

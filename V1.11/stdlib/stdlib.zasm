@@ -76,3 +76,7 @@ _load_sprites::
 	EX AF,AF'
 	LD A,#18
 	JP   8
+_div_mod::
+	EX AF,AF'
+	LD A,#19
+	JP   8

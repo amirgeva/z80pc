@@ -32,14 +32,7 @@ char strcmp_impl(const char* a, const char* b)
 	return strncmp_impl(a,b,255);
 }
 
-typedef struct _DivMod
-{
-	word a;
-	byte b;
-} DivMod;
-
 void print_char(byte b);
-void div_mod(DivMod* dm);
 
 void print_word_impl(word w)
 {

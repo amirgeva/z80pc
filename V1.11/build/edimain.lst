@@ -1,0 +1,2576 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.2.0 #13081 (MINGW64)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module edimain
+                                      6 	.optsdcc -mz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _main
+                                     12 	.globl _event_loop
+                                     13 	.globl _getkey
+                                     14 	.globl _add_enter
+                                     15 	.globl _join_prev_line
+                                     16 	.globl _add_char
+                                     17 	.globl _backspace
+                                     18 	.globl _do_delete
+                                     19 	.globl _move_x_cursor
+                                     20 	.globl _visual_to_logical
+                                     21 	.globl _logical_to_visual
+                                     22 	.globl _draw_screen
+                                     23 	.globl _draw_cursor_position
+                                     24 	.globl _draw_number
+                                     25 	.globl _decimal_string
+                                     26 	.globl _place_cursor
+                                     27 	.globl _calculate_new_offset
+                                     28 	.globl _cursor_in_view
+                                     29 	.globl _draw_line
+                                     30 	.globl _draw_frame
+                                     31 	.globl _draw_str
+                                     32 	.globl _load_file
+                                     33 	.globl _append_line
+                                     34 	.globl _get_line
+                                     35 	.globl _round_up
+                                     36 	.globl _clear
+                                     37 	.globl _init_state
+                                     38 	.globl _alloc_init
+                                     39 	.globl _div_mod
+                                     40 	.globl _close_file
+                                     41 	.globl _read_file
+                                     42 	.globl _open_file
+                                     43 	.globl _input_read
+                                     44 	.globl _input_empty
+                                     45 	.globl _min
+                                     46 	.globl _vector_erase_range
+                                     47 	.globl _vector_erase
+                                     48 	.globl _vector_access
+                                     49 	.globl _vector_get
+                                     50 	.globl _vector_set
+                                     51 	.globl _vector_insert
+                                     52 	.globl _vector_push
+                                     53 	.globl _vector_reserve
+                                     54 	.globl _vector_resize
+                                     55 	.globl _vector_clear
+                                     56 	.globl _vector_size
+                                     57 	.globl _vector_shut
+                                     58 	.globl _vector_new
+                                     59 	.globl _hal_blink
+                                     60 	.globl _hal_color
+                                     61 	.globl _hal_rept_char
+                                     62 	.globl _hal_draw_char
+                                     63 	.globl _hal_move
+                                     64 	.globl _hal_shutdown
+                                     65 	.globl _hal_init
+                                     66 	.globl _offset_y
+                                     67 	.globl _offset_x
+                                     68 	.globl _cursor_y
+                                     69 	.globl _cursor_x
+                                     70 	.globl _insert
+                                     71 	.globl _full_redraw
+                                     72 	.globl _bg
+                                     73 	.globl _fg
+                                     74 	.globl _document
+                                     75 	.globl _VERT
+                                     76 	.globl _HORZ
+                                     77 	.globl _BR
+                                     78 	.globl _BL
+                                     79 	.globl _TR
+                                     80 	.globl _TL
+                                     81 	.globl _H
+                                     82 	.globl _W
+                                     83 ;--------------------------------------------------------
+                                     84 ; special function registers
+                                     85 ;--------------------------------------------------------
+                                     86 ;--------------------------------------------------------
+                                     87 ; ram data
+                                     88 ;--------------------------------------------------------
+                                     89 	.area _DATA
+      000000                         90 _document::
+      000000                         91 	.ds 2
+                                     92 ;--------------------------------------------------------
+                                     93 ; ram data
+                                     94 ;--------------------------------------------------------
+                                     95 	.area _INITIALIZED
+      000000                         96 _fg::
+      000000                         97 	.ds 1
+      000001                         98 _bg::
+      000001                         99 	.ds 1
+      000002                        100 _full_redraw::
+      000002                        101 	.ds 1
+      000003                        102 _insert::
+      000003                        103 	.ds 1
+      000004                        104 _cursor_x::
+      000004                        105 	.ds 2
+      000006                        106 _cursor_y::
+      000006                        107 	.ds 2
+      000008                        108 _offset_x::
+      000008                        109 	.ds 2
+      00000A                        110 _offset_y::
+      00000A                        111 	.ds 2
+                                    112 ;--------------------------------------------------------
+                                    113 ; absolute external ram data
+                                    114 ;--------------------------------------------------------
+                                    115 	.area _DABS (ABS)
+                                    116 ;--------------------------------------------------------
+                                    117 ; global & static initialisations
+                                    118 ;--------------------------------------------------------
+                                    119 	.area _HOME
+                                    120 	.area _GSINIT
+                                    121 	.area _GSFINAL
+                                    122 	.area _GSINIT
+                                    123 ;--------------------------------------------------------
+                                    124 ; Home
+                                    125 ;--------------------------------------------------------
+                                    126 	.area _HOME
+                                    127 	.area _HOME
+                                    128 ;--------------------------------------------------------
+                                    129 ; code
+                                    130 ;--------------------------------------------------------
+                                    131 	.area _CODE
+                                    132 ;edimain.c:25: void init_state()
+                                    133 ;	---------------------------------
+                                    134 ; Function init_state
+                                    135 ; ---------------------------------
+      000000                        136 _init_state::
+                                    137 ;edimain.c:27: fg=0xFF;
+      000000 21r00r00         [10]  138 	ld	hl, #_fg
+      000003 36 FF            [10]  139 	ld	(hl), #0xff
+                                    140 ;edimain.c:28: bg=0;
+      000005 21r01r00         [10]  141 	ld	hl, #_bg
+      000008 36 00            [10]  142 	ld	(hl), #0x00
+                                    143 ;edimain.c:29: full_redraw=1;
+      00000A 21r02r00         [10]  144 	ld	hl, #_full_redraw
+      00000D 36 01            [10]  145 	ld	(hl), #0x01
+                                    146 ;edimain.c:30: insert=1;
+      00000F 21r03r00         [10]  147 	ld	hl, #_insert
+      000012 36 01            [10]  148 	ld	(hl), #0x01
+                                    149 ;edimain.c:31: document=0;
+      000014 21 00 00         [10]  150 	ld	hl, #0x0000
+      000017 22r00r00         [16]  151 	ld	(_document), hl
+                                    152 ;edimain.c:32: cursor_x=0;
+      00001A 22r04r00         [16]  153 	ld	(_cursor_x), hl
+                                    154 ;edimain.c:33: cursor_y=0;
+      00001D 22r06r00         [16]  155 	ld	(_cursor_y), hl
+                                    156 ;edimain.c:34: offset_x=0;
+      000020 22r08r00         [16]  157 	ld	(_offset_x), hl
+                                    158 ;edimain.c:35: offset_y=0;
+      000023 22r0Ar00         [16]  159 	ld	(_offset_y), hl
+                                    160 ;edimain.c:36: }
+      000026 C9               [10]  161 	ret
+      000027                        162 _W:
+      000027 50                     163 	.db #0x50	; 80	'P'
+      000028                        164 _H:
+      000028 1E                     165 	.db #0x1e	; 30
+      000029                        166 _TL:
+      000029 C9                     167 	.db #0xc9	; 201
+      00002A                        168 _TR:
+      00002A BB                     169 	.db #0xbb	; 187
+      00002B                        170 _BL:
+      00002B C8                     171 	.db #0xc8	; 200
+      00002C                        172 _BR:
+      00002C BC                     173 	.db #0xbc	; 188
+      00002D                        174 _HORZ:
+      00002D CD                     175 	.db #0xcd	; 205
+      00002E                        176 _VERT:
+      00002E BA                     177 	.db #0xba	; 186
+                                    178 ;edimain.c:40: void clear()
+                                    179 ;	---------------------------------
+                                    180 ; Function clear
+                                    181 ; ---------------------------------
+      00002F                        182 _clear::
+      00002F DD E5            [15]  183 	push	ix
+      000031 DD 21 00 00      [14]  184 	ld	ix,#0
+      000035 DD 39            [15]  185 	add	ix,sp
+      000037 F5               [11]  186 	push	af
+      000038 F5               [11]  187 	push	af
+                                    188 ;edimain.c:42: word n = vector_size(document);
+      000039 2Ar00r00         [16]  189 	ld	hl, (_document)
+      00003C CDr00r00         [17]  190 	call	_vector_size
+      00003F DD 73 FE         [19]  191 	ld	-2 (ix), e
+      000042 DD 72 FF         [19]  192 	ld	-1 (ix), d
+                                    193 ;edimain.c:44: for (word i = 0; i < n; ++i)
+      000045 01 00 00         [10]  194 	ld	bc, #0x0000
+      000048                        195 00103$:
+      000048 79               [ 4]  196 	ld	a, c
+      000049 DD 96 FE         [19]  197 	sub	a, -2 (ix)
+      00004C 78               [ 4]  198 	ld	a, b
+      00004D DD 9E FF         [19]  199 	sbc	a, -1 (ix)
+      000050 30 19            [12]  200 	jr	NC, 00101$
+                                    201 ;edimain.c:46: vector_get(document, i, &line);
+      000052 C5               [11]  202 	push	bc
+      000053 21 02 00         [10]  203 	ld	hl, #2
+      000056 39               [11]  204 	add	hl, sp
+      000057 E5               [11]  205 	push	hl
+      000058 59               [ 4]  206 	ld	e, c
+      000059 50               [ 4]  207 	ld	d, b
+      00005A 2Ar00r00         [16]  208 	ld	hl, (_document)
+      00005D CDr00r00         [17]  209 	call	_vector_get
+      000060 D1               [10]  210 	pop	de
+      000061 E1               [10]  211 	pop	hl
+      000062 E5               [11]  212 	push	hl
+      000063 D5               [11]  213 	push	de
+      000064 CDr00r00         [17]  214 	call	_vector_shut
+      000067 C1               [10]  215 	pop	bc
+                                    216 ;edimain.c:44: for (word i = 0; i < n; ++i)
+      000068 03               [ 6]  217 	inc	bc
+      000069 18 DD            [12]  218 	jr	00103$
+      00006B                        219 00101$:
+                                    220 ;edimain.c:49: vector_clear(document);
+      00006B 2Ar00r00         [16]  221 	ld	hl, (_document)
+      00006E CDr00r00         [17]  222 	call	_vector_clear
+                                    223 ;edimain.c:50: }
+      000071 DD F9            [10]  224 	ld	sp, ix
+      000073 DD E1            [14]  225 	pop	ix
+      000075 C9               [10]  226 	ret
+                                    227 ;edimain.c:52: word round_up(word value, word margin)
+                                    228 ;	---------------------------------
+                                    229 ; Function round_up
+                                    230 ; ---------------------------------
+      000076                        231 _round_up::
+                                    232 ;edimain.c:54: return (value + margin) & ~(margin-1);
+      000076 19               [11]  233 	add	hl, de
+      000077 1B               [ 6]  234 	dec	de
+      000078 7B               [ 4]  235 	ld	a, e
+      000079 2F               [ 4]  236 	cpl
+      00007A 4F               [ 4]  237 	ld	c, a
+      00007B 7A               [ 4]  238 	ld	a, d
+      00007C 2F               [ 4]  239 	cpl
+      00007D 47               [ 4]  240 	ld	b, a
+      00007E 7D               [ 4]  241 	ld	a, l
+      00007F A1               [ 4]  242 	and	a, c
+      000080 5F               [ 4]  243 	ld	e, a
+      000081 7C               [ 4]  244 	ld	a, h
+      000082 A0               [ 4]  245 	and	a, b
+      000083 57               [ 4]  246 	ld	d, a
+                                    247 ;edimain.c:55: }
+      000084 C9               [10]  248 	ret
+                                    249 ;edimain.c:57: Vector* get_line(word line_index)
+                                    250 ;	---------------------------------
+                                    251 ; Function get_line
+                                    252 ; ---------------------------------
+      000085                        253 _get_line::
+      000085 DD E5            [15]  254 	push	ix
+      000087 DD 21 00 00      [14]  255 	ld	ix,#0
+      00008B DD 39            [15]  256 	add	ix,sp
+      00008D FD 21 F6 FF      [14]  257 	ld	iy, #-10
+      000091 FD 39            [15]  258 	add	iy, sp
+      000093 FD F9            [10]  259 	ld	sp, iy
+      000095 DD 75 FC         [19]  260 	ld	-4 (ix), l
+      000098 DD 74 FD         [19]  261 	ld	-3 (ix), h
+                                    262 ;edimain.c:59: word size = vector_size(document);
+      00009B 2Ar00r00         [16]  263 	ld	hl, (_document)
+      00009E CDr00r00         [17]  264 	call	_vector_size
+      0000A1 DD 73 FE         [19]  265 	ld	-2 (ix), e
+      0000A4 DD 72 FF         [19]  266 	ld	-1 (ix), d
+                                    267 ;edimain.c:60: if (line_index < size)
+      0000A7 DD 7E FC         [19]  268 	ld	a, -4 (ix)
+      0000AA DD 96 FE         [19]  269 	sub	a, -2 (ix)
+      0000AD DD 7E FD         [19]  270 	ld	a, -3 (ix)
+      0000B0 DD 9E FF         [19]  271 	sbc	a, -1 (ix)
+      0000B3 30 18            [12]  272 	jr	NC, 00102$
+                                    273 ;edimain.c:63: vector_get(document, line_index, &line);
+      0000B5 21 02 00         [10]  274 	ld	hl, #2
+      0000B8 39               [11]  275 	add	hl, sp
+      0000B9 E5               [11]  276 	push	hl
+      0000BA DD 5E FC         [19]  277 	ld	e, -4 (ix)
+      0000BD DD 56 FD         [19]  278 	ld	d, -3 (ix)
+      0000C0 2Ar00r00         [16]  279 	ld	hl, (_document)
+      0000C3 CDr00r00         [17]  280 	call	_vector_get
+                                    281 ;edimain.c:64: return line;
+      0000C6 E1               [10]  282 	pop	hl
+      0000C7 D1               [10]  283 	pop	de
+      0000C8 D5               [11]  284 	push	de
+      0000C9 E5               [11]  285 	push	hl
+      0000CA C3r5Dr01         [10]  286 	jp	00106$
+      0000CD                        287 00102$:
+                                    288 ;edimain.c:66: vector_reserve(document, round_up(line_index + 1, 16));
+      0000CD DD 7E FC         [19]  289 	ld	a, -4 (ix)
+      0000D0 DD 77 F6         [19]  290 	ld	-10 (ix), a
+      0000D3 DD 7E FD         [19]  291 	ld	a, -3 (ix)
+      0000D6 DD 77 F7         [19]  292 	ld	-9 (ix), a
+      0000D9 DD 7E F6         [19]  293 	ld	a, -10 (ix)
+      0000DC C6 01            [ 7]  294 	add	a, #0x01
+      0000DE DD 77 FA         [19]  295 	ld	-6 (ix), a
+      0000E1 DD 7E F7         [19]  296 	ld	a, -9 (ix)
+      0000E4 CE 00            [ 7]  297 	adc	a, #0x00
+      0000E6 DD 77 FB         [19]  298 	ld	-5 (ix), a
+      0000E9 11 10 00         [10]  299 	ld	de, #0x0010
+      0000EC DD 6E FA         [19]  300 	ld	l, -6 (ix)
+                                    301 ;	spillPairReg hl
+                                    302 ;	spillPairReg hl
+      0000EF DD 66 FB         [19]  303 	ld	h, -5 (ix)
+                                    304 ;	spillPairReg hl
+                                    305 ;	spillPairReg hl
+      0000F2 CDr76r00         [17]  306 	call	_round_up
+      0000F5 2Ar00r00         [16]  307 	ld	hl, (_document)
+      0000F8 CDr00r00         [17]  308 	call	_vector_reserve
+                                    309 ;edimain.c:67: vector_resize(document, line_index + 1);
+      0000FB DD 5E FA         [19]  310 	ld	e, -6 (ix)
+      0000FE DD 56 FB         [19]  311 	ld	d, -5 (ix)
+      000101 2Ar00r00         [16]  312 	ld	hl, (_document)
+      000104 CDr00r00         [17]  313 	call	_vector_resize
+                                    314 ;edimain.c:68: word new_size = vector_size(document);
+      000107 2Ar00r00         [16]  315 	ld	hl, (_document)
+      00010A CDr00r00         [17]  316 	call	_vector_size
+      00010D DD 73 FA         [19]  317 	ld	-6 (ix), e
+      000110 DD 72 FB         [19]  318 	ld	-5 (ix), d
+                                    319 ;edimain.c:69: while (size < new_size)
+      000113                        320 00103$:
+      000113 DD 7E FE         [19]  321 	ld	a, -2 (ix)
+      000116 DD 96 FA         [19]  322 	sub	a, -6 (ix)
+      000119 DD 7E FF         [19]  323 	ld	a, -1 (ix)
+      00011C DD 9E FB         [19]  324 	sbc	a, -5 (ix)
+      00011F 30 27            [12]  325 	jr	NC, 00105$
+                                    326 ;edimain.c:71: Vector* new_line = vector_new(1);
+      000121 21 01 00         [10]  327 	ld	hl, #0x0001
+      000124 CDr00r00         [17]  328 	call	_vector_new
+      000127 DD 73 F8         [19]  329 	ld	-8 (ix), e
+      00012A DD 72 F9         [19]  330 	ld	-7 (ix), d
+                                    331 ;edimain.c:72: vector_set(document, size++, &new_line);
+      00012D DD 5E FE         [19]  332 	ld	e, -2 (ix)
+      000130 DD 56 FF         [19]  333 	ld	d, -1 (ix)
+      000133 DD 34 FE         [23]  334 	inc	-2 (ix)
+      000136 20 03            [12]  335 	jr	NZ, 00124$
+      000138 DD 34 FF         [23]  336 	inc	-1 (ix)
+      00013B                        337 00124$:
+      00013B 21 02 00         [10]  338 	ld	hl, #2
+      00013E 39               [11]  339 	add	hl, sp
+      00013F E5               [11]  340 	push	hl
+      000140 2Ar00r00         [16]  341 	ld	hl, (_document)
+      000143 CDr00r00         [17]  342 	call	_vector_set
+      000146 18 CB            [12]  343 	jr	00103$
+      000148                        344 00105$:
+                                    345 ;edimain.c:75: vector_get(document, line_index, &line);
+      000148 21 02 00         [10]  346 	ld	hl, #2
+      00014B 39               [11]  347 	add	hl, sp
+      00014C E5               [11]  348 	push	hl
+      00014D DD 5E FC         [19]  349 	ld	e, -4 (ix)
+      000150 DD 56 FD         [19]  350 	ld	d, -3 (ix)
+      000153 2Ar00r00         [16]  351 	ld	hl, (_document)
+      000156 CDr00r00         [17]  352 	call	_vector_get
+                                    353 ;edimain.c:76: return line;
+      000159 E1               [10]  354 	pop	hl
+      00015A D1               [10]  355 	pop	de
+      00015B D5               [11]  356 	push	de
+      00015C E5               [11]  357 	push	hl
+      00015D                        358 00106$:
+                                    359 ;edimain.c:77: }
+      00015D DD F9            [10]  360 	ld	sp, ix
+      00015F DD E1            [14]  361 	pop	ix
+      000161 C9               [10]  362 	ret
+                                    363 ;edimain.c:79: void append_line(Vector* line, byte b)
+                                    364 ;	---------------------------------
+                                    365 ; Function append_line
+                                    366 ; ---------------------------------
+      000162                        367 _append_line::
+      000162 DD E5            [15]  368 	push	ix
+      000164 DD 21 00 00      [14]  369 	ld	ix,#0
+      000168 DD 39            [15]  370 	add	ix,sp
+      00016A 4D               [ 4]  371 	ld	c, l
+      00016B 44               [ 4]  372 	ld	b, h
+                                    373 ;edimain.c:81: vector_push(line, &b);
+      00016C 21 04 00         [10]  374 	ld	hl, #4
+      00016F 39               [11]  375 	add	hl, sp
+      000170 EB               [ 4]  376 	ex	de, hl
+      000171 69               [ 4]  377 	ld	l, c
+                                    378 ;	spillPairReg hl
+                                    379 ;	spillPairReg hl
+      000172 60               [ 4]  380 	ld	h, b
+                                    381 ;	spillPairReg hl
+                                    382 ;	spillPairReg hl
+      000173 CDr00r00         [17]  383 	call	_vector_push
+                                    384 ;edimain.c:82: }
+      000176 DD E1            [14]  385 	pop	ix
+      000178 E1               [10]  386 	pop	hl
+      000179 33               [ 6]  387 	inc	sp
+      00017A E9               [ 4]  388 	jp	(hl)
+                                    389 ;edimain.c:84: void load_file(const char* filename)
+                                    390 ;	---------------------------------
+                                    391 ; Function load_file
+                                    392 ; ---------------------------------
+      00017B                        393 _load_file::
+      00017B DD E5            [15]  394 	push	ix
+      00017D DD 21 00 00      [14]  395 	ld	ix,#0
+      000181 DD 39            [15]  396 	add	ix,sp
+      000183 FD 21 F8 FE      [14]  397 	ld	iy, #-264
+      000187 FD 39            [15]  398 	add	iy, sp
+      000189 FD F9            [10]  399 	ld	sp, iy
+                                    400 ;edimain.c:87: clear();
+      00018B E5               [11]  401 	push	hl
+      00018C CDr2Fr00         [17]  402 	call	_clear
+      00018F E1               [10]  403 	pop	hl
+                                    404 ;edimain.c:88: byte handle = open_file(filename, 0);
+      000190 AF               [ 4]  405 	xor	a, a
+      000191 F5               [11]  406 	push	af
+      000192 33               [ 6]  407 	inc	sp
+      000193 CDr00r00         [17]  408 	call	_open_file
+                                    409 ;edimain.c:89: if (handle == 0xFF) return;
+      000196 4F               [ 4]  410 	ld	c, a
+      000197 3C               [ 4]  411 	inc	a
+      000198 CAr3Dr02         [10]  412 	jp	Z,00118$
+      00019B 18 00            [12]  413 	jr	00102$
+      00019D                        414 00102$:
+                                    415 ;edimain.c:91: word line_index = 0;
+      00019D AF               [ 4]  416 	xor	a, a
+      00019E DD 77 FE         [19]  417 	ld	-2 (ix), a
+      0001A1 DD 77 FF         [19]  418 	ld	-1 (ix), a
+                                    419 ;edimain.c:92: do
+      0001A4                        420 00112$:
+                                    421 ;edimain.c:94: act = read_file(handle, buffer, 256);
+      0001A4 C5               [11]  422 	push	bc
+      0001A5 21 00 01         [10]  423 	ld	hl, #0x0100
+      0001A8 E5               [11]  424 	push	hl
+      0001A9 21 04 00         [10]  425 	ld	hl, #4
+      0001AC 39               [11]  426 	add	hl, sp
+      0001AD EB               [ 4]  427 	ex	de, hl
+      0001AE 79               [ 4]  428 	ld	a, c
+      0001AF CDr00r00         [17]  429 	call	_read_file
+      0001B2 C1               [10]  430 	pop	bc
+      0001B3 DD 73 F8         [19]  431 	ld	-8 (ix), e
+      0001B6 DD 72 F9         [19]  432 	ld	-7 (ix), d
+                                    433 ;edimain.c:95: for (word i = 0; i < act; ++i)
+      0001B9 DD 5E FE         [19]  434 	ld	e, -2 (ix)
+      0001BC DD 56 FF         [19]  435 	ld	d, -1 (ix)
+      0001BF AF               [ 4]  436 	xor	a, a
+      0001C0 DD 77 FE         [19]  437 	ld	-2 (ix), a
+      0001C3 DD 77 FF         [19]  438 	ld	-1 (ix), a
+      0001C6                        439 00116$:
+      0001C6 DD 7E FE         [19]  440 	ld	a, -2 (ix)
+      0001C9 DD 96 F8         [19]  441 	sub	a, -8 (ix)
+      0001CC DD 7E FF         [19]  442 	ld	a, -1 (ix)
+      0001CF DD 9E F9         [19]  443 	sbc	a, -7 (ix)
+      0001D2 30 56            [12]  444 	jr	NC, 00128$
+                                    445 ;edimain.c:97: if (buffer[i] == 10)
+      0001D4 D5               [11]  446 	push	de
+      0001D5 DD 5E FE         [19]  447 	ld	e, -2 (ix)
+      0001D8 DD 56 FF         [19]  448 	ld	d, -1 (ix)
+      0001DB 21 02 00         [10]  449 	ld	hl, #2
+      0001DE 39               [11]  450 	add	hl, sp
+      0001DF 19               [11]  451 	add	hl, de
+      0001E0 D1               [10]  452 	pop	de
+      0001E1 DD 75 FA         [19]  453 	ld	-6 (ix), l
+      0001E4 DD 74 FB         [19]  454 	ld	-5 (ix), h
+      0001E7 7E               [ 7]  455 	ld	a, (hl)
+      0001E8 FE 0A            [ 7]  456 	cp	a, #0x0a
+      0001EA 20 03            [12]  457 	jr	NZ, 00109$
+                                    458 ;edimain.c:98: ++line_index;
+      0001EC 13               [ 6]  459 	inc	de
+      0001ED 18 31            [12]  460 	jr	00117$
+      0001EF                        461 00109$:
+                                    462 ;edimain.c:100: if (buffer[i] >= 32 || buffer[i]==9)
+      0001EF FE 20            [ 7]  463 	cp	a, #0x20
+      0001F1 30 04            [12]  464 	jr	NC, 00105$
+      0001F3 D6 09            [ 7]  465 	sub	a, #0x09
+      0001F5 20 29            [12]  466 	jr	NZ, 00117$
+      0001F7                        467 00105$:
+                                    468 ;edimain.c:102: Vector* line = get_line(line_index);
+      0001F7 C5               [11]  469 	push	bc
+                                    470 ;	spillPairReg hl
+                                    471 ;	spillPairReg hl
+      0001F8 EB               [ 4]  472 	ex	de, hl
+      0001F9 E5               [11]  473 	push	hl
+                                    474 ;	spillPairReg hl
+                                    475 ;	spillPairReg hl
+      0001FA CDr85r00         [17]  476 	call	_get_line
+      0001FD EB               [ 4]  477 	ex	de, hl
+      0001FE D1               [10]  478 	pop	de
+      0001FF C1               [10]  479 	pop	bc
+      000200 DD 75 FC         [19]  480 	ld	-4 (ix), l
+      000203 DD 74 FD         [19]  481 	ld	-3 (ix), h
+                                    482 ;edimain.c:103: if (line)
+      000206 7C               [ 4]  483 	ld	a, h
+      000207 B5               [ 4]  484 	or	a, l
+      000208 28 16            [12]  485 	jr	Z, 00117$
+                                    486 ;edimain.c:104: append_line(line, buffer[i]);
+      00020A DD 6E FA         [19]  487 	ld	l, -6 (ix)
+      00020D DD 66 FB         [19]  488 	ld	h, -5 (ix)
+      000210 7E               [ 7]  489 	ld	a, (hl)
+      000211 C5               [11]  490 	push	bc
+      000212 D5               [11]  491 	push	de
+      000213 F5               [11]  492 	push	af
+      000214 33               [ 6]  493 	inc	sp
+      000215 DD 6E FC         [19]  494 	ld	l, -4 (ix)
+                                    495 ;	spillPairReg hl
+                                    496 ;	spillPairReg hl
+      000218 DD 66 FD         [19]  497 	ld	h, -3 (ix)
+                                    498 ;	spillPairReg hl
+                                    499 ;	spillPairReg hl
+      00021B CDr62r01         [17]  500 	call	_append_line
+      00021E D1               [10]  501 	pop	de
+      00021F C1               [10]  502 	pop	bc
+      000220                        503 00117$:
+                                    504 ;edimain.c:95: for (word i = 0; i < act; ++i)
+      000220 DD 34 FE         [23]  505 	inc	-2 (ix)
+      000223 20 A1            [12]  506 	jr	NZ, 00116$
+      000225 DD 34 FF         [23]  507 	inc	-1 (ix)
+      000228 18 9C            [12]  508 	jr	00116$
+      00022A                        509 00128$:
+      00022A DD 73 FE         [19]  510 	ld	-2 (ix), e
+      00022D DD 72 FF         [19]  511 	ld	-1 (ix), d
+                                    512 ;edimain.c:107: } while (act > 0);
+      000230 DD 7E F9         [19]  513 	ld	a, -7 (ix)
+      000233 DD B6 F8         [19]  514 	or	a, -8 (ix)
+      000236 C2rA4r01         [10]  515 	jp	NZ, 00112$
+                                    516 ;edimain.c:108: close_file(handle);
+      000239 79               [ 4]  517 	ld	a, c
+      00023A CDr00r00         [17]  518 	call	_close_file
+      00023D                        519 00118$:
+                                    520 ;edimain.c:109: }
+      00023D DD F9            [10]  521 	ld	sp, ix
+      00023F DD E1            [14]  522 	pop	ix
+      000241 C9               [10]  523 	ret
+                                    524 ;edimain.c:111: void draw_str(const char* s)
+                                    525 ;	---------------------------------
+                                    526 ; Function draw_str
+                                    527 ; ---------------------------------
+      000242                        528 _draw_str::
+      000242                        529 00103$:
+                                    530 ;edimain.c:113: for (; *s; ++s)
+      000242 4E               [ 7]  531 	ld	c, (hl)
+      000243 79               [ 4]  532 	ld	a, c
+      000244 B7               [ 4]  533 	or	a, a
+      000245 C8               [11]  534 	ret	Z
+                                    535 ;edimain.c:115: hal_draw_char(*s);
+      000246 E5               [11]  536 	push	hl
+      000247 79               [ 4]  537 	ld	a, c
+      000248 CDr00r00         [17]  538 	call	_hal_draw_char
+      00024B E1               [10]  539 	pop	hl
+                                    540 ;edimain.c:113: for (; *s; ++s)
+      00024C 23               [ 6]  541 	inc	hl
+                                    542 ;edimain.c:117: }
+      00024D 18 F3            [12]  543 	jr	00103$
+                                    544 ;edimain.c:119: void draw_frame()
+                                    545 ;	---------------------------------
+                                    546 ; Function draw_frame
+                                    547 ; ---------------------------------
+      00024F                        548 _draw_frame::
+      00024F 3B               [ 6]  549 	dec	sp
+                                    550 ;edimain.c:122: hal_color(fg, bg);
+      000250 3Ar01r00         [13]  551 	ld	a, (_bg+0)
+      000253 6F               [ 4]  552 	ld	l, a
+                                    553 ;	spillPairReg hl
+                                    554 ;	spillPairReg hl
+      000254 3Ar00r00         [13]  555 	ld	a, (_fg+0)
+      000257 CDr00r00         [17]  556 	call	_hal_color
+                                    557 ;edimain.c:123: hal_move(0, 0);
+      00025A 11 00 00         [10]  558 	ld	de, #0x0000
+      00025D 21 00 00         [10]  559 	ld	hl, #0x0000
+      000260 CDr00r00         [17]  560 	call	_hal_move
+                                    561 ;edimain.c:124: hal_draw_char(TL);
+      000263 3Ar29r00         [13]  562 	ld	a, (_TL+0)
+      000266 CDr00r00         [17]  563 	call	_hal_draw_char
+                                    564 ;edimain.c:125: hal_rept_char(HORZ, W-2);
+      000269 3Ar27r00         [13]  565 	ld	a, (_W+0)
+      00026C 6F               [ 4]  566 	ld	l, a
+                                    567 ;	spillPairReg hl
+                                    568 ;	spillPairReg hl
+      00026D 2D               [ 4]  569 	dec	l
+      00026E 2D               [ 4]  570 	dec	l
+      00026F 3Ar2Dr00         [13]  571 	ld	a, (_HORZ+0)
+      000272 CDr00r00         [17]  572 	call	_hal_rept_char
+                                    573 ;edimain.c:126: hal_draw_char(TR);
+      000275 3Ar2Ar00         [13]  574 	ld	a, (_TR+0)
+      000278 CDr00r00         [17]  575 	call	_hal_draw_char
+                                    576 ;edimain.c:127: for (i = 1; i < (H - 1); ++i)
+      00027B FD 21 00 00      [14]  577 	ld	iy, #0
+      00027F FD 39            [15]  578 	add	iy, sp
+      000281 FD 36 00 01      [19]  579 	ld	0 (iy), #0x01
+      000285                        580 00103$:
+      000285 3Ar28r00         [13]  581 	ld	a, (_H+0)
+      000288 06 00            [ 7]  582 	ld	b, #0x00
+      00028A 4F               [ 4]  583 	ld	c, a
+      00028B 0B               [ 6]  584 	dec	bc
+      00028C 21 00 00         [10]  585 	ld	hl, #0
+      00028F 39               [11]  586 	add	hl, sp
+      000290 5E               [ 7]  587 	ld	e, (hl)
+      000291 16 00            [ 7]  588 	ld	d, #0x00
+      000293 7B               [ 4]  589 	ld	a, e
+      000294 91               [ 4]  590 	sub	a, c
+      000295 7A               [ 4]  591 	ld	a, d
+      000296 98               [ 4]  592 	sbc	a, b
+      000297 E2r9Cr02         [10]  593 	jp	PO, 00118$
+      00029A EE 80            [ 7]  594 	xor	a, #0x80
+      00029C                        595 00118$:
+      00029C F2rC7r02         [10]  596 	jp	P, 00101$
+                                    597 ;edimain.c:129: hal_move(0, i);
+      00029F 21 00 00         [10]  598 	ld	hl, #0x0000
+      0002A2 CDr00r00         [17]  599 	call	_hal_move
+                                    600 ;edimain.c:130: hal_draw_char(VERT);
+      0002A5 3Ar2Er00         [13]  601 	ld	a, (_VERT+0)
+      0002A8 CDr00r00         [17]  602 	call	_hal_draw_char
+                                    603 ;edimain.c:131: hal_rept_char(' ',W-2);
+      0002AB 3Ar27r00         [13]  604 	ld	a, (_W+0)
+      0002AE 6F               [ 4]  605 	ld	l, a
+                                    606 ;	spillPairReg hl
+                                    607 ;	spillPairReg hl
+      0002AF 2D               [ 4]  608 	dec	l
+      0002B0 2D               [ 4]  609 	dec	l
+      0002B1 3E 20            [ 7]  610 	ld	a, #0x20
+      0002B3 CDr00r00         [17]  611 	call	_hal_rept_char
+                                    612 ;edimain.c:132: hal_draw_char(VERT);
+      0002B6 3Ar2Er00         [13]  613 	ld	a, (_VERT+0)
+      0002B9 CDr00r00         [17]  614 	call	_hal_draw_char
+                                    615 ;edimain.c:127: for (i = 1; i < (H - 1); ++i)
+      0002BC FD 21 00 00      [14]  616 	ld	iy, #0
+      0002C0 FD 39            [15]  617 	add	iy, sp
+      0002C2 FD 34 00         [23]  618 	inc	0 (iy)
+      0002C5 18 BE            [12]  619 	jr	00103$
+      0002C7                        620 00101$:
+                                    621 ;edimain.c:134: hal_move(0, H-1);
+      0002C7 59               [ 4]  622 	ld	e, c
+      0002C8 50               [ 4]  623 	ld	d, b
+      0002C9 21 00 00         [10]  624 	ld	hl, #0x0000
+      0002CC CDr00r00         [17]  625 	call	_hal_move
+                                    626 ;edimain.c:135: hal_draw_char(BL);
+      0002CF 3Ar2Br00         [13]  627 	ld	a, (_BL+0)
+      0002D2 CDr00r00         [17]  628 	call	_hal_draw_char
+                                    629 ;edimain.c:136: hal_rept_char(HORZ,W-2);
+      0002D5 3Ar27r00         [13]  630 	ld	a, (_W+0)
+      0002D8 6F               [ 4]  631 	ld	l, a
+                                    632 ;	spillPairReg hl
+                                    633 ;	spillPairReg hl
+      0002D9 2D               [ 4]  634 	dec	l
+      0002DA 2D               [ 4]  635 	dec	l
+      0002DB 3Ar2Dr00         [13]  636 	ld	a, (_HORZ+0)
+      0002DE CDr00r00         [17]  637 	call	_hal_rept_char
+                                    638 ;edimain.c:137: hal_draw_char(BR);
+      0002E1 3Ar2Cr00         [13]  639 	ld	a, (_BR+0)
+      0002E4 4F               [ 4]  640 	ld	c, a
+      0002E5 33               [ 6]  641 	inc	sp
+      0002E6 C3r00r00         [10]  642 	jp	_hal_draw_char
+                                    643 ;edimain.c:138: }
+      0002E9 33               [ 6]  644 	inc	sp
+      0002EA C9               [10]  645 	ret
+                                    646 ;edimain.c:140: byte draw_line(short visual_y)
+                                    647 ;	---------------------------------
+                                    648 ; Function draw_line
+                                    649 ; ---------------------------------
+      0002EB                        650 _draw_line::
+      0002EB DD E5            [15]  651 	push	ix
+      0002ED DD 21 00 00      [14]  652 	ld	ix,#0
+      0002F1 DD 39            [15]  653 	add	ix,sp
+      0002F3 FD 21 F3 FF      [14]  654 	ld	iy, #-13
+      0002F7 FD 39            [15]  655 	add	iy, sp
+      0002F9 FD F9            [10]  656 	ld	sp, iy
+      0002FB DD 75 FB         [19]  657 	ld	-5 (ix), l
+      0002FE DD 74 FC         [19]  658 	ld	-4 (ix), h
+                                    659 ;edimain.c:142: if (visual_y < 0 || visual_y >= (H - 2)) return 1;
+      000301 DD 7E FB         [19]  660 	ld	a, -5 (ix)
+      000304 DD 77 F9         [19]  661 	ld	-7 (ix), a
+      000307 DD 7E FC         [19]  662 	ld	a, -4 (ix)
+      00030A DD 77 FA         [19]  663 	ld	-6 (ix), a
+      00030D DD CB FA 7E      [20]  664 	bit	7, -6 (ix)
+      000311 20 31            [12]  665 	jr	NZ, 00101$
+      000313 3Ar28r00         [13]  666 	ld	a, (_H+0)
+      000316 DD 77 FF         [19]  667 	ld	-1 (ix), a
+      000319 DD 77 F7         [19]  668 	ld	-9 (ix), a
+      00031C DD 36 F8 00      [19]  669 	ld	-8 (ix), #0x00
+      000320 DD 7E F7         [19]  670 	ld	a, -9 (ix)
+      000323 C6 FE            [ 7]  671 	add	a, #0xfe
+      000325 DD 77 FE         [19]  672 	ld	-2 (ix), a
+      000328 DD 7E F8         [19]  673 	ld	a, -8 (ix)
+      00032B CE FF            [ 7]  674 	adc	a, #0xff
+      00032D DD 77 FF         [19]  675 	ld	-1 (ix), a
+      000330 DD 7E F9         [19]  676 	ld	a, -7 (ix)
+      000333 DD 96 FE         [19]  677 	sub	a, -2 (ix)
+      000336 DD 7E FA         [19]  678 	ld	a, -6 (ix)
+      000339 DD 9E FF         [19]  679 	sbc	a, -1 (ix)
+      00033C E2r41r03         [10]  680 	jp	PO, 00177$
+      00033F EE 80            [ 7]  681 	xor	a, #0x80
+      000341                        682 00177$:
+      000341 FAr49r03         [10]  683 	jp	M, 00102$
+      000344                        684 00101$:
+      000344 3E 01            [ 7]  685 	ld	a, #0x01
+      000346 C3rE2r04         [10]  686 	jp	00122$
+      000349                        687 00102$:
+                                    688 ;edimain.c:143: short visual_x = -offset_x;
+      000349 21r08r00         [10]  689 	ld	hl, #_offset_x
+      00034C AF               [ 4]  690 	xor	a, a
+      00034D 96               [ 7]  691 	sub	a, (hl)
+      00034E DD 77 F7         [19]  692 	ld	-9 (ix), a
+      000351 23               [ 6]  693 	inc	hl
+      000352 9F               [ 4]  694 	sbc	a, a
+      000353 96               [ 7]  695 	sub	a, (hl)
+      000354 DD 77 F8         [19]  696 	ld	-8 (ix), a
+      000357 DD 7E F7         [19]  697 	ld	a, -9 (ix)
+      00035A DD 77 FD         [19]  698 	ld	-3 (ix), a
+      00035D DD 7E F8         [19]  699 	ld	a, -8 (ix)
+      000360 DD 77 FE         [19]  700 	ld	-2 (ix), a
+                                    701 ;edimain.c:144: short logical_y = visual_y + offset_y;
+      000363 3Ar0Ar00         [13]  702 	ld	a, (_offset_y+0)
+      000366 DD 86 FB         [19]  703 	add	a, -5 (ix)
+      000369 DD 77 F7         [19]  704 	ld	-9 (ix), a
+      00036C 3Ar0Br00         [13]  705 	ld	a, (_offset_y+1)
+      00036F DD 8E FC         [19]  706 	adc	a, -4 (ix)
+      000372 DD 77 F8         [19]  707 	ld	-8 (ix), a
+      000375 DD 7E F7         [19]  708 	ld	a, -9 (ix)
+      000378 DD 77 F3         [19]  709 	ld	-13 (ix), a
+      00037B DD 7E F8         [19]  710 	ld	a, -8 (ix)
+      00037E DD 77 F4         [19]  711 	ld	-12 (ix), a
+                                    712 ;edimain.c:145: if (logical_y >= vector_size(document))
+      000381 2Ar00r00         [16]  713 	ld	hl, (_document)
+      000384 CDr00r00         [17]  714 	call	_vector_size
+      000387 DD 73 F5         [19]  715 	ld	-11 (ix), e
+      00038A DD 72 F6         [19]  716 	ld	-10 (ix), d
+      00038D DD 7E F3         [19]  717 	ld	a, -13 (ix)
+      000390 DD 77 F7         [19]  718 	ld	-9 (ix), a
+      000393 DD 7E F4         [19]  719 	ld	a, -12 (ix)
+      000396 DD 77 F8         [19]  720 	ld	-8 (ix), a
+      000399 DD 7E F7         [19]  721 	ld	a, -9 (ix)
+      00039C DD 96 F5         [19]  722 	sub	a, -11 (ix)
+      00039F DD 7E F8         [19]  723 	ld	a, -8 (ix)
+      0003A2 DD 9E F6         [19]  724 	sbc	a, -10 (ix)
+      0003A5 38 1B            [12]  725 	jr	C, 00105$
+                                    726 ;edimain.c:147: return logical_y > 0x8000;
+      0003A7 DD 7E F3         [19]  727 	ld	a, -13 (ix)
+      0003AA DD 77 FE         [19]  728 	ld	-2 (ix), a
+      0003AD DD 7E F4         [19]  729 	ld	a, -12 (ix)
+      0003B0 DD 77 FF         [19]  730 	ld	-1 (ix), a
+      0003B3 AF               [ 4]  731 	xor	a, a
+      0003B4 DD BE FE         [19]  732 	cp	a, -2 (ix)
+      0003B7 3E 80            [ 7]  733 	ld	a, #0x80
+      0003B9 DD 9E FF         [19]  734 	sbc	a, -1 (ix)
+      0003BC 3E 00            [ 7]  735 	ld	a, #0x00
+      0003BE 17               [ 4]  736 	rla
+      0003BF C3rE2r04         [10]  737 	jp	00122$
+      0003C2                        738 00105$:
+                                    739 ;edimain.c:149: hal_move(visual_x + 1, visual_y + 1);
+      0003C2 DD 7E F9         [19]  740 	ld	a, -7 (ix)
+      0003C5 C6 01            [ 7]  741 	add	a, #0x01
+      0003C7 DD 77 F5         [19]  742 	ld	-11 (ix), a
+      0003CA DD 7E FA         [19]  743 	ld	a, -6 (ix)
+      0003CD CE 00            [ 7]  744 	adc	a, #0x00
+      0003CF DD 77 F6         [19]  745 	ld	-10 (ix), a
+      0003D2 DD 7E FD         [19]  746 	ld	a, -3 (ix)
+      0003D5 DD 77 F7         [19]  747 	ld	-9 (ix), a
+      0003D8 DD 7E FE         [19]  748 	ld	a, -2 (ix)
+      0003DB DD 77 F8         [19]  749 	ld	-8 (ix), a
+      0003DE DD 7E F7         [19]  750 	ld	a, -9 (ix)
+      0003E1 C6 01            [ 7]  751 	add	a, #0x01
+      0003E3 DD 77 F9         [19]  752 	ld	-7 (ix), a
+      0003E6 DD 7E F8         [19]  753 	ld	a, -8 (ix)
+      0003E9 CE 00            [ 7]  754 	adc	a, #0x00
+      0003EB DD 77 FA         [19]  755 	ld	-6 (ix), a
+      0003EE E1               [10]  756 	pop	hl
+      0003EF D1               [10]  757 	pop	de
+      0003F0 D5               [11]  758 	push	de
+      0003F1 E5               [11]  759 	push	hl
+      0003F2 DD 6E F9         [19]  760 	ld	l, -7 (ix)
+                                    761 ;	spillPairReg hl
+                                    762 ;	spillPairReg hl
+      0003F5 DD 66 FA         [19]  763 	ld	h, -6 (ix)
+                                    764 ;	spillPairReg hl
+                                    765 ;	spillPairReg hl
+      0003F8 CDr00r00         [17]  766 	call	_hal_move
+                                    767 ;edimain.c:150: Vector* line = get_line(logical_y);
+      0003FB E1               [10]  768 	pop	hl
+      0003FC E5               [11]  769 	push	hl
+      0003FD CDr85r00         [17]  770 	call	_get_line
+                                    771 ;edimain.c:151: word n = vector_size(line);
+                                    772 ;	spillPairReg hl
+                                    773 ;	spillPairReg hl
+      000400 DD 73 F7         [19]  774 	ld	-9 (ix), e
+      000403 DD 72 F8         [19]  775 	ld	-8 (ix), d
+      000406 EB               [ 4]  776 	ex	de,hl
+                                    777 ;	spillPairReg hl
+                                    778 ;	spillPairReg hl
+      000407 CDr00r00         [17]  779 	call	_vector_size
+      00040A DD 73 F9         [19]  780 	ld	-7 (ix), e
+      00040D DD 72 FA         [19]  781 	ld	-6 (ix), d
+      000410 DD 7E F9         [19]  782 	ld	a, -7 (ix)
+      000413 DD 77 F4         [19]  783 	ld	-12 (ix), a
+      000416 DD 7E FA         [19]  784 	ld	a, -6 (ix)
+      000419 DD 77 F5         [19]  785 	ld	-11 (ix), a
+                                    786 ;edimain.c:152: byte* data = vector_access(line, 0);
+      00041C 11 00 00         [10]  787 	ld	de, #0x0000
+      00041F DD 6E F7         [19]  788 	ld	l, -9 (ix)
+                                    789 ;	spillPairReg hl
+                                    790 ;	spillPairReg hl
+      000422 DD 66 F8         [19]  791 	ld	h, -8 (ix)
+                                    792 ;	spillPairReg hl
+                                    793 ;	spillPairReg hl
+      000425 CDr00r00         [17]  794 	call	_vector_access
+      000428 DD 73 F9         [19]  795 	ld	-7 (ix), e
+      00042B DD 72 FA         [19]  796 	ld	-6 (ix), d
+      00042E DD 7E F9         [19]  797 	ld	a, -7 (ix)
+      000431 DD 77 F6         [19]  798 	ld	-10 (ix), a
+      000434 DD 7E FA         [19]  799 	ld	a, -6 (ix)
+      000437 DD 77 F7         [19]  800 	ld	-9 (ix), a
+                                    801 ;edimain.c:153: for (byte i = 0; i < n; ++i)
+      00043A DD 36 FF 00      [19]  802 	ld	-1 (ix), #0x00
+      00043E                        803 00120$:
+      00043E DD 7E FF         [19]  804 	ld	a, -1 (ix)
+      000441 06 00            [ 7]  805 	ld	b, #0x00
+      000443 DD 96 F4         [19]  806 	sub	a, -12 (ix)
+      000446 78               [ 4]  807 	ld	a, b
+      000447 DD 9E F5         [19]  808 	sbc	a, -11 (ix)
+      00044A 30 6E            [12]  809 	jr	NC, 00133$
+                                    810 ;edimain.c:155: if (visual_x >= (W - 2)) break;
+      00044C 3Ar27r00         [13]  811 	ld	a, (_W+0)
+      00044F 06 00            [ 7]  812 	ld	b, #0x00
+      000451 4F               [ 4]  813 	ld	c, a
+      000452 0B               [ 6]  814 	dec	bc
+      000453 0B               [ 6]  815 	dec	bc
+                                    816 ;edimain.c:149: hal_move(visual_x + 1, visual_y + 1);
+      000454 DD 7E FD         [19]  817 	ld	a, -3 (ix)
+      000457 DD 77 F8         [19]  818 	ld	-8 (ix), a
+      00045A DD 7E FE         [19]  819 	ld	a, -2 (ix)
+      00045D DD 77 F9         [19]  820 	ld	-7 (ix), a
+                                    821 ;edimain.c:155: if (visual_x >= (W - 2)) break;
+      000460 DD 7E F8         [19]  822 	ld	a, -8 (ix)
+      000463 91               [ 4]  823 	sub	a, c
+      000464 DD 7E F9         [19]  824 	ld	a, -7 (ix)
+      000467 98               [ 4]  825 	sbc	a, b
+      000468 E2r6Dr04         [10]  826 	jp	PO, 00178$
+      00046B EE 80            [ 7]  827 	xor	a, #0x80
+      00046D                        828 00178$:
+      00046D F2rBAr04         [10]  829 	jp	P, 00133$
+                                    830 ;edimain.c:156: if (data[i] == 9)
+      000470 DD 7E F6         [19]  831 	ld	a, -10 (ix)
+      000473 DD 86 FF         [19]  832 	add	a, -1 (ix)
+      000476 4F               [ 4]  833 	ld	c, a
+      000477 DD 7E F7         [19]  834 	ld	a, -9 (ix)
+      00047A CE 00            [ 7]  835 	adc	a, #0x00
+      00047C 47               [ 4]  836 	ld	b, a
+      00047D 0A               [ 7]  837 	ld	a, (bc)
+      00047E DD 77 FA         [19]  838 	ld	-6 (ix), a
+                                    839 ;edimain.c:158: for (byte j = 0; j < 4; ++j)
+      000481 D6 09            [ 7]  840 	sub	a,#0x09
+      000483 20 22            [12]  841 	jr	NZ, 00110$
+      000485 4F               [ 4]  842 	ld	c,a
+      000486                        843 00117$:
+      000486 79               [ 4]  844 	ld	a, c
+      000487 D6 04            [ 7]  845 	sub	a, #0x04
+      000489 30 0A            [12]  846 	jr	NC, 00108$
+                                    847 ;edimain.c:159: hal_draw_char(' ');
+      00048B C5               [11]  848 	push	bc
+      00048C 3E 20            [ 7]  849 	ld	a, #0x20
+      00048E CDr00r00         [17]  850 	call	_hal_draw_char
+      000491 C1               [10]  851 	pop	bc
+                                    852 ;edimain.c:158: for (byte j = 0; j < 4; ++j)
+      000492 0C               [ 4]  853 	inc	c
+      000493 18 F1            [12]  854 	jr	00117$
+      000495                        855 00108$:
+                                    856 ;edimain.c:160: visual_x += 4;
+      000495 DD 6E F8         [19]  857 	ld	l, -8 (ix)
+      000498 DD 66 F9         [19]  858 	ld	h, -7 (ix)
+      00049B 11 04 00         [10]  859 	ld	de, #0x0004
+      00049E 19               [11]  860 	add	hl, de
+      00049F DD 75 FD         [19]  861 	ld	-3 (ix), l
+      0004A2 DD 74 FE         [19]  862 	ld	-2 (ix), h
+      0004A5 18 0E            [12]  863 	jr	00121$
+      0004A7                        864 00110$:
+                                    865 ;edimain.c:164: hal_draw_char(data[i]);
+      0004A7 DD 7E FA         [19]  866 	ld	a, -6 (ix)
+      0004AA CDr00r00         [17]  867 	call	_hal_draw_char
+                                    868 ;edimain.c:165: ++visual_x;
+      0004AD DD 34 FD         [23]  869 	inc	-3 (ix)
+      0004B0 20 03            [12]  870 	jr	NZ, 00181$
+      0004B2 DD 34 FE         [23]  871 	inc	-2 (ix)
+      0004B5                        872 00181$:
+      0004B5                        873 00121$:
+                                    874 ;edimain.c:153: for (byte i = 0; i < n; ++i)
+      0004B5 DD 34 FF         [23]  875 	inc	-1 (ix)
+      0004B8 18 84            [12]  876 	jr	00120$
+                                    877 ;edimain.c:168: while (visual_x < (W - 2))
+      0004BA                        878 00133$:
+      0004BA DD 4E FD         [19]  879 	ld	c, -3 (ix)
+      0004BD DD 46 FE         [19]  880 	ld	b, -2 (ix)
+      0004C0                        881 00113$:
+      0004C0 3Ar27r00         [13]  882 	ld	a, (_W+0)
+      0004C3 16 00            [ 7]  883 	ld	d, #0x00
+      0004C5 5F               [ 4]  884 	ld	e, a
+      0004C6 1B               [ 6]  885 	dec	de
+      0004C7 1B               [ 6]  886 	dec	de
+      0004C8 69               [ 4]  887 	ld	l, c
+                                    888 ;	spillPairReg hl
+                                    889 ;	spillPairReg hl
+      0004C9 60               [ 4]  890 	ld	h, b
+                                    891 ;	spillPairReg hl
+                                    892 ;	spillPairReg hl
+      0004CA 7D               [ 4]  893 	ld	a, l
+      0004CB 93               [ 4]  894 	sub	a, e
+      0004CC 7C               [ 4]  895 	ld	a, h
+      0004CD 9A               [ 4]  896 	sbc	a, d
+      0004CE E2rD3r04         [10]  897 	jp	PO, 00182$
+      0004D1 EE 80            [ 7]  898 	xor	a, #0x80
+      0004D3                        899 00182$:
+      0004D3 F2rE0r04         [10]  900 	jp	P, 00115$
+                                    901 ;edimain.c:170: hal_draw_char(' ');
+      0004D6 C5               [11]  902 	push	bc
+      0004D7 3E 20            [ 7]  903 	ld	a, #0x20
+      0004D9 CDr00r00         [17]  904 	call	_hal_draw_char
+      0004DC C1               [10]  905 	pop	bc
+                                    906 ;edimain.c:171: ++visual_x;
+      0004DD 03               [ 6]  907 	inc	bc
+      0004DE 18 E0            [12]  908 	jr	00113$
+      0004E0                        909 00115$:
+                                    910 ;edimain.c:173: return 1;
+      0004E0 3E 01            [ 7]  911 	ld	a, #0x01
+      0004E2                        912 00122$:
+                                    913 ;edimain.c:174: }
+      0004E2 DD F9            [10]  914 	ld	sp, ix
+      0004E4 DD E1            [14]  915 	pop	ix
+      0004E6 C9               [10]  916 	ret
+                                    917 ;edimain.c:176: byte cursor_in_view()
+                                    918 ;	---------------------------------
+                                    919 ; Function cursor_in_view
+                                    920 ; ---------------------------------
+      0004E7                        921 _cursor_in_view::
+                                    922 ;edimain.c:178: word visual_x = cursor_x - offset_x;
+      0004E7 ED 4Br08r00      [20]  923 	ld	bc, (_offset_x)
+      0004EB 2Ar04r00         [16]  924 	ld	hl, (_cursor_x)
+      0004EE BF               [ 4]  925 	cp	a, a
+      0004EF ED 42            [15]  926 	sbc	hl, bc
+      0004F1 4D               [ 4]  927 	ld	c, l
+      0004F2 44               [ 4]  928 	ld	b, h
+                                    929 ;edimain.c:179: word visual_y = cursor_y - offset_y;
+      0004F3 ED 5Br0Ar00      [20]  930 	ld	de, (_offset_y)
+      0004F7 2Ar06r00         [16]  931 	ld	hl, (_cursor_y)
+      0004FA BF               [ 4]  932 	cp	a, a
+      0004FB ED 52            [15]  933 	sbc	hl, de
+      0004FD EB               [ 4]  934 	ex	de, hl
+                                    935 ;edimain.c:180: if (cursor_x < offset_x || visual_x >= (W - 2) || cursor_y < offset_y || visual_y >= (H - 2))
+      0004FE 21r08r00         [10]  936 	ld	hl, #_offset_x
+      000501 3Ar04r00         [13]  937 	ld	a, (_cursor_x+0)
+      000504 96               [ 7]  938 	sub	a, (hl)
+      000505 23               [ 6]  939 	inc	hl
+      000506 3Ar05r00         [13]  940 	ld	a, (_cursor_x+1)
+      000509 9E               [ 7]  941 	sbc	a, (hl)
+      00050A E2r0Fr05         [10]  942 	jp	PO, 00123$
+      00050D EE 80            [ 7]  943 	xor	a, #0x80
+      00050F                        944 00123$:
+      00050F FAr42r05         [10]  945 	jp	M, 00101$
+      000512 3Ar27r00         [13]  946 	ld	a, (_W+0)
+      000515 6F               [ 4]  947 	ld	l, a
+                                    948 ;	spillPairReg hl
+                                    949 ;	spillPairReg hl
+      000516 26 00            [ 7]  950 	ld	h, #0x00
+                                    951 ;	spillPairReg hl
+                                    952 ;	spillPairReg hl
+      000518 2B               [ 6]  953 	dec	hl
+      000519 2B               [ 6]  954 	dec	hl
+      00051A 79               [ 4]  955 	ld	a, c
+      00051B 95               [ 4]  956 	sub	a, l
+      00051C 78               [ 4]  957 	ld	a, b
+      00051D 9C               [ 4]  958 	sbc	a, h
+      00051E 30 22            [12]  959 	jr	NC, 00101$
+      000520 21r0Ar00         [10]  960 	ld	hl, #_offset_y
+      000523 3Ar06r00         [13]  961 	ld	a, (_cursor_y+0)
+      000526 96               [ 7]  962 	sub	a, (hl)
+      000527 23               [ 6]  963 	inc	hl
+      000528 3Ar07r00         [13]  964 	ld	a, (_cursor_y+1)
+      00052B 9E               [ 7]  965 	sbc	a, (hl)
+      00052C E2r31r05         [10]  966 	jp	PO, 00124$
+      00052F EE 80            [ 7]  967 	xor	a, #0x80
+      000531                        968 00124$:
+      000531 FAr42r05         [10]  969 	jp	M, 00101$
+      000534 3Ar28r00         [13]  970 	ld	a, (_H+0)
+      000537 4F               [ 4]  971 	ld	c, a
+      000538 06 00            [ 7]  972 	ld	b, #0x00
+      00053A 0B               [ 6]  973 	dec	bc
+      00053B 0B               [ 6]  974 	dec	bc
+      00053C 7B               [ 4]  975 	ld	a, e
+      00053D 91               [ 4]  976 	sub	a, c
+      00053E 7A               [ 4]  977 	ld	a, d
+      00053F 98               [ 4]  978 	sbc	a, b
+      000540 38 02            [12]  979 	jr	C, 00102$
+      000542                        980 00101$:
+                                    981 ;edimain.c:181: return 0;
+      000542 AF               [ 4]  982 	xor	a, a
+      000543 C9               [10]  983 	ret
+      000544                        984 00102$:
+                                    985 ;edimain.c:182: return 1;
+      000544 3E 01            [ 7]  986 	ld	a, #0x01
+                                    987 ;edimain.c:183: }
+      000546 C9               [10]  988 	ret
+                                    989 ;edimain.c:185: void calculate_new_offset()
+                                    990 ;	---------------------------------
+                                    991 ; Function calculate_new_offset
+                                    992 ; ---------------------------------
+      000547                        993 _calculate_new_offset::
+                                    994 ;edimain.c:187: if (cursor_x < (W >> 1)) offset_x = 0;
+      000547 3Ar27r00         [13]  995 	ld	a, (_W+0)
+      00054A 4F               [ 4]  996 	ld	c, a
+      00054B CB 39            [ 8]  997 	srl	c
+      00054D 41               [ 4]  998 	ld	b, c
+      00054E 1E 00            [ 7]  999 	ld	e, #0x00
+      000550 3Ar04r00         [13] 1000 	ld	a, (_cursor_x+0)
+      000553 90               [ 4] 1001 	sub	a, b
+      000554 3Ar05r00         [13] 1002 	ld	a, (_cursor_x+1)
+      000557 9B               [ 4] 1003 	sbc	a, e
+      000558 E2r5Dr05         [10] 1004 	jp	PO, 00119$
+      00055B EE 80            [ 7] 1005 	xor	a, #0x80
+      00055D                       1006 00119$:
+      00055D F2r68r05         [10] 1007 	jp	P, 00102$
+      000560 21 00 00         [10] 1008 	ld	hl, #0x0000
+      000563 22r08r00         [16] 1009 	ld	(_offset_x), hl
+      000566 18 0B            [12] 1010 	jr	00103$
+      000568                       1011 00102$:
+                                   1012 ;edimain.c:188: else offset_x = cursor_x - (W >> 1);
+      000568 06 00            [ 7] 1013 	ld	b, #0x00
+      00056A 2Ar04r00         [16] 1014 	ld	hl, (_cursor_x)
+      00056D BF               [ 4] 1015 	cp	a, a
+      00056E ED 42            [15] 1016 	sbc	hl, bc
+      000570 22r08r00         [16] 1017 	ld	(_offset_x), hl
+      000573                       1018 00103$:
+                                   1019 ;edimain.c:189: if (cursor_y < (H >> 1)) offset_y = 0;
+      000573 3Ar28r00         [13] 1020 	ld	a, (_H+0)
+      000576 4F               [ 4] 1021 	ld	c, a
+      000577 CB 39            [ 8] 1022 	srl	c
+      000579 41               [ 4] 1023 	ld	b, c
+      00057A 1E 00            [ 7] 1024 	ld	e, #0x00
+      00057C 3Ar06r00         [13] 1025 	ld	a, (_cursor_y+0)
+      00057F 90               [ 4] 1026 	sub	a, b
+      000580 3Ar07r00         [13] 1027 	ld	a, (_cursor_y+1)
+      000583 9B               [ 4] 1028 	sbc	a, e
+      000584 E2r89r05         [10] 1029 	jp	PO, 00120$
+      000587 EE 80            [ 7] 1030 	xor	a, #0x80
+      000589                       1031 00120$:
+      000589 F2r94r05         [10] 1032 	jp	P, 00105$
+      00058C 21 00 00         [10] 1033 	ld	hl, #0x0000
+      00058F 22r0Ar00         [16] 1034 	ld	(_offset_y), hl
+      000592 18 0B            [12] 1035 	jr	00106$
+      000594                       1036 00105$:
+                                   1037 ;edimain.c:190: else offset_y = cursor_y - (H >> 1);
+      000594 06 00            [ 7] 1038 	ld	b, #0x00
+      000596 2Ar06r00         [16] 1039 	ld	hl, (_cursor_y)
+      000599 BF               [ 4] 1040 	cp	a, a
+      00059A ED 42            [15] 1041 	sbc	hl, bc
+      00059C 22r0Ar00         [16] 1042 	ld	(_offset_y), hl
+      00059F                       1043 00106$:
+                                   1044 ;edimain.c:191: full_redraw = 1;
+      00059F 21r02r00         [10] 1045 	ld	hl, #_full_redraw
+      0005A2 36 01            [10] 1046 	ld	(hl), #0x01
+                                   1047 ;edimain.c:192: }
+      0005A4 C9               [10] 1048 	ret
+                                   1049 ;edimain.c:194: void place_cursor()
+                                   1050 ;	---------------------------------
+                                   1051 ; Function place_cursor
+                                   1052 ; ---------------------------------
+      0005A5                       1053 _place_cursor::
+                                   1054 ;edimain.c:196: if (cursor_in_view() == 0) calculate_new_offset();
+      0005A5 CDrE7r04         [17] 1055 	call	_cursor_in_view
+      0005A8 B7               [ 4] 1056 	or	a, a
+      0005A9 20 03            [12] 1057 	jr	NZ, 00102$
+      0005AB CDr47r05         [17] 1058 	call	_calculate_new_offset
+      0005AE                       1059 00102$:
+                                   1060 ;edimain.c:197: hal_move(cursor_x - offset_x + 1, cursor_y - offset_y + 1);
+      0005AE ED 4Br0Ar00      [20] 1061 	ld	bc, (_offset_y)
+      0005B2 2Ar06r00         [16] 1062 	ld	hl, (_cursor_y)
+      0005B5 BF               [ 4] 1063 	cp	a, a
+      0005B6 ED 42            [15] 1064 	sbc	hl, bc
+      0005B8 EB               [ 4] 1065 	ex	de, hl
+      0005B9 13               [ 6] 1066 	inc	de
+      0005BA ED 4Br08r00      [20] 1067 	ld	bc, (_offset_x)
+      0005BE 2Ar04r00         [16] 1068 	ld	hl, (_cursor_x)
+      0005C1 BF               [ 4] 1069 	cp	a, a
+      0005C2 ED 42            [15] 1070 	sbc	hl, bc
+      0005C4 23               [ 6] 1071 	inc	hl
+                                   1072 ;edimain.c:198: }
+      0005C5 C3r00r00         [10] 1073 	jp	_hal_move
+                                   1074 ;edimain.c:200: void decimal_string(byte* buffer, short length, word value)
+                                   1075 ;	---------------------------------
+                                   1076 ; Function decimal_string
+                                   1077 ; ---------------------------------
+      0005C8                       1078 _decimal_string::
+      0005C8 DD E5            [15] 1079 	push	ix
+      0005CA DD 21 00 00      [14] 1080 	ld	ix,#0
+      0005CE DD 39            [15] 1081 	add	ix,sp
+      0005D0 F5               [11] 1082 	push	af
+      0005D1 F5               [11] 1083 	push	af
+      0005D2 3B               [ 6] 1084 	dec	sp
+      0005D3 4D               [ 4] 1085 	ld	c, l
+      0005D4 44               [ 4] 1086 	ld	b, h
+                                   1087 ;edimain.c:202: short index = length - 1;
+      0005D5 1B               [ 6] 1088 	dec	de
+                                   1089 ;edimain.c:203: while (value > 0)
+      0005D6                       1090 00101$:
+      0005D6 DD 7E 05         [19] 1091 	ld	a, 5 (ix)
+      0005D9 DD B6 04         [19] 1092 	or	a, 4 (ix)
+      0005DC 28 40            [12] 1093 	jr	Z, 00112$
+                                   1094 ;edimain.c:206: dm.a = value;
+      0005DE DD 7E 04         [19] 1095 	ld	a, 4 (ix)
+      0005E1 DD 77 FB         [19] 1096 	ld	-5 (ix), a
+      0005E4 DD 7E 05         [19] 1097 	ld	a, 5 (ix)
+      0005E7 DD 77 FC         [19] 1098 	ld	-4 (ix), a
+                                   1099 ;edimain.c:207: dm.b = 10;
+      0005EA DD 36 FD 0A      [19] 1100 	ld	-3 (ix), #0x0a
+                                   1101 ;edimain.c:208: div_mod(&dm);
+      0005EE C5               [11] 1102 	push	bc
+      0005EF D5               [11] 1103 	push	de
+      0005F0 21 04 00         [10] 1104 	ld	hl, #4
+      0005F3 39               [11] 1105 	add	hl, sp
+      0005F4 CDr00r00         [17] 1106 	call	_div_mod
+      0005F7 D1               [10] 1107 	pop	de
+      0005F8 C1               [10] 1108 	pop	bc
+                                   1109 ;edimain.c:209: buffer[index--] = (byte)(48 + dm.b);
+      0005F9 79               [ 4] 1110 	ld	a, c
+      0005FA 83               [ 4] 1111 	add	a, e
+      0005FB DD 77 FE         [19] 1112 	ld	-2 (ix), a
+      0005FE 78               [ 4] 1113 	ld	a, b
+      0005FF 8A               [ 4] 1114 	adc	a, d
+      000600 DD 77 FF         [19] 1115 	ld	-1 (ix), a
+      000603 1B               [ 6] 1116 	dec	de
+      000604 DD 7E FD         [19] 1117 	ld	a, -3 (ix)
+      000607 C6 30            [ 7] 1118 	add	a, #0x30
+      000609 DD 6E FE         [19] 1119 	ld	l, -2 (ix)
+      00060C DD 66 FF         [19] 1120 	ld	h, -1 (ix)
+      00060F 77               [ 7] 1121 	ld	(hl), a
+                                   1122 ;edimain.c:210: value=dm.a;
+      000610 DD 7E FB         [19] 1123 	ld	a, -5 (ix)
+      000613 DD 77 04         [19] 1124 	ld	4 (ix), a
+      000616 DD 7E FC         [19] 1125 	ld	a, -4 (ix)
+      000619 DD 77 05         [19] 1126 	ld	5 (ix), a
+      00061C 18 B8            [12] 1127 	jr	00101$
+                                   1128 ;edimain.c:212: while (index >= 0)
+      00061E                       1129 00112$:
+      00061E                       1130 00104$:
+                                   1131 ;	spillPairReg hl
+                                   1132 ;	spillPairReg hl
+      00061E 62               [ 4] 1133 	ld	h, d
+                                   1134 ;	spillPairReg hl
+                                   1135 ;	spillPairReg hl
+      00061F CB 7C            [ 8] 1136 	bit	7, h
+      000621 20 08            [12] 1137 	jr	NZ, 00107$
+                                   1138 ;edimain.c:213: buffer[index--] = 48;
+      000623 69               [ 4] 1139 	ld	l, c
+      000624 60               [ 4] 1140 	ld	h, b
+      000625 19               [11] 1141 	add	hl, de
+      000626 1B               [ 6] 1142 	dec	de
+      000627 36 30            [10] 1143 	ld	(hl), #0x30
+      000629 18 F3            [12] 1144 	jr	00104$
+      00062B                       1145 00107$:
+                                   1146 ;edimain.c:214: }
+      00062B DD F9            [10] 1147 	ld	sp, ix
+      00062D DD E1            [14] 1148 	pop	ix
+      00062F E1               [10] 1149 	pop	hl
+      000630 F1               [10] 1150 	pop	af
+      000631 E9               [ 4] 1151 	jp	(hl)
+                                   1152 ;edimain.c:216: void draw_number(word value)
+                                   1153 ;	---------------------------------
+                                   1154 ; Function draw_number
+                                   1155 ; ---------------------------------
+      000632                       1156 _draw_number::
+      000632 DD E5            [15] 1157 	push	ix
+      000634 DD 21 00 00      [14] 1158 	ld	ix,#0
+      000638 DD 39            [15] 1159 	add	ix,sp
+      00063A FD 21 F8 FF      [14] 1160 	ld	iy, #-8
+      00063E FD 39            [15] 1161 	add	iy, sp
+      000640 FD F9            [10] 1162 	ld	sp, iy
+      000642 EB               [ 4] 1163 	ex	de, hl
+                                   1164 ;edimain.c:219: buffer[7] = 0;
+      000643 DD 36 FF 00      [19] 1165 	ld	-1 (ix), #0x00
+                                   1166 ;edimain.c:220: decimal_string(buffer, 7, value);
+      000647 D5               [11] 1167 	push	de
+      000648 11 07 00         [10] 1168 	ld	de, #0x0007
+      00064B 21 02 00         [10] 1169 	ld	hl, #2
+      00064E 39               [11] 1170 	add	hl, sp
+      00064F CDrC8r05         [17] 1171 	call	_decimal_string
+                                   1172 ;edimain.c:221: byte* ptr = buffer;
+      000652 21 00 00         [10] 1173 	ld	hl, #0
+      000655 39               [11] 1174 	add	hl, sp
+                                   1175 ;edimain.c:224: hal_draw_char(*ptr);
+      000656                       1176 00104$:
+                                   1177 ;edimain.c:222: for (; *ptr == 48; ++ptr);
+      000656 7E               [ 7] 1178 	ld	a, (hl)
+      000657 D6 30            [ 7] 1179 	sub	a, #0x30
+      000659 20 03            [12] 1180 	jr	NZ, 00114$
+      00065B 23               [ 6] 1181 	inc	hl
+      00065C 18 F8            [12] 1182 	jr	00104$
+      00065E                       1183 00114$:
+      00065E                       1184 00107$:
+                                   1185 ;edimain.c:223: for (; *ptr; ++ptr)
+      00065E 4E               [ 7] 1186 	ld	c, (hl)
+      00065F 79               [ 4] 1187 	ld	a, c
+      000660 B7               [ 4] 1188 	or	a, a
+      000661 28 09            [12] 1189 	jr	Z, 00109$
+                                   1190 ;edimain.c:224: hal_draw_char(*ptr);
+      000663 E5               [11] 1191 	push	hl
+      000664 79               [ 4] 1192 	ld	a, c
+      000665 CDr00r00         [17] 1193 	call	_hal_draw_char
+      000668 E1               [10] 1194 	pop	hl
+                                   1195 ;edimain.c:223: for (; *ptr; ++ptr)
+      000669 23               [ 6] 1196 	inc	hl
+      00066A 18 F2            [12] 1197 	jr	00107$
+      00066C                       1198 00109$:
+                                   1199 ;edimain.c:225: }
+      00066C DD F9            [10] 1200 	ld	sp, ix
+      00066E DD E1            [14] 1201 	pop	ix
+      000670 C9               [10] 1202 	ret
+                                   1203 ;edimain.c:227: void draw_cursor_position()
+                                   1204 ;	---------------------------------
+                                   1205 ; Function draw_cursor_position
+                                   1206 ; ---------------------------------
+      000671                       1207 _draw_cursor_position::
+                                   1208 ;edimain.c:229: hal_move(5, H - 1);
+      000671 3Ar28r00         [13] 1209 	ld	a, (_H+0)
+      000674 16 00            [ 7] 1210 	ld	d, #0x00
+      000676 5F               [ 4] 1211 	ld	e, a
+      000677 1B               [ 6] 1212 	dec	de
+      000678 21 05 00         [10] 1213 	ld	hl, #0x0005
+      00067B CDr00r00         [17] 1214 	call	_hal_move
+                                   1215 ;edimain.c:230: hal_draw_char(0xB9);
+      00067E 3E B9            [ 7] 1216 	ld	a, #0xb9
+      000680 CDr00r00         [17] 1217 	call	_hal_draw_char
+                                   1218 ;edimain.c:231: draw_number(cursor_x + 1);
+      000683 2Ar04r00         [16] 1219 	ld	hl, (_cursor_x)
+      000686 23               [ 6] 1220 	inc	hl
+      000687 CDr32r06         [17] 1221 	call	_draw_number
+                                   1222 ;edimain.c:232: hal_draw_char(',');
+      00068A 3E 2C            [ 7] 1223 	ld	a, #0x2c
+      00068C CDr00r00         [17] 1224 	call	_hal_draw_char
+                                   1225 ;edimain.c:233: draw_number(cursor_y + 1);
+      00068F 2Ar06r00         [16] 1226 	ld	hl, (_cursor_y)
+      000692 23               [ 6] 1227 	inc	hl
+      000693 CDr32r06         [17] 1228 	call	_draw_number
+                                   1229 ;edimain.c:234: hal_draw_char(0xCC);
+      000696 3E CC            [ 7] 1230 	ld	a, #0xcc
+      000698 CDr00r00         [17] 1231 	call	_hal_draw_char
+                                   1232 ;edimain.c:235: for (byte i = 0; i < 20; ++i)
+      00069B 0E 00            [ 7] 1233 	ld	c, #0x00
+      00069D                       1234 00103$:
+      00069D 79               [ 4] 1235 	ld	a, c
+      00069E D6 14            [ 7] 1236 	sub	a, #0x14
+      0006A0 D0               [11] 1237 	ret	NC
+                                   1238 ;edimain.c:236: hal_draw_char(HORZ);
+      0006A1 3Ar2Dr00         [13] 1239 	ld	a, (_HORZ+0)
+      0006A4 47               [ 4] 1240 	ld	b, a
+      0006A5 C5               [11] 1241 	push	bc
+      0006A6 78               [ 4] 1242 	ld	a, b
+      0006A7 CDr00r00         [17] 1243 	call	_hal_draw_char
+      0006AA C1               [10] 1244 	pop	bc
+                                   1245 ;edimain.c:235: for (byte i = 0; i < 20; ++i)
+      0006AB 0C               [ 4] 1246 	inc	c
+                                   1247 ;edimain.c:237: }
+      0006AC 18 EF            [12] 1248 	jr	00103$
+                                   1249 ;edimain.c:239: void draw_screen()
+                                   1250 ;	---------------------------------
+                                   1251 ; Function draw_screen
+                                   1252 ; ---------------------------------
+      0006AE                       1253 _draw_screen::
+                                   1254 ;edimain.c:241: full_redraw = 0;
+      0006AE 21r02r00         [10] 1255 	ld	hl, #_full_redraw
+      0006B1 36 00            [10] 1256 	ld	(hl), #0x00
+                                   1257 ;edimain.c:242: draw_frame();
+      0006B3 CDr4Fr02         [17] 1258 	call	_draw_frame
+                                   1259 ;edimain.c:243: for (word visual_y = 0; visual_y < (H - 2); ++visual_y)
+      0006B6 21 00 00         [10] 1260 	ld	hl, #0x0000
+      0006B9                       1261 00105$:
+      0006B9 3Ar28r00         [13] 1262 	ld	a, (_H+0)
+      0006BC 5F               [ 4] 1263 	ld	e, a
+      0006BD 16 00            [ 7] 1264 	ld	d, #0x00
+      0006BF 1B               [ 6] 1265 	dec	de
+      0006C0 1B               [ 6] 1266 	dec	de
+      0006C1 4D               [ 4] 1267 	ld	c, l
+      0006C2 44               [ 4] 1268 	ld	b, h
+      0006C3 79               [ 4] 1269 	ld	a, c
+      0006C4 93               [ 4] 1270 	sub	a, e
+      0006C5 78               [ 4] 1271 	ld	a, b
+      0006C6 9A               [ 4] 1272 	sbc	a, d
+      0006C7 30 0B            [12] 1273 	jr	NC, 00103$
+                                   1274 ;edimain.c:245: if (!draw_line(visual_y)) break;
+      0006C9 E5               [11] 1275 	push	hl
+      0006CA CDrEBr02         [17] 1276 	call	_draw_line
+      0006CD E1               [10] 1277 	pop	hl
+      0006CE B7               [ 4] 1278 	or	a, a
+      0006CF 28 03            [12] 1279 	jr	Z, 00103$
+                                   1280 ;edimain.c:243: for (word visual_y = 0; visual_y < (H - 2); ++visual_y)
+      0006D1 23               [ 6] 1281 	inc	hl
+      0006D2 18 E5            [12] 1282 	jr	00105$
+      0006D4                       1283 00103$:
+                                   1284 ;edimain.c:247: draw_cursor_position();
+      0006D4 CDr71r06         [17] 1285 	call	_draw_cursor_position
+                                   1286 ;edimain.c:248: place_cursor();
+                                   1287 ;edimain.c:249: }
+      0006D7 C3rA5r05         [10] 1288 	jp	_place_cursor
+                                   1289 ;edimain.c:251: word logical_to_visual(Vector* line, word logical)
+                                   1290 ;	---------------------------------
+                                   1291 ; Function logical_to_visual
+                                   1292 ; ---------------------------------
+      0006DA                       1293 _logical_to_visual::
+      0006DA DD E5            [15] 1294 	push	ix
+      0006DC DD 21 00 00      [14] 1295 	ld	ix,#0
+      0006E0 DD 39            [15] 1296 	add	ix,sp
+      0006E2 F5               [11] 1297 	push	af
+      0006E3 F5               [11] 1298 	push	af
+      0006E4 4B               [ 4] 1299 	ld	c, e
+      0006E5 42               [ 4] 1300 	ld	b, d
+                                   1301 ;edimain.c:253: word n = min(logical,vector_size(line));
+      0006E6 E5               [11] 1302 	push	hl
+      0006E7 C5               [11] 1303 	push	bc
+      0006E8 CDr00r00         [17] 1304 	call	_vector_size
+                                   1305 ;	spillPairReg hl
+                                   1306 ;	spillPairReg hl
+      0006EB E1               [10] 1307 	pop	hl
+                                   1308 ;	spillPairReg hl
+                                   1309 ;	spillPairReg hl
+      0006EC CDr00r00         [17] 1310 	call	_min
+      0006EF 4B               [ 4] 1311 	ld	c, e
+      0006F0 42               [ 4] 1312 	ld	b, d
+      0006F1 E1               [10] 1313 	pop	hl
+                                   1314 ;edimain.c:254: const byte* data = vector_access(line, 0);
+      0006F2 C5               [11] 1315 	push	bc
+      0006F3 11 00 00         [10] 1316 	ld	de, #0x0000
+      0006F6 CDr00r00         [17] 1317 	call	_vector_access
+      0006F9 C1               [10] 1318 	pop	bc
+      0006FA 33               [ 6] 1319 	inc	sp
+      0006FB 33               [ 6] 1320 	inc	sp
+      0006FC D5               [11] 1321 	push	de
+                                   1322 ;edimain.c:255: word x = 0;
+      0006FD 11 00 00         [10] 1323 	ld	de, #0x0000
+                                   1324 ;edimain.c:256: for (word i = 0; i < n; ++i)
+      000700 AF               [ 4] 1325 	xor	a, a
+      000701 DD 77 FE         [19] 1326 	ld	-2 (ix), a
+      000704 DD 77 FF         [19] 1327 	ld	-1 (ix), a
+      000707                       1328 00106$:
+      000707 DD 7E FE         [19] 1329 	ld	a, -2 (ix)
+      00070A 91               [ 4] 1330 	sub	a, c
+      00070B DD 7E FF         [19] 1331 	ld	a, -1 (ix)
+      00070E 98               [ 4] 1332 	sbc	a, b
+      00070F 30 24            [12] 1333 	jr	NC, 00104$
+                                   1334 ;edimain.c:258: if (data[i] == 9) x += 4;
+      000711 DD 7E FC         [19] 1335 	ld	a, -4 (ix)
+      000714 DD 86 FE         [19] 1336 	add	a, -2 (ix)
+      000717 6F               [ 4] 1337 	ld	l, a
+                                   1338 ;	spillPairReg hl
+                                   1339 ;	spillPairReg hl
+      000718 DD 7E FD         [19] 1340 	ld	a, -3 (ix)
+      00071B DD 8E FF         [19] 1341 	adc	a, -1 (ix)
+      00071E 67               [ 4] 1342 	ld	h, a
+      00071F 7E               [ 7] 1343 	ld	a, (hl)
+      000720 D6 09            [ 7] 1344 	sub	a, #0x09
+      000722 20 06            [12] 1345 	jr	NZ, 00102$
+      000724 13               [ 6] 1346 	inc	de
+      000725 13               [ 6] 1347 	inc	de
+      000726 13               [ 6] 1348 	inc	de
+      000727 13               [ 6] 1349 	inc	de
+      000728 18 01            [12] 1350 	jr	00107$
+      00072A                       1351 00102$:
+                                   1352 ;edimain.c:259: else ++x;
+      00072A 13               [ 6] 1353 	inc	de
+      00072B                       1354 00107$:
+                                   1355 ;edimain.c:256: for (word i = 0; i < n; ++i)
+      00072B DD 34 FE         [23] 1356 	inc	-2 (ix)
+      00072E 20 D7            [12] 1357 	jr	NZ, 00106$
+      000730 DD 34 FF         [23] 1358 	inc	-1 (ix)
+      000733 18 D2            [12] 1359 	jr	00106$
+      000735                       1360 00104$:
+                                   1361 ;edimain.c:261: return x;
+                                   1362 ;edimain.c:262: }
+      000735 DD F9            [10] 1363 	ld	sp, ix
+      000737 DD E1            [14] 1364 	pop	ix
+      000739 C9               [10] 1365 	ret
+                                   1366 ;edimain.c:264: word visual_to_logical(Vector* line, word visual)
+                                   1367 ;	---------------------------------
+                                   1368 ; Function visual_to_logical
+                                   1369 ; ---------------------------------
+      00073A                       1370 _visual_to_logical::
+      00073A DD E5            [15] 1371 	push	ix
+      00073C DD 21 00 00      [14] 1372 	ld	ix,#0
+      000740 DD 39            [15] 1373 	add	ix,sp
+      000742 FD 21 F4 FF      [14] 1374 	ld	iy, #-12
+      000746 FD 39            [15] 1375 	add	iy, sp
+      000748 FD F9            [10] 1376 	ld	sp, iy
+      00074A DD 73 FA         [19] 1377 	ld	-6 (ix), e
+      00074D DD 72 FB         [19] 1378 	ld	-5 (ix), d
+                                   1379 ;edimain.c:266: word n = vector_size(line);
+      000750 E5               [11] 1380 	push	hl
+      000751 CDr00r00         [17] 1381 	call	_vector_size
+      000754 E1               [10] 1382 	pop	hl
+      000755 33               [ 6] 1383 	inc	sp
+      000756 33               [ 6] 1384 	inc	sp
+      000757 D5               [11] 1385 	push	de
+                                   1386 ;edimain.c:267: const byte* data = vector_access(line, 0);
+      000758 11 00 00         [10] 1387 	ld	de, #0x0000
+      00075B CDr00r00         [17] 1388 	call	_vector_access
+      00075E DD 73 F6         [19] 1389 	ld	-10 (ix), e
+      000761 DD 72 F7         [19] 1390 	ld	-9 (ix), d
+                                   1391 ;edimain.c:268: word x = 0;
+      000764 AF               [ 4] 1392 	xor	a, a
+      000765 DD 77 FC         [19] 1393 	ld	-4 (ix), a
+      000768 DD 77 FD         [19] 1394 	ld	-3 (ix), a
+                                   1395 ;edimain.c:269: for (word i = 0; i < n; ++i)
+      00076B AF               [ 4] 1396 	xor	a, a
+      00076C DD 77 F8         [19] 1397 	ld	-8 (ix), a
+      00076F DD 77 F9         [19] 1398 	ld	-7 (ix), a
+      000772 AF               [ 4] 1399 	xor	a, a
+      000773 DD 77 FE         [19] 1400 	ld	-2 (ix), a
+      000776 DD 77 FF         [19] 1401 	ld	-1 (ix), a
+      000779                       1402 00108$:
+      000779 DD 7E FE         [19] 1403 	ld	a, -2 (ix)
+      00077C DD 96 F4         [19] 1404 	sub	a, -12 (ix)
+      00077F DD 7E FF         [19] 1405 	ld	a, -1 (ix)
+      000782 DD 9E F5         [19] 1406 	sbc	a, -11 (ix)
+      000785 30 59            [12] 1407 	jr	NC, 00106$
+                                   1408 ;edimain.c:271: if (x >= visual) return i;
+      000787 DD 7E FC         [19] 1409 	ld	a, -4 (ix)
+      00078A DD 96 FA         [19] 1410 	sub	a, -6 (ix)
+      00078D DD 7E FD         [19] 1411 	ld	a, -3 (ix)
+      000790 DD 9E FB         [19] 1412 	sbc	a, -5 (ix)
+      000793 38 08            [12] 1413 	jr	C, 00102$
+      000795 DD 5E F8         [19] 1414 	ld	e, -8 (ix)
+      000798 DD 56 F9         [19] 1415 	ld	d, -7 (ix)
+      00079B 18 45            [12] 1416 	jr	00110$
+      00079D                       1417 00102$:
+                                   1418 ;edimain.c:272: if (data[i] == 9) x += 4;
+      00079D DD 7E F6         [19] 1419 	ld	a, -10 (ix)
+      0007A0 DD 86 FE         [19] 1420 	add	a, -2 (ix)
+      0007A3 4F               [ 4] 1421 	ld	c, a
+      0007A4 DD 7E F7         [19] 1422 	ld	a, -9 (ix)
+      0007A7 DD 8E FF         [19] 1423 	adc	a, -1 (ix)
+      0007AA 47               [ 4] 1424 	ld	b, a
+      0007AB 0A               [ 7] 1425 	ld	a, (bc)
+      0007AC D6 09            [ 7] 1426 	sub	a, #0x09
+      0007AE 20 12            [12] 1427 	jr	NZ, 00104$
+      0007B0 DD 4E FC         [19] 1428 	ld	c, -4 (ix)
+      0007B3 DD 46 FD         [19] 1429 	ld	b, -3 (ix)
+      0007B6 03               [ 6] 1430 	inc	bc
+      0007B7 03               [ 6] 1431 	inc	bc
+      0007B8 03               [ 6] 1432 	inc	bc
+      0007B9 03               [ 6] 1433 	inc	bc
+      0007BA DD 71 FC         [19] 1434 	ld	-4 (ix), c
+      0007BD DD 70 FD         [19] 1435 	ld	-3 (ix), b
+      0007C0 18 08            [12] 1436 	jr	00109$
+      0007C2                       1437 00104$:
+                                   1438 ;edimain.c:273: else ++x;
+      0007C2 DD 34 FC         [23] 1439 	inc	-4 (ix)
+      0007C5 20 03            [12] 1440 	jr	NZ, 00134$
+      0007C7 DD 34 FD         [23] 1441 	inc	-3 (ix)
+      0007CA                       1442 00134$:
+      0007CA                       1443 00109$:
+                                   1444 ;edimain.c:269: for (word i = 0; i < n; ++i)
+      0007CA DD 34 FE         [23] 1445 	inc	-2 (ix)
+      0007CD 20 03            [12] 1446 	jr	NZ, 00135$
+      0007CF DD 34 FF         [23] 1447 	inc	-1 (ix)
+      0007D2                       1448 00135$:
+      0007D2 DD 7E FE         [19] 1449 	ld	a, -2 (ix)
+      0007D5 DD 77 F8         [19] 1450 	ld	-8 (ix), a
+      0007D8 DD 7E FF         [19] 1451 	ld	a, -1 (ix)
+      0007DB DD 77 F9         [19] 1452 	ld	-7 (ix), a
+      0007DE 18 99            [12] 1453 	jr	00108$
+      0007E0                       1454 00106$:
+                                   1455 ;edimain.c:275: return n;
+      0007E0 D1               [10] 1456 	pop	de
+      0007E1 D5               [11] 1457 	push	de
+      0007E2                       1458 00110$:
+                                   1459 ;edimain.c:276: }
+      0007E2 DD F9            [10] 1460 	ld	sp, ix
+      0007E4 DD E1            [14] 1461 	pop	ix
+      0007E6 C9               [10] 1462 	ret
+                                   1463 ;edimain.c:278: void move_x_cursor(short dx)
+                                   1464 ;	---------------------------------
+                                   1465 ; Function move_x_cursor
+                                   1466 ; ---------------------------------
+      0007E7                       1467 _move_x_cursor::
+      0007E7 DD E5            [15] 1468 	push	ix
+      0007E9 DD 21 00 00      [14] 1469 	ld	ix,#0
+      0007ED DD 39            [15] 1470 	add	ix,sp
+      0007EF FD 21 F8 FF      [14] 1471 	ld	iy, #-8
+      0007F3 FD 39            [15] 1472 	add	iy, sp
+      0007F5 FD F9            [10] 1473 	ld	sp, iy
+      0007F7 DD 75 FA         [19] 1474 	ld	-6 (ix), l
+                                   1475 ;edimain.c:280: if (dx==0 || cursor_y >= vector_size(document)) return;
+      0007FA DD 74 FB         [19] 1476 	ld	-5 (ix), h
+      0007FD 7C               [ 4] 1477 	ld	a, h
+      0007FE DD B6 FA         [19] 1478 	or	a, -6 (ix)
+      000801 CAr4Fr09         [10] 1479 	jp	Z,00125$
+      000804 2Ar00r00         [16] 1480 	ld	hl, (_document)
+      000807 CDr00r00         [17] 1481 	call	_vector_size
+      00080A DD 73 FC         [19] 1482 	ld	-4 (ix), e
+      00080D DD 72 FD         [19] 1483 	ld	-3 (ix), d
+      000810 2Ar06r00         [16] 1484 	ld	hl, (_cursor_y)
+      000813 DD 75 FE         [19] 1485 	ld	-2 (ix), l
+      000816 DD 74 FF         [19] 1486 	ld	-1 (ix), h
+      000819 DD 7E FE         [19] 1487 	ld	a, -2 (ix)
+      00081C DD 96 FC         [19] 1488 	sub	a, -4 (ix)
+      00081F DD 7E FF         [19] 1489 	ld	a, -1 (ix)
+      000822 DD 9E FD         [19] 1490 	sbc	a, -3 (ix)
+      000825 D2r4Fr09         [10] 1491 	jp	NC,00125$
+                                   1492 ;edimain.c:281: Vector* line = get_line(cursor_y);
+      000828 2Ar06r00         [16] 1493 	ld	hl, (_cursor_y)
+      00082B CDr85r00         [17] 1494 	call	_get_line
+      00082E DD 73 FE         [19] 1495 	ld	-2 (ix), e
+      000831 DD 72 FF         [19] 1496 	ld	-1 (ix), d
+      000834 DD 7E FE         [19] 1497 	ld	a, -2 (ix)
+      000837 DD 77 F8         [19] 1498 	ld	-8 (ix), a
+      00083A DD 7E FF         [19] 1499 	ld	a, -1 (ix)
+      00083D DD 77 F9         [19] 1500 	ld	-7 (ix), a
+                                   1501 ;edimain.c:282: word n = vector_size(line);
+      000840 E1               [10] 1502 	pop	hl
+      000841 E5               [11] 1503 	push	hl
+      000842 CDr00r00         [17] 1504 	call	_vector_size
+      000845 DD 73 FE         [19] 1505 	ld	-2 (ix), e
+      000848 DD 72 FF         [19] 1506 	ld	-1 (ix), d
+      00084B DD 7E FE         [19] 1507 	ld	a, -2 (ix)
+      00084E DD 77 FC         [19] 1508 	ld	-4 (ix), a
+      000851 DD 7E FF         [19] 1509 	ld	a, -1 (ix)
+      000854 DD 77 FD         [19] 1510 	ld	-3 (ix), a
+                                   1511 ;edimain.c:283: word i = visual_to_logical(line, cursor_x);
+      000857 ED 5Br04r00      [20] 1512 	ld	de, (_cursor_x)
+      00085B E1               [10] 1513 	pop	hl
+      00085C E5               [11] 1514 	push	hl
+      00085D CDr3Ar07         [17] 1515 	call	_visual_to_logical
+      000860 DD 73 FE         [19] 1516 	ld	-2 (ix), e
+      000863 DD 72 FF         [19] 1517 	ld	-1 (ix), d
+                                   1518 ;edimain.c:284: byte* data = vector_access(line, 0);
+      000866 11 00 00         [10] 1519 	ld	de, #0x0000
+      000869 E1               [10] 1520 	pop	hl
+      00086A E5               [11] 1521 	push	hl
+      00086B CDr00r00         [17] 1522 	call	_vector_access
+      00086E 33               [ 6] 1523 	inc	sp
+      00086F 33               [ 6] 1524 	inc	sp
+                                   1525 ;edimain.c:285: if (dx > 0)
+      000870 EB               [ 4] 1526 	ex	de,hl
+      000871 C1               [10] 1527 	pop	bc
+      000872 C5               [11] 1528 	push	bc
+      000873 E5               [11] 1529 	push	hl
+      000874 AF               [ 4] 1530 	xor	a, a
+      000875 B9               [ 4] 1531 	cp	a, c
+      000876 98               [ 4] 1532 	sbc	a, b
+      000877 E2r7Cr08         [10] 1533 	jp	PO, 00179$
+      00087A EE 80            [ 7] 1534 	xor	a, #0x80
+      00087C                       1535 00179$:
+      00087C F2rD2r08         [10] 1536 	jp	P, 00135$
+                                   1537 ;edimain.c:287: for (short steps = 0; steps < dx; ++steps, ++i)
+      00087F 01 00 00         [10] 1538 	ld	bc, #0x0000
+      000882                       1539 00120$:
+                                   1540 ;edimain.c:290: if (data[i] == 9) cursor_x += 4;
+      000882 2Ar04r00         [16] 1541 	ld	hl, (_cursor_x)
+                                   1542 ;edimain.c:287: for (short steps = 0; steps < dx; ++steps, ++i)
+      000885 79               [ 4] 1543 	ld	a, c
+      000886 DD 96 FA         [19] 1544 	sub	a, -6 (ix)
+      000889 78               [ 4] 1545 	ld	a, b
+      00088A DD 9E FB         [19] 1546 	sbc	a, -5 (ix)
+      00088D E2r92r08         [10] 1547 	jp	PO, 00180$
+      000890 EE 80            [ 7] 1548 	xor	a, #0x80
+      000892                       1549 00180$:
+      000892 F2r42r09         [10] 1550 	jp	P, 00116$
+                                   1551 ;edimain.c:289: if (i >= n) break;
+      000895 DD 7E FE         [19] 1552 	ld	a, -2 (ix)
+      000898 DD 96 FC         [19] 1553 	sub	a, -4 (ix)
+      00089B DD 7E FF         [19] 1554 	ld	a, -1 (ix)
+      00089E DD 9E FD         [19] 1555 	sbc	a, -3 (ix)
+      0008A1 D2r42r09         [10] 1556 	jp	NC, 00116$
+                                   1557 ;edimain.c:290: if (data[i] == 9) cursor_x += 4;
+      0008A4 DD 7E F8         [19] 1558 	ld	a, -8 (ix)
+      0008A7 DD 86 FE         [19] 1559 	add	a, -2 (ix)
+      0008AA 5F               [ 4] 1560 	ld	e, a
+      0008AB DD 7E F9         [19] 1561 	ld	a, -7 (ix)
+      0008AE DD 8E FF         [19] 1562 	adc	a, -1 (ix)
+      0008B1 57               [ 4] 1563 	ld	d, a
+      0008B2 1A               [ 7] 1564 	ld	a, (de)
+      0008B3 D6 09            [ 7] 1565 	sub	a, #0x09
+      0008B5 20 09            [12] 1566 	jr	NZ, 00107$
+      0008B7 11 04 00         [10] 1567 	ld	de, #0x0004
+      0008BA 19               [11] 1568 	add	hl, de
+      0008BB 22r04r00         [16] 1569 	ld	(_cursor_x), hl
+      0008BE 18 07            [12] 1570 	jr	00121$
+      0008C0                       1571 00107$:
+                                   1572 ;edimain.c:291: else cursor_x++;
+      0008C0 2Ar04r00         [16] 1573 	ld	hl, (_cursor_x)
+      0008C3 23               [ 6] 1574 	inc	hl
+      0008C4 22r04r00         [16] 1575 	ld	(_cursor_x), hl
+      0008C7                       1576 00121$:
+                                   1577 ;edimain.c:287: for (short steps = 0; steps < dx; ++steps, ++i)
+      0008C7 03               [ 6] 1578 	inc	bc
+      0008C8 DD 34 FE         [23] 1579 	inc	-2 (ix)
+      0008CB 20 B5            [12] 1580 	jr	NZ, 00120$
+      0008CD DD 34 FF         [23] 1581 	inc	-1 (ix)
+      0008D0 18 B0            [12] 1582 	jr	00120$
+                                   1583 ;edimain.c:296: for (short steps = 0; steps > dx; --steps)
+      0008D2                       1584 00135$:
+      0008D2 DD 7E FE         [19] 1585 	ld	a, -2 (ix)
+      0008D5 DD 77 FC         [19] 1586 	ld	-4 (ix), a
+      0008D8 DD 7E FF         [19] 1587 	ld	a, -1 (ix)
+      0008DB DD 77 FD         [19] 1588 	ld	-3 (ix), a
+      0008DE AF               [ 4] 1589 	xor	a, a
+      0008DF DD 77 FE         [19] 1590 	ld	-2 (ix), a
+      0008E2 DD 77 FF         [19] 1591 	ld	-1 (ix), a
+      0008E5                       1592 00123$:
+                                   1593 ;edimain.c:290: if (data[i] == 9) cursor_x += 4;
+      0008E5 2Ar04r00         [16] 1594 	ld	hl, (_cursor_x)
+                                   1595 ;edimain.c:296: for (short steps = 0; steps > dx; --steps)
+      0008E8 DD 7E FA         [19] 1596 	ld	a, -6 (ix)
+      0008EB DD 96 FE         [19] 1597 	sub	a, -2 (ix)
+      0008EE DD 7E FB         [19] 1598 	ld	a, -5 (ix)
+      0008F1 DD 9E FF         [19] 1599 	sbc	a, -1 (ix)
+      0008F4 E2rF9r08         [10] 1600 	jp	PO, 00184$
+      0008F7 EE 80            [ 7] 1601 	xor	a, #0x80
+      0008F9                       1602 00184$:
+      0008F9 F2r42r09         [10] 1603 	jp	P, 00116$
+                                   1604 ;edimain.c:298: if (data[--i] == 9) cursor_x -= 4;
+      0008FC DD 7E FC         [19] 1605 	ld	a, -4 (ix)
+      0008FF C6 FF            [ 7] 1606 	add	a, #0xff
+      000901 DD 77 FC         [19] 1607 	ld	-4 (ix), a
+      000904 DD 7E FD         [19] 1608 	ld	a, -3 (ix)
+      000907 CE FF            [ 7] 1609 	adc	a, #0xff
+      000909 DD 77 FD         [19] 1610 	ld	-3 (ix), a
+      00090C DD 7E F8         [19] 1611 	ld	a, -8 (ix)
+      00090F DD 86 FC         [19] 1612 	add	a, -4 (ix)
+      000912 4F               [ 4] 1613 	ld	c, a
+      000913 DD 7E F9         [19] 1614 	ld	a, -7 (ix)
+      000916 DD 8E FD         [19] 1615 	adc	a, -3 (ix)
+      000919 47               [ 4] 1616 	ld	b, a
+      00091A 0A               [ 7] 1617 	ld	a, (bc)
+      00091B D6 09            [ 7] 1618 	sub	a, #0x09
+      00091D 20 0D            [12] 1619 	jr	NZ, 00111$
+      00091F 7D               [ 4] 1620 	ld	a, l
+      000920 C6 FC            [ 7] 1621 	add	a, #0xfc
+      000922 6F               [ 4] 1622 	ld	l, a
+                                   1623 ;	spillPairReg hl
+                                   1624 ;	spillPairReg hl
+      000923 7C               [ 4] 1625 	ld	a, h
+      000924 CE FF            [ 7] 1626 	adc	a, #0xff
+      000926 67               [ 4] 1627 	ld	h, a
+                                   1628 ;	spillPairReg hl
+                                   1629 ;	spillPairReg hl
+      000927 22r04r00         [16] 1630 	ld	(_cursor_x), hl
+      00092A 18 07            [12] 1631 	jr	00124$
+      00092C                       1632 00111$:
+                                   1633 ;edimain.c:299: else --cursor_x;
+      00092C 2Ar04r00         [16] 1634 	ld	hl, (_cursor_x)
+      00092F 2B               [ 6] 1635 	dec	hl
+      000930 22r04r00         [16] 1636 	ld	(_cursor_x), hl
+      000933                       1637 00124$:
+                                   1638 ;edimain.c:296: for (short steps = 0; steps > dx; --steps)
+      000933 DD 6E FE         [19] 1639 	ld	l, -2 (ix)
+      000936 DD 66 FF         [19] 1640 	ld	h, -1 (ix)
+      000939 2B               [ 6] 1641 	dec	hl
+      00093A DD 75 FE         [19] 1642 	ld	-2 (ix), l
+      00093D DD 74 FF         [19] 1643 	ld	-1 (ix), h
+      000940 18 A3            [12] 1644 	jr	00123$
+      000942                       1645 00116$:
+                                   1646 ;edimain.c:302: if (cursor_x < 0) cursor_x = 0;
+      000942 CB 7C            [ 8] 1647 	bit	7, h
+      000944 28 06            [12] 1648 	jr	Z, 00118$
+      000946 21 00 00         [10] 1649 	ld	hl, #0x0000
+      000949 22r04r00         [16] 1650 	ld	(_cursor_x), hl
+      00094C                       1651 00118$:
+                                   1652 ;edimain.c:303: place_cursor();
+      00094C CDrA5r05         [17] 1653 	call	_place_cursor
+      00094F                       1654 00125$:
+                                   1655 ;edimain.c:304: }
+      00094F DD F9            [10] 1656 	ld	sp, ix
+      000951 DD E1            [14] 1657 	pop	ix
+      000953 C9               [10] 1658 	ret
+                                   1659 ;edimain.c:316: void do_delete()
+                                   1660 ;	---------------------------------
+                                   1661 ; Function do_delete
+                                   1662 ; ---------------------------------
+      000954                       1663 _do_delete::
+      000954 DD E5            [15] 1664 	push	ix
+      000956 DD 21 00 00      [14] 1665 	ld	ix,#0
+      00095A DD 39            [15] 1666 	add	ix,sp
+      00095C 21 FA FF         [10] 1667 	ld	hl, #-6
+      00095F 39               [11] 1668 	add	hl, sp
+      000960 F9               [ 6] 1669 	ld	sp, hl
+                                   1670 ;edimain.c:318: Vector* line = get_line(cursor_y);
+      000961 2Ar06r00         [16] 1671 	ld	hl, (_cursor_y)
+      000964 CDr85r00         [17] 1672 	call	_get_line
+      000967 33               [ 6] 1673 	inc	sp
+      000968 33               [ 6] 1674 	inc	sp
+      000969 D5               [11] 1675 	push	de
+                                   1676 ;edimain.c:319: word i = visual_to_logical(line, cursor_x);
+      00096A ED 5Br04r00      [20] 1677 	ld	de, (_cursor_x)
+      00096E E1               [10] 1678 	pop	hl
+      00096F E5               [11] 1679 	push	hl
+      000970 CDr3Ar07         [17] 1680 	call	_visual_to_logical
+                                   1681 ;edimain.c:320: if (i < vector_size(line))
+      000973 D5               [11] 1682 	push	de
+      000974 DD 6E FA         [19] 1683 	ld	l, -6 (ix)
+                                   1684 ;	spillPairReg hl
+                                   1685 ;	spillPairReg hl
+      000977 DD 66 FB         [19] 1686 	ld	h, -5 (ix)
+                                   1687 ;	spillPairReg hl
+                                   1688 ;	spillPairReg hl
+      00097A CDr00r00         [17] 1689 	call	_vector_size
+      00097D EB               [ 4] 1690 	ex	de, hl
+      00097E D1               [10] 1691 	pop	de
+      00097F 7B               [ 4] 1692 	ld	a, e
+      000980 95               [ 4] 1693 	sub	a, l
+      000981 7A               [ 4] 1694 	ld	a, d
+      000982 9C               [ 4] 1695 	sbc	a, h
+      000983 30 07            [12] 1696 	jr	NC, 00105$
+                                   1697 ;edimain.c:321: vector_erase(line, i);
+      000985 E1               [10] 1698 	pop	hl
+      000986 E5               [11] 1699 	push	hl
+      000987 CDr00r00         [17] 1700 	call	_vector_erase
+      00098A 18 79            [12] 1701 	jr	00110$
+      00098C                       1702 00105$:
+                                   1703 ;edimain.c:323: if (cursor_y < (vector_size(document)-1))
+      00098C 2Ar00r00         [16] 1704 	ld	hl, (_document)
+      00098F CDr00r00         [17] 1705 	call	_vector_size
+      000992 1B               [ 6] 1706 	dec	de
+      000993 2Ar06r00         [16] 1707 	ld	hl, (_cursor_y)
+      000996 AF               [ 4] 1708 	xor	a, a
+      000997 ED 52            [15] 1709 	sbc	hl, de
+      000999 30 6A            [12] 1710 	jr	NC, 00110$
+                                   1711 ;edimain.c:325: Vector* next_line = get_line(cursor_y + 1);
+      00099B 2Ar06r00         [16] 1712 	ld	hl, (_cursor_y)
+      00099E 23               [ 6] 1713 	inc	hl
+      00099F CDr85r00         [17] 1714 	call	_get_line
+      0009A2 4B               [ 4] 1715 	ld	c, e
+      0009A3 42               [ 4] 1716 	ld	b, d
+                                   1717 ;edimain.c:326: word n = vector_size(next_line);
+      0009A4 C5               [11] 1718 	push	bc
+      0009A5 69               [ 4] 1719 	ld	l, c
+                                   1720 ;	spillPairReg hl
+                                   1721 ;	spillPairReg hl
+      0009A6 60               [ 4] 1722 	ld	h, b
+                                   1723 ;	spillPairReg hl
+                                   1724 ;	spillPairReg hl
+      0009A7 CDr00r00         [17] 1725 	call	_vector_size
+      0009AA C1               [10] 1726 	pop	bc
+      0009AB DD 73 FC         [19] 1727 	ld	-4 (ix), e
+      0009AE DD 72 FD         [19] 1728 	ld	-3 (ix), d
+                                   1729 ;edimain.c:327: byte* data = vector_access(next_line, 0);
+      0009B1 C5               [11] 1730 	push	bc
+      0009B2 11 00 00         [10] 1731 	ld	de, #0x0000
+      0009B5 69               [ 4] 1732 	ld	l, c
+                                   1733 ;	spillPairReg hl
+                                   1734 ;	spillPairReg hl
+      0009B6 60               [ 4] 1735 	ld	h, b
+                                   1736 ;	spillPairReg hl
+                                   1737 ;	spillPairReg hl
+      0009B7 CDr00r00         [17] 1738 	call	_vector_access
+      0009BA C1               [10] 1739 	pop	bc
+      0009BB EB               [ 4] 1740 	ex	de, hl
+                                   1741 ;edimain.c:328: for (word j = 0; j < n; ++j)
+      0009BC AF               [ 4] 1742 	xor	a, a
+      0009BD DD 77 FE         [19] 1743 	ld	-2 (ix), a
+      0009C0 DD 77 FF         [19] 1744 	ld	-1 (ix), a
+      0009C3                       1745 00108$:
+      0009C3 DD 7E FE         [19] 1746 	ld	a, -2 (ix)
+      0009C6 DD 96 FC         [19] 1747 	sub	a, -4 (ix)
+      0009C9 DD 7E FF         [19] 1748 	ld	a, -1 (ix)
+      0009CC DD 9E FD         [19] 1749 	sbc	a, -3 (ix)
+      0009CF 30 21            [12] 1750 	jr	NC, 00101$
+                                   1751 ;edimain.c:329: vector_push(line, &data[j]);
+      0009D1 7D               [ 4] 1752 	ld	a, l
+      0009D2 DD 86 FE         [19] 1753 	add	a, -2 (ix)
+      0009D5 5F               [ 4] 1754 	ld	e, a
+      0009D6 7C               [ 4] 1755 	ld	a, h
+      0009D7 DD 8E FF         [19] 1756 	adc	a, -1 (ix)
+      0009DA 57               [ 4] 1757 	ld	d, a
+      0009DB E5               [11] 1758 	push	hl
+      0009DC C5               [11] 1759 	push	bc
+      0009DD DD 6E FA         [19] 1760 	ld	l, -6 (ix)
+                                   1761 ;	spillPairReg hl
+                                   1762 ;	spillPairReg hl
+      0009E0 DD 66 FB         [19] 1763 	ld	h, -5 (ix)
+                                   1764 ;	spillPairReg hl
+                                   1765 ;	spillPairReg hl
+      0009E3 CDr00r00         [17] 1766 	call	_vector_push
+      0009E6 C1               [10] 1767 	pop	bc
+      0009E7 E1               [10] 1768 	pop	hl
+                                   1769 ;edimain.c:328: for (word j = 0; j < n; ++j)
+      0009E8 DD 34 FE         [23] 1770 	inc	-2 (ix)
+      0009EB 20 D6            [12] 1771 	jr	NZ, 00108$
+      0009ED DD 34 FF         [23] 1772 	inc	-1 (ix)
+      0009F0 18 D1            [12] 1773 	jr	00108$
+      0009F2                       1774 00101$:
+                                   1775 ;edimain.c:330: vector_shut(next_line);
+      0009F2 69               [ 4] 1776 	ld	l, c
+                                   1777 ;	spillPairReg hl
+                                   1778 ;	spillPairReg hl
+      0009F3 60               [ 4] 1779 	ld	h, b
+                                   1780 ;	spillPairReg hl
+                                   1781 ;	spillPairReg hl
+      0009F4 CDr00r00         [17] 1782 	call	_vector_shut
+                                   1783 ;edimain.c:331: vector_erase(document, cursor_y + 1);
+      0009F7 ED 5Br06r00      [20] 1784 	ld	de, (_cursor_y)
+      0009FB 13               [ 6] 1785 	inc	de
+      0009FC 2Ar00r00         [16] 1786 	ld	hl, (_document)
+      0009FF CDr00r00         [17] 1787 	call	_vector_erase
+                                   1788 ;edimain.c:332: draw_screen();
+      000A02 CDrAEr06         [17] 1789 	call	_draw_screen
+      000A05                       1790 00110$:
+                                   1791 ;edimain.c:334: }
+      000A05 DD F9            [10] 1792 	ld	sp, ix
+      000A07 DD E1            [14] 1793 	pop	ix
+      000A09 C9               [10] 1794 	ret
+                                   1795 ;edimain.c:336: void backspace()
+                                   1796 ;	---------------------------------
+                                   1797 ; Function backspace
+                                   1798 ; ---------------------------------
+      000A0A                       1799 _backspace::
+                                   1800 ;edimain.c:338: move_x_cursor(-1);
+      000A0A 21 FF FF         [10] 1801 	ld	hl, #0xffff
+      000A0D CDrE7r07         [17] 1802 	call	_move_x_cursor
+                                   1803 ;edimain.c:339: do_delete();
+                                   1804 ;edimain.c:340: }
+      000A10 C3r54r09         [10] 1805 	jp	_do_delete
+                                   1806 ;edimain.c:342: void add_char(byte c)
+                                   1807 ;	---------------------------------
+                                   1808 ; Function add_char
+                                   1809 ; ---------------------------------
+      000A13                       1810 _add_char::
+      000A13 DD E5            [15] 1811 	push	ix
+      000A15 DD 21 00 00      [14] 1812 	ld	ix,#0
+      000A19 DD 39            [15] 1813 	add	ix,sp
+      000A1B 3B               [ 6] 1814 	dec	sp
+      000A1C DD 77 FF         [19] 1815 	ld	-1 (ix), a
+                                   1816 ;edimain.c:344: Vector* line = get_line(cursor_y);
+      000A1F 2Ar06r00         [16] 1817 	ld	hl, (_cursor_y)
+      000A22 CDr85r00         [17] 1818 	call	_get_line
+      000A25 4B               [ 4] 1819 	ld	c, e
+      000A26 42               [ 4] 1820 	ld	b, d
+                                   1821 ;edimain.c:345: word i = visual_to_logical(line, cursor_x);
+      000A27 C5               [11] 1822 	push	bc
+      000A28 ED 5Br04r00      [20] 1823 	ld	de, (_cursor_x)
+      000A2C 69               [ 4] 1824 	ld	l, c
+                                   1825 ;	spillPairReg hl
+                                   1826 ;	spillPairReg hl
+      000A2D 60               [ 4] 1827 	ld	h, b
+                                   1828 ;	spillPairReg hl
+                                   1829 ;	spillPairReg hl
+      000A2E CDr3Ar07         [17] 1830 	call	_visual_to_logical
+      000A31 C1               [10] 1831 	pop	bc
+                                   1832 ;edimain.c:346: if (i >= vector_size(line)) vector_push(line, &c);
+      000A32 C5               [11] 1833 	push	bc
+      000A33 D5               [11] 1834 	push	de
+      000A34 69               [ 4] 1835 	ld	l, c
+                                   1836 ;	spillPairReg hl
+                                   1837 ;	spillPairReg hl
+      000A35 60               [ 4] 1838 	ld	h, b
+                                   1839 ;	spillPairReg hl
+                                   1840 ;	spillPairReg hl
+      000A36 CDr00r00         [17] 1841 	call	_vector_size
+      000A39 EB               [ 4] 1842 	ex	de, hl
+      000A3A D1               [10] 1843 	pop	de
+      000A3B C1               [10] 1844 	pop	bc
+      000A3C 7B               [ 4] 1845 	ld	a, e
+      000A3D 95               [ 4] 1846 	sub	a, l
+      000A3E 7A               [ 4] 1847 	ld	a, d
+      000A3F 9C               [ 4] 1848 	sbc	a, h
+      000A40 38 0C            [12] 1849 	jr	C, 00105$
+      000A42 21 00 00         [10] 1850 	ld	hl, #0
+      000A45 39               [11] 1851 	add	hl, sp
+      000A46 EB               [ 4] 1852 	ex	de, hl
+      000A47 69               [ 4] 1853 	ld	l, c
+                                   1854 ;	spillPairReg hl
+                                   1855 ;	spillPairReg hl
+      000A48 60               [ 4] 1856 	ld	h, b
+                                   1857 ;	spillPairReg hl
+                                   1858 ;	spillPairReg hl
+      000A49 CDr00r00         [17] 1859 	call	_vector_push
+      000A4C 18 1C            [12] 1860 	jr	00107$
+      000A4E                       1861 00105$:
+                                   1862 ;edimain.c:349: if (insert)
+      000A4E 3Ar03r00         [13] 1863 	ld	a, (_insert+0)
+      000A51 B7               [ 4] 1864 	or	a, a
+      000A52 28 0C            [12] 1865 	jr	Z, 00102$
+                                   1866 ;edimain.c:351: vector_insert(line, i, &c);
+      000A54 21 00 00         [10] 1867 	ld	hl, #0
+      000A57 39               [11] 1868 	add	hl, sp
+      000A58 E5               [11] 1869 	push	hl
+      000A59 69               [ 4] 1870 	ld	l, c
+                                   1871 ;	spillPairReg hl
+                                   1872 ;	spillPairReg hl
+      000A5A 60               [ 4] 1873 	ld	h, b
+                                   1874 ;	spillPairReg hl
+                                   1875 ;	spillPairReg hl
+      000A5B CDr00r00         [17] 1876 	call	_vector_insert
+      000A5E 18 0A            [12] 1877 	jr	00107$
+      000A60                       1878 00102$:
+                                   1879 ;edimain.c:355: vector_set(line, i, &c);
+      000A60 21 00 00         [10] 1880 	ld	hl, #0
+      000A63 39               [11] 1881 	add	hl, sp
+      000A64 E5               [11] 1882 	push	hl
+      000A65 69               [ 4] 1883 	ld	l, c
+                                   1884 ;	spillPairReg hl
+                                   1885 ;	spillPairReg hl
+      000A66 60               [ 4] 1886 	ld	h, b
+                                   1887 ;	spillPairReg hl
+                                   1888 ;	spillPairReg hl
+      000A67 CDr00r00         [17] 1889 	call	_vector_set
+      000A6A                       1890 00107$:
+                                   1891 ;edimain.c:358: }
+      000A6A 33               [ 6] 1892 	inc	sp
+      000A6B DD E1            [14] 1893 	pop	ix
+      000A6D C9               [10] 1894 	ret
+                                   1895 ;edimain.c:360: void join_prev_line()
+                                   1896 ;	---------------------------------
+                                   1897 ; Function join_prev_line
+                                   1898 ; ---------------------------------
+      000A6E                       1899 _join_prev_line::
+      000A6E DD E5            [15] 1900 	push	ix
+      000A70 DD 21 00 00      [14] 1901 	ld	ix,#0
+      000A74 DD 39            [15] 1902 	add	ix,sp
+      000A76 21 F8 FF         [10] 1903 	ld	hl, #-8
+      000A79 39               [11] 1904 	add	hl, sp
+      000A7A F9               [ 6] 1905 	ld	sp, hl
+                                   1906 ;edimain.c:362: Vector* prev_line = get_line(cursor_y - 1);
+      000A7B 2Ar06r00         [16] 1907 	ld	hl, (_cursor_y)
+      000A7E 2B               [ 6] 1908 	dec	hl
+      000A7F CDr85r00         [17] 1909 	call	_get_line
+      000A82 33               [ 6] 1910 	inc	sp
+      000A83 33               [ 6] 1911 	inc	sp
+      000A84 D5               [11] 1912 	push	de
+                                   1913 ;edimain.c:363: Vector* cur_line = get_line(cursor_y);
+      000A85 2Ar06r00         [16] 1914 	ld	hl, (_cursor_y)
+      000A88 CDr85r00         [17] 1915 	call	_get_line
+                                   1916 ;edimain.c:364: word m = vector_size(prev_line);
+      000A8B E1               [10] 1917 	pop	hl
+      000A8C E5               [11] 1918 	push	hl
+      000A8D D5               [11] 1919 	push	de
+      000A8E CDr00r00         [17] 1920 	call	_vector_size
+      000A91 E1               [10] 1921 	pop	hl
+      000A92 DD 73 FA         [19] 1922 	ld	-6 (ix), e
+      000A95 DD 72 FB         [19] 1923 	ld	-5 (ix), d
+                                   1924 ;edimain.c:365: word n = vector_size(cur_line);
+      000A98 E5               [11] 1925 	push	hl
+      000A99 CDr00r00         [17] 1926 	call	_vector_size
+      000A9C E1               [10] 1927 	pop	hl
+      000A9D DD 73 FC         [19] 1928 	ld	-4 (ix), e
+      000AA0 DD 72 FD         [19] 1929 	ld	-3 (ix), d
+                                   1930 ;edimain.c:366: byte* data = vector_access(cur_line, 0);
+      000AA3 E5               [11] 1931 	push	hl
+      000AA4 11 00 00         [10] 1932 	ld	de, #0x0000
+      000AA7 CDr00r00         [17] 1933 	call	_vector_access
+      000AAA E1               [10] 1934 	pop	hl
+      000AAB DD 73 FE         [19] 1935 	ld	-2 (ix), e
+      000AAE DD 72 FF         [19] 1936 	ld	-1 (ix), d
+                                   1937 ;edimain.c:367: for (word i = 0; i < n; ++i)
+      000AB1 01 00 00         [10] 1938 	ld	bc, #0x0000
+      000AB4                       1939 00103$:
+      000AB4 79               [ 4] 1940 	ld	a, c
+      000AB5 DD 96 FC         [19] 1941 	sub	a, -4 (ix)
+      000AB8 78               [ 4] 1942 	ld	a, b
+      000AB9 DD 9E FD         [19] 1943 	sbc	a, -3 (ix)
+      000ABC 30 1A            [12] 1944 	jr	NC, 00101$
+                                   1945 ;edimain.c:368: vector_push(prev_line, &data[i]);
+      000ABE DD 7E FE         [19] 1946 	ld	a, -2 (ix)
+      000AC1 81               [ 4] 1947 	add	a, c
+      000AC2 5F               [ 4] 1948 	ld	e, a
+      000AC3 DD 7E FF         [19] 1949 	ld	a, -1 (ix)
+      000AC6 88               [ 4] 1950 	adc	a, b
+      000AC7 57               [ 4] 1951 	ld	d, a
+      000AC8 E5               [11] 1952 	push	hl
+      000AC9 C5               [11] 1953 	push	bc
+      000ACA DD 6E F8         [19] 1954 	ld	l, -8 (ix)
+                                   1955 ;	spillPairReg hl
+                                   1956 ;	spillPairReg hl
+      000ACD DD 66 F9         [19] 1957 	ld	h, -7 (ix)
+                                   1958 ;	spillPairReg hl
+                                   1959 ;	spillPairReg hl
+      000AD0 CDr00r00         [17] 1960 	call	_vector_push
+      000AD3 C1               [10] 1961 	pop	bc
+      000AD4 E1               [10] 1962 	pop	hl
+                                   1963 ;edimain.c:367: for (word i = 0; i < n; ++i)
+      000AD5 03               [ 6] 1964 	inc	bc
+      000AD6 18 DC            [12] 1965 	jr	00103$
+      000AD8                       1966 00101$:
+                                   1967 ;edimain.c:369: vector_shut(cur_line);
+      000AD8 CDr00r00         [17] 1968 	call	_vector_shut
+                                   1969 ;edimain.c:370: vector_erase(document, cursor_y);
+      000ADB ED 5Br06r00      [20] 1970 	ld	de, (_cursor_y)
+      000ADF 2Ar00r00         [16] 1971 	ld	hl, (_document)
+      000AE2 CDr00r00         [17] 1972 	call	_vector_erase
+                                   1973 ;edimain.c:371: cursor_y--;
+      000AE5 2Ar06r00         [16] 1974 	ld	hl, (_cursor_y)
+      000AE8 2B               [ 6] 1975 	dec	hl
+      000AE9 22r06r00         [16] 1976 	ld	(_cursor_y), hl
+                                   1977 ;edimain.c:372: cursor_x = logical_to_visual(prev_line, m);
+      000AEC E1               [10] 1978 	pop	hl
+      000AED D1               [10] 1979 	pop	de
+      000AEE D5               [11] 1980 	push	de
+      000AEF E5               [11] 1981 	push	hl
+      000AF0 CDrDAr06         [17] 1982 	call	_logical_to_visual
+      000AF3 ED 53r04r00      [20] 1983 	ld	(_cursor_x), de
+                                   1984 ;edimain.c:373: }
+      000AF7 DD F9            [10] 1985 	ld	sp, ix
+      000AF9 DD E1            [14] 1986 	pop	ix
+      000AFB C9               [10] 1987 	ret
+                                   1988 ;edimain.c:375: void add_enter()
+                                   1989 ;	---------------------------------
+                                   1990 ; Function add_enter
+                                   1991 ; ---------------------------------
+      000AFC                       1992 _add_enter::
+      000AFC DD E5            [15] 1993 	push	ix
+      000AFE DD 21 00 00      [14] 1994 	ld	ix,#0
+      000B02 DD 39            [15] 1995 	add	ix,sp
+      000B04 21 F8 FF         [10] 1996 	ld	hl, #-8
+      000B07 39               [11] 1997 	add	hl, sp
+      000B08 F9               [ 6] 1998 	ld	sp, hl
+                                   1999 ;edimain.c:377: if (insert)
+      000B09 3Ar03r00         [13] 2000 	ld	a, (_insert+0)
+      000B0C B7               [ 4] 2001 	or	a, a
+      000B0D CArAAr0B         [10] 2002 	jp	Z, 00107$
+                                   2003 ;edimain.c:379: Vector* cur_line = get_line(cursor_y);
+      000B10 2Ar06r00         [16] 2004 	ld	hl, (_cursor_y)
+      000B13 CDr85r00         [17] 2005 	call	_get_line
+      000B16 4B               [ 4] 2006 	ld	c, e
+      000B17 42               [ 4] 2007 	ld	b, d
+                                   2008 ;edimain.c:380: word n = vector_size(cur_line);
+      000B18 C5               [11] 2009 	push	bc
+      000B19 69               [ 4] 2010 	ld	l, c
+                                   2011 ;	spillPairReg hl
+                                   2012 ;	spillPairReg hl
+      000B1A 60               [ 4] 2013 	ld	h, b
+                                   2014 ;	spillPairReg hl
+                                   2015 ;	spillPairReg hl
+      000B1B CDr00r00         [17] 2016 	call	_vector_size
+      000B1E C1               [10] 2017 	pop	bc
+      000B1F DD 73 FA         [19] 2018 	ld	-6 (ix), e
+      000B22 DD 72 FB         [19] 2019 	ld	-5 (ix), d
+                                   2020 ;edimain.c:381: word i = visual_to_logical(cur_line, cursor_x);
+      000B25 C5               [11] 2021 	push	bc
+      000B26 ED 5Br04r00      [20] 2022 	ld	de, (_cursor_x)
+      000B2A 69               [ 4] 2023 	ld	l, c
+                                   2024 ;	spillPairReg hl
+                                   2025 ;	spillPairReg hl
+      000B2B 60               [ 4] 2026 	ld	h, b
+                                   2027 ;	spillPairReg hl
+                                   2028 ;	spillPairReg hl
+      000B2C CDr3Ar07         [17] 2029 	call	_visual_to_logical
+      000B2F C1               [10] 2030 	pop	bc
+      000B30 DD 73 FC         [19] 2031 	ld	-4 (ix), e
+      000B33 DD 72 FD         [19] 2032 	ld	-3 (ix), d
+                                   2033 ;edimain.c:382: byte* data = vector_access(cur_line, 0);
+      000B36 C5               [11] 2034 	push	bc
+      000B37 11 00 00         [10] 2035 	ld	de, #0x0000
+      000B3A 69               [ 4] 2036 	ld	l, c
+                                   2037 ;	spillPairReg hl
+                                   2038 ;	spillPairReg hl
+      000B3B 60               [ 4] 2039 	ld	h, b
+                                   2040 ;	spillPairReg hl
+                                   2041 ;	spillPairReg hl
+      000B3C CDr00r00         [17] 2042 	call	_vector_access
+      000B3F C1               [10] 2043 	pop	bc
+      000B40 DD 73 FE         [19] 2044 	ld	-2 (ix), e
+      000B43 DD 72 FF         [19] 2045 	ld	-1 (ix), d
+                                   2046 ;edimain.c:383: Vector* next_line = vector_new(1);
+      000B46 C5               [11] 2047 	push	bc
+      000B47 21 01 00         [10] 2048 	ld	hl, #0x0001
+      000B4A CDr00r00         [17] 2049 	call	_vector_new
+      000B4D C1               [10] 2050 	pop	bc
+      000B4E 33               [ 6] 2051 	inc	sp
+      000B4F 33               [ 6] 2052 	inc	sp
+      000B50 D5               [11] 2053 	push	de
+                                   2054 ;edimain.c:384: vector_insert(document, cursor_y + 1, &next_line);
+      000B51 21 00 00         [10] 2055 	ld	hl, #0
+      000B54 39               [11] 2056 	add	hl, sp
+      000B55 ED 5Br06r00      [20] 2057 	ld	de, (_cursor_y)
+      000B59 13               [ 6] 2058 	inc	de
+      000B5A C5               [11] 2059 	push	bc
+      000B5B E5               [11] 2060 	push	hl
+      000B5C 2Ar00r00         [16] 2061 	ld	hl, (_document)
+      000B5F CDr00r00         [17] 2062 	call	_vector_insert
+      000B62 C1               [10] 2063 	pop	bc
+                                   2064 ;edimain.c:385: for (word j=i; j < n; ++j)
+      000B63 DD 6E FC         [19] 2065 	ld	l, -4 (ix)
+                                   2066 ;	spillPairReg hl
+                                   2067 ;	spillPairReg hl
+      000B66 DD 66 FD         [19] 2068 	ld	h, -3 (ix)
+                                   2069 ;	spillPairReg hl
+                                   2070 ;	spillPairReg hl
+      000B69                       2071 00105$:
+      000B69 7D               [ 4] 2072 	ld	a, l
+      000B6A DD 96 FA         [19] 2073 	sub	a, -6 (ix)
+      000B6D 7C               [ 4] 2074 	ld	a, h
+      000B6E DD 9E FB         [19] 2075 	sbc	a, -5 (ix)
+      000B71 30 1A            [12] 2076 	jr	NC, 00101$
+                                   2077 ;edimain.c:386: vector_push(next_line, &data[j]);
+      000B73 DD 7E FE         [19] 2078 	ld	a, -2 (ix)
+      000B76 85               [ 4] 2079 	add	a, l
+      000B77 5F               [ 4] 2080 	ld	e, a
+      000B78 DD 7E FF         [19] 2081 	ld	a, -1 (ix)
+      000B7B 8C               [ 4] 2082 	adc	a, h
+      000B7C 57               [ 4] 2083 	ld	d, a
+      000B7D E5               [11] 2084 	push	hl
+      000B7E C5               [11] 2085 	push	bc
+      000B7F DD 6E F8         [19] 2086 	ld	l, -8 (ix)
+                                   2087 ;	spillPairReg hl
+                                   2088 ;	spillPairReg hl
+      000B82 DD 66 F9         [19] 2089 	ld	h, -7 (ix)
+                                   2090 ;	spillPairReg hl
+                                   2091 ;	spillPairReg hl
+      000B85 CDr00r00         [17] 2092 	call	_vector_push
+      000B88 C1               [10] 2093 	pop	bc
+      000B89 E1               [10] 2094 	pop	hl
+                                   2095 ;edimain.c:385: for (word j=i; j < n; ++j)
+      000B8A 23               [ 6] 2096 	inc	hl
+      000B8B 18 DC            [12] 2097 	jr	00105$
+      000B8D                       2098 00101$:
+                                   2099 ;edimain.c:387: vector_erase_range(cur_line, i, n);
+      000B8D D1               [10] 2100 	pop	de
+      000B8E E1               [10] 2101 	pop	hl
+      000B8F E5               [11] 2102 	push	hl
+      000B90 D5               [11] 2103 	push	de
+      000B91 E5               [11] 2104 	push	hl
+      000B92 DD 5E FC         [19] 2105 	ld	e, -4 (ix)
+      000B95 DD 56 FD         [19] 2106 	ld	d, -3 (ix)
+      000B98 69               [ 4] 2107 	ld	l, c
+                                   2108 ;	spillPairReg hl
+                                   2109 ;	spillPairReg hl
+      000B99 60               [ 4] 2110 	ld	h, b
+                                   2111 ;	spillPairReg hl
+                                   2112 ;	spillPairReg hl
+      000B9A CDr00r00         [17] 2113 	call	_vector_erase_range
+                                   2114 ;edimain.c:388: cursor_y++;
+      000B9D 2Ar06r00         [16] 2115 	ld	hl, (_cursor_y)
+      000BA0 23               [ 6] 2116 	inc	hl
+      000BA1 22r06r00         [16] 2117 	ld	(_cursor_y), hl
+                                   2118 ;edimain.c:389: cursor_x = 0;
+      000BA4 21 00 00         [10] 2119 	ld	hl, #0x0000
+      000BA7 22r04r00         [16] 2120 	ld	(_cursor_x), hl
+      000BAA                       2121 00107$:
+                                   2122 ;edimain.c:391: }
+      000BAA DD F9            [10] 2123 	ld	sp, ix
+      000BAC DD E1            [14] 2124 	pop	ix
+      000BAE C9               [10] 2125 	ret
+                                   2126 ;edimain.c:393: word getkey()
+                                   2127 ;	---------------------------------
+                                   2128 ; Function getkey
+                                   2129 ; ---------------------------------
+      000BAF                       2130 _getkey::
+                                   2131 ;edimain.c:395: while (input_empty());
+      000BAF                       2132 00101$:
+      000BAF CDr00r00         [17] 2133 	call	_input_empty
+      000BB2 B7               [ 4] 2134 	or	a, a
+      000BB3 20 FA            [12] 2135 	jr	NZ, 00101$
+                                   2136 ;edimain.c:396: return input_read();
+                                   2137 ;edimain.c:397: }
+      000BB5 C3r00r00         [10] 2138 	jp	_input_read
+                                   2139 ;edimain.c:399: void event_loop()
+                                   2140 ;	---------------------------------
+                                   2141 ; Function event_loop
+                                   2142 ; ---------------------------------
+      000BB8                       2143 _event_loop::
+      000BB8 DD E5            [15] 2144 	push	ix
+      000BBA DD 21 00 00      [14] 2145 	ld	ix,#0
+      000BBE DD 39            [15] 2146 	add	ix,sp
+      000BC0 21 F4 FF         [10] 2147 	ld	hl, #-12
+      000BC3 39               [11] 2148 	add	hl, sp
+      000BC4 F9               [ 6] 2149 	ld	sp, hl
+                                   2150 ;edimain.c:401: byte done = 0;
+      000BC5 DD 36 F4 00      [19] 2151 	ld	-12 (ix), #0x00
+                                   2152 ;edimain.c:402: byte redraw_line = 0;
+      000BC9 DD 36 F5 00      [19] 2153 	ld	-11 (ix), #0x00
+                                   2154 ;edimain.c:403: const word total_lines = vector_size(document);
+      000BCD 2Ar00r00         [16] 2155 	ld	hl, (_document)
+      000BD0 CDr00r00         [17] 2156 	call	_vector_size
+      000BD3 DD 73 F6         [19] 2157 	ld	-10 (ix), e
+      000BD6 DD 72 F7         [19] 2158 	ld	-9 (ix), d
+                                   2159 ;edimain.c:404: while (!done)
+      000BD9                       2160 00140$:
+      000BD9 DD 7E F4         [19] 2161 	ld	a, -12 (ix)
+      000BDC B7               [ 4] 2162 	or	a, a
+      000BDD C2r40r0E         [10] 2163 	jp	NZ, 00143$
+                                   2164 ;edimain.c:406: Vector* line = get_line(cursor_y);
+      000BE0 2Ar06r00         [16] 2165 	ld	hl, (_cursor_y)
+      000BE3 CDr85r00         [17] 2166 	call	_get_line
+                                   2167 ;edimain.c:407: word n = vector_size(line);
+                                   2168 ;	spillPairReg hl
+                                   2169 ;	spillPairReg hl
+      000BE6 DD 73 F8         [19] 2170 	ld	-8 (ix), e
+      000BE9 DD 72 F9         [19] 2171 	ld	-7 (ix), d
+      000BEC EB               [ 4] 2172 	ex	de,hl
+                                   2173 ;	spillPairReg hl
+                                   2174 ;	spillPairReg hl
+      000BED CDr00r00         [17] 2175 	call	_vector_size
+      000BF0 DD 73 FA         [19] 2176 	ld	-6 (ix), e
+      000BF3 DD 72 FB         [19] 2177 	ld	-5 (ix), d
+                                   2178 ;edimain.c:408: word key = getkey();
+      000BF6 CDrAFr0B         [17] 2179 	call	_getkey
+      000BF9 DD 73 FC         [19] 2180 	ld	-4 (ix), e
+      000BFC DD 72 FD         [19] 2181 	ld	-3 (ix), d
+                                   2182 ;edimain.c:409: switch (key)
+      000BFF DD 7E FC         [19] 2183 	ld	a, -4 (ix)
+      000C02 DD 77 FE         [19] 2184 	ld	-2 (ix), a
+      000C05 DD 7E FD         [19] 2185 	ld	a, -3 (ix)
+      000C08 DD 77 FF         [19] 2186 	ld	-1 (ix), a
+      000C0B DD 7E FE         [19] 2187 	ld	a, -2 (ix)
+      000C0E D6 08            [ 7] 2188 	sub	a, #0x08
+      000C10 DD B6 FF         [19] 2189 	or	a, -1 (ix)
+      000C13 CAr85r0D         [10] 2190 	jp	Z,00120$
+      000C16 DD 7E FE         [19] 2191 	ld	a, -2 (ix)
+      000C19 D6 09            [ 7] 2192 	sub	a, #0x09
+      000C1B DD B6 FF         [19] 2193 	or	a, -1 (ix)
+      000C1E CAr70r0D         [10] 2194 	jp	Z,00119$
+      000C21 DD 7E FE         [19] 2195 	ld	a, -2 (ix)
+      000C24 D6 0A            [ 7] 2196 	sub	a, #0x0a
+      000C26 DD B6 FF         [19] 2197 	or	a, -1 (ix)
+      000C29 CArBBr0D         [10] 2198 	jp	Z,00128$
+      000C2C DD 7E FE         [19] 2199 	ld	a, -2 (ix)
+      000C2F D6 0D            [ 7] 2200 	sub	a, #0x0d
+      000C31 DD B6 FF         [19] 2201 	or	a, -1 (ix)
+      000C34 CArBBr0D         [10] 2202 	jp	Z,00128$
+      000C37 DD 7E FE         [19] 2203 	ld	a, -2 (ix)
+      000C3A D6 1B            [ 7] 2204 	sub	a, #0x1b
+      000C3C DD B6 FF         [19] 2205 	or	a, -1 (ix)
+      000C3F CAr6Ar0D         [10] 2206 	jp	Z,00118$
+      000C42 DD 7E FE         [19] 2207 	ld	a, -2 (ix)
+      000C45 B7               [ 4] 2208 	or	a, a
+      000C46 20 07            [12] 2209 	jr	NZ, 00285$
+      000C48 DD 7E FF         [19] 2210 	ld	a, -1 (ix)
+      000C4B 3D               [ 4] 2211 	dec	a
+      000C4C CAr2Er0D         [10] 2212 	jp	Z,00113$
+      000C4F                       2213 00285$:
+      000C4F DD 7E FE         [19] 2214 	ld	a, -2 (ix)
+      000C52 B7               [ 4] 2215 	or	a, a
+      000C53 20 08            [12] 2216 	jr	NZ, 00286$
+      000C55 DD 7E FF         [19] 2217 	ld	a, -1 (ix)
+      000C58 D6 02            [ 7] 2218 	sub	a, #0x02
+      000C5A CAr53r0D         [10] 2219 	jp	Z,00117$
+      000C5D                       2220 00286$:
+      000C5D DD 7E FE         [19] 2221 	ld	a, -2 (ix)
+      000C60 B7               [ 4] 2222 	or	a, a
+      000C61 20 08            [12] 2223 	jr	NZ, 00287$
+      000C63 DD 7E FF         [19] 2224 	ld	a, -1 (ix)
+      000C66 D6 03            [ 7] 2225 	sub	a, #0x03
+      000C68 CAr18r0D         [10] 2226 	jp	Z,00112$
+      000C6B                       2227 00287$:
+      000C6B DD 7E FE         [19] 2228 	ld	a, -2 (ix)
+      000C6E B7               [ 4] 2229 	or	a, a
+      000C6F 20 08            [12] 2230 	jr	NZ, 00288$
+      000C71 DD 7E FF         [19] 2231 	ld	a, -1 (ix)
+      000C74 D6 04            [ 7] 2232 	sub	a, #0x04
+      000C76 CAr0Fr0D         [10] 2233 	jp	Z,00111$
+      000C79                       2234 00288$:
+      000C79 DD 7E FE         [19] 2235 	ld	a, -2 (ix)
+      000C7C B7               [ 4] 2236 	or	a, a
+      000C7D 20 07            [12] 2237 	jr	NZ, 00289$
+      000C7F DD 7E FF         [19] 2238 	ld	a, -1 (ix)
+      000C82 D6 05            [ 7] 2239 	sub	a, #0x05
+      000C84 28 39            [12] 2240 	jr	Z, 00101$
+      000C86                       2241 00289$:
+      000C86 DD 7E FE         [19] 2242 	ld	a, -2 (ix)
+      000C89 B7               [ 4] 2243 	or	a, a
+      000C8A 20 07            [12] 2244 	jr	NZ, 00290$
+      000C8C DD 7E FF         [19] 2245 	ld	a, -1 (ix)
+      000C8F D6 06            [ 7] 2246 	sub	a, #0x06
+      000C91 28 4C            [12] 2247 	jr	Z, 00105$
+      000C93                       2248 00290$:
+      000C93 DD 7E FE         [19] 2249 	ld	a, -2 (ix)
+      000C96 B7               [ 4] 2250 	or	a, a
+      000C97 20 07            [12] 2251 	jr	NZ, 00291$
+      000C99 DD 7E FF         [19] 2252 	ld	a, -1 (ix)
+      000C9C D6 07            [ 7] 2253 	sub	a, #0x07
+      000C9E 28 36            [12] 2254 	jr	Z, 00104$
+      000CA0                       2255 00291$:
+      000CA0 DD 7E FE         [19] 2256 	ld	a, -2 (ix)
+      000CA3 B7               [ 4] 2257 	or	a, a
+      000CA4 20 07            [12] 2258 	jr	NZ, 00292$
+      000CA6 DD 7E FF         [19] 2259 	ld	a, -1 (ix)
+      000CA9 D6 08            [ 7] 2260 	sub	a, #0x08
+      000CAB 28 4A            [12] 2261 	jr	Z, 00108$
+      000CAD                       2262 00292$:
+      000CAD DD 7E FE         [19] 2263 	ld	a, -2 (ix)
+      000CB0 B7               [ 4] 2264 	or	a, a
+      000CB1 C2rC3r0D         [10] 2265 	jp	NZ,00129$
+      000CB4 DD 7E FF         [19] 2266 	ld	a, -1 (ix)
+      000CB7 D6 0E            [ 7] 2267 	sub	a, #0x0e
+      000CB9 CArB2r0D         [10] 2268 	jp	Z,00126$
+      000CBC C3rC3r0D         [10] 2269 	jp	00129$
+                                   2270 ;edimain.c:411: case LEFT: if (cursor_x > 0) move_x_cursor(-1); break;
+      000CBF                       2271 00101$:
+      000CBF 2Ar04r00         [16] 2272 	ld	hl, (_cursor_x)
+      000CC2 AF               [ 4] 2273 	xor	a, a
+      000CC3 BD               [ 4] 2274 	cp	a, l
+      000CC4 9C               [ 4] 2275 	sbc	a, h
+      000CC5 E2rCAr0C         [10] 2276 	jp	PO, 00294$
+      000CC8 EE 80            [ 7] 2277 	xor	a, #0x80
+      000CCA                       2278 00294$:
+      000CCA F2rECr0D         [10] 2279 	jp	P, 00133$
+      000CCD 21 FF FF         [10] 2280 	ld	hl, #0xffff
+      000CD0 CDrE7r07         [17] 2281 	call	_move_x_cursor
+      000CD3 C3rECr0D         [10] 2282 	jp	00133$
+                                   2283 ;edimain.c:412: case RIGHT: move_x_cursor(1); break;
+      000CD6                       2284 00104$:
+      000CD6 21 01 00         [10] 2285 	ld	hl, #0x0001
+      000CD9 CDrE7r07         [17] 2286 	call	_move_x_cursor
+      000CDC C3rECr0D         [10] 2287 	jp	00133$
+                                   2288 ;edimain.c:413: case UP: if (cursor_y > 0) --cursor_y; break;
+      000CDF                       2289 00105$:
+      000CDF 2Ar06r00         [16] 2290 	ld	hl, (_cursor_y)
+      000CE2 AF               [ 4] 2291 	xor	a, a
+      000CE3 BD               [ 4] 2292 	cp	a, l
+      000CE4 9C               [ 4] 2293 	sbc	a, h
+      000CE5 E2rEAr0C         [10] 2294 	jp	PO, 00295$
+      000CE8 EE 80            [ 7] 2295 	xor	a, #0x80
+      000CEA                       2296 00295$:
+      000CEA F2rECr0D         [10] 2297 	jp	P, 00133$
+      000CED 2Ar06r00         [16] 2298 	ld	hl, (_cursor_y)
+      000CF0 2B               [ 6] 2299 	dec	hl
+      000CF1 22r06r00         [16] 2300 	ld	(_cursor_y), hl
+      000CF4 C3rECr0D         [10] 2301 	jp	00133$
+                                   2302 ;edimain.c:414: case DOWN: if (cursor_y<total_lines) cursor_y++; break;
+      000CF7                       2303 00108$:
+      000CF7 2Ar06r00         [16] 2304 	ld	hl, (_cursor_y)
+      000CFA 7D               [ 4] 2305 	ld	a, l
+      000CFB DD 96 F6         [19] 2306 	sub	a, -10 (ix)
+      000CFE 7C               [ 4] 2307 	ld	a, h
+      000CFF DD 9E F7         [19] 2308 	sbc	a, -9 (ix)
+      000D02 D2rECr0D         [10] 2309 	jp	NC, 00133$
+      000D05 2Ar06r00         [16] 2310 	ld	hl, (_cursor_y)
+      000D08 23               [ 6] 2311 	inc	hl
+      000D09 22r06r00         [16] 2312 	ld	(_cursor_y), hl
+      000D0C C3rECr0D         [10] 2313 	jp	00133$
+                                   2314 ;edimain.c:415: case HOME: cursor_x = 0; break;
+      000D0F                       2315 00111$:
+      000D0F 21 00 00         [10] 2316 	ld	hl, #0x0000
+      000D12 22r04r00         [16] 2317 	ld	(_cursor_x), hl
+      000D15 C3rECr0D         [10] 2318 	jp	00133$
+                                   2319 ;edimain.c:416: case END: cursor_x = logical_to_visual(line,n); break;
+      000D18                       2320 00112$:
+      000D18 DD 5E FA         [19] 2321 	ld	e, -6 (ix)
+      000D1B DD 56 FB         [19] 2322 	ld	d, -5 (ix)
+      000D1E DD 6E F8         [19] 2323 	ld	l, -8 (ix)
+                                   2324 ;	spillPairReg hl
+                                   2325 ;	spillPairReg hl
+      000D21 DD 66 F9         [19] 2326 	ld	h, -7 (ix)
+                                   2327 ;	spillPairReg hl
+                                   2328 ;	spillPairReg hl
+      000D24 CDrDAr06         [17] 2329 	call	_logical_to_visual
+      000D27 ED 53r04r00      [20] 2330 	ld	(_cursor_x), de
+      000D2B C3rECr0D         [10] 2331 	jp	00133$
+                                   2332 ;edimain.c:417: case PGUP: if (cursor_y < 25) cursor_y = 0; else cursor_y -= 25; break;
+      000D2E                       2333 00113$:
+      000D2E 2Ar06r00         [16] 2334 	ld	hl, (_cursor_y)
+      000D31 7D               [ 4] 2335 	ld	a, l
+      000D32 D6 19            [ 7] 2336 	sub	a, #0x19
+      000D34 7C               [ 4] 2337 	ld	a, h
+      000D35 17               [ 4] 2338 	rla
+      000D36 3F               [ 4] 2339 	ccf
+      000D37 1F               [ 4] 2340 	rra
+      000D38 DE 80            [ 7] 2341 	sbc	a, #0x80
+      000D3A 30 09            [12] 2342 	jr	NC, 00115$
+      000D3C 21 00 00         [10] 2343 	ld	hl, #0x0000
+      000D3F 22r06r00         [16] 2344 	ld	(_cursor_y), hl
+      000D42 C3rECr0D         [10] 2345 	jp	00133$
+      000D45                       2346 00115$:
+      000D45 7D               [ 4] 2347 	ld	a, l
+      000D46 C6 E7            [ 7] 2348 	add	a, #0xe7
+      000D48 6F               [ 4] 2349 	ld	l, a
+                                   2350 ;	spillPairReg hl
+                                   2351 ;	spillPairReg hl
+      000D49 7C               [ 4] 2352 	ld	a, h
+      000D4A CE FF            [ 7] 2353 	adc	a, #0xff
+      000D4C 67               [ 4] 2354 	ld	h, a
+                                   2355 ;	spillPairReg hl
+                                   2356 ;	spillPairReg hl
+      000D4D 22r06r00         [16] 2357 	ld	(_cursor_y), hl
+      000D50 C3rECr0D         [10] 2358 	jp	00133$
+                                   2359 ;edimain.c:418: case PGDN: cursor_y = min(cursor_y + 25, total_lines); break;
+      000D53                       2360 00117$:
+      000D53 2Ar06r00         [16] 2361 	ld	hl, (_cursor_y)
+      000D56 01 19 00         [10] 2362 	ld	bc, #0x0019
+      000D59 09               [11] 2363 	add	hl, bc
+      000D5A DD 5E F6         [19] 2364 	ld	e, -10 (ix)
+      000D5D DD 56 F7         [19] 2365 	ld	d, -9 (ix)
+      000D60 CDr00r00         [17] 2366 	call	_min
+      000D63 ED 53r06r00      [20] 2367 	ld	(_cursor_y), de
+      000D67 C3rECr0D         [10] 2368 	jp	00133$
+                                   2369 ;edimain.c:419: case 27: done = 1; break;
+      000D6A                       2370 00118$:
+      000D6A DD 36 F4 01      [19] 2371 	ld	-12 (ix), #0x01
+      000D6E 18 7C            [12] 2372 	jr	00133$
+                                   2373 ;edimain.c:420: case 9: add_char(9); redraw_line = 1; cursor_x += 4; break;
+      000D70                       2374 00119$:
+      000D70 3E 09            [ 7] 2375 	ld	a, #0x09
+      000D72 CDr13r0A         [17] 2376 	call	_add_char
+      000D75 DD 36 F5 01      [19] 2377 	ld	-11 (ix), #0x01
+      000D79 2Ar04r00         [16] 2378 	ld	hl, (_cursor_x)
+      000D7C 01 04 00         [10] 2379 	ld	bc, #0x0004
+      000D7F 09               [11] 2380 	add	hl, bc
+      000D80 22r04r00         [16] 2381 	ld	(_cursor_x), hl
+      000D83 18 67            [12] 2382 	jr	00133$
+                                   2383 ;edimain.c:421: case 8:
+      000D85                       2384 00120$:
+                                   2385 ;edimain.c:423: if (cursor_x > 0)
+      000D85 2Ar04r00         [16] 2386 	ld	hl, (_cursor_x)
+      000D88 AF               [ 4] 2387 	xor	a, a
+      000D89 BD               [ 4] 2388 	cp	a, l
+      000D8A 9C               [ 4] 2389 	sbc	a, h
+      000D8B E2r90r0D         [10] 2390 	jp	PO, 00296$
+      000D8E EE 80            [ 7] 2391 	xor	a, #0x80
+      000D90                       2392 00296$:
+      000D90 F2r9Cr0D         [10] 2393 	jp	P, 00124$
+                                   2394 ;edimain.c:425: backspace();
+      000D93 CDr0Ar0A         [17] 2395 	call	_backspace
+                                   2396 ;edimain.c:426: redraw_line = 1;
+      000D96 DD 36 F5 01      [19] 2397 	ld	-11 (ix), #0x01
+      000D9A 18 50            [12] 2398 	jr	00133$
+      000D9C                       2399 00124$:
+                                   2400 ;edimain.c:429: if (cursor_y>0)
+      000D9C 2Ar06r00         [16] 2401 	ld	hl, (_cursor_y)
+      000D9F AF               [ 4] 2402 	xor	a, a
+      000DA0 BD               [ 4] 2403 	cp	a, l
+      000DA1 9C               [ 4] 2404 	sbc	a, h
+      000DA2 E2rA7r0D         [10] 2405 	jp	PO, 00297$
+      000DA5 EE 80            [ 7] 2406 	xor	a, #0x80
+      000DA7                       2407 00297$:
+      000DA7 F2rECr0D         [10] 2408 	jp	P, 00133$
+                                   2409 ;edimain.c:431: join_prev_line();
+      000DAA CDr6Er0A         [17] 2410 	call	_join_prev_line
+                                   2411 ;edimain.c:432: draw_screen();
+      000DAD CDrAEr06         [17] 2412 	call	_draw_screen
+                                   2413 ;edimain.c:434: break;
+      000DB0 18 3A            [12] 2414 	jr	00133$
+                                   2415 ;edimain.c:436: case DEL: do_delete(); redraw_line = 1; break;
+      000DB2                       2416 00126$:
+      000DB2 CDr54r09         [17] 2417 	call	_do_delete
+      000DB5 DD 36 F5 01      [19] 2418 	ld	-11 (ix), #0x01
+      000DB9 18 31            [12] 2419 	jr	00133$
+                                   2420 ;edimain.c:438: case 10: add_enter(); draw_screen(); break;
+      000DBB                       2421 00128$:
+      000DBB CDrFCr0A         [17] 2422 	call	_add_enter
+      000DBE CDrAEr06         [17] 2423 	call	_draw_screen
+      000DC1 18 29            [12] 2424 	jr	00133$
+                                   2425 ;edimain.c:439: default:
+      000DC3                       2426 00129$:
+                                   2427 ;edimain.c:440: if (key >= 32 && key < 127)
+      000DC3 DD 7E FE         [19] 2428 	ld	a, -2 (ix)
+      000DC6 D6 20            [ 7] 2429 	sub	a, #0x20
+      000DC8 DD 7E FF         [19] 2430 	ld	a, -1 (ix)
+      000DCB DE 00            [ 7] 2431 	sbc	a, #0x00
+      000DCD 38 1D            [12] 2432 	jr	C, 00133$
+      000DCF DD 7E FE         [19] 2433 	ld	a, -2 (ix)
+      000DD2 D6 7F            [ 7] 2434 	sub	a, #0x7f
+      000DD4 DD 7E FF         [19] 2435 	ld	a, -1 (ix)
+      000DD7 DE 00            [ 7] 2436 	sbc	a, #0x00
+      000DD9 30 11            [12] 2437 	jr	NC, 00133$
+                                   2438 ;edimain.c:442: add_char((byte)key);
+      000DDB DD 7E FC         [19] 2439 	ld	a, -4 (ix)
+      000DDE CDr13r0A         [17] 2440 	call	_add_char
+                                   2441 ;edimain.c:443: ++cursor_x;
+      000DE1 2Ar04r00         [16] 2442 	ld	hl, (_cursor_x)
+      000DE4 23               [ 6] 2443 	inc	hl
+      000DE5 22r04r00         [16] 2444 	ld	(_cursor_x), hl
+                                   2445 ;edimain.c:444: redraw_line = 1;
+      000DE8 DD 36 F5 01      [19] 2446 	ld	-11 (ix), #0x01
+                                   2447 ;edimain.c:446: }
+      000DEC                       2448 00133$:
+                                   2449 ;edimain.c:447: line = get_line(cursor_y);
+      000DEC 2Ar06r00         [16] 2450 	ld	hl, (_cursor_y)
+      000DEF CDr85r00         [17] 2451 	call	_get_line
+      000DF2 EB               [ 4] 2452 	ex	de, hl
+                                   2453 ;edimain.c:448: n = vector_size(line);
+      000DF3 E5               [11] 2454 	push	hl
+      000DF4 CDr00r00         [17] 2455 	call	_vector_size
+      000DF7 E1               [10] 2456 	pop	hl
+      000DF8 DD 73 FE         [19] 2457 	ld	-2 (ix), e
+      000DFB DD 72 FF         [19] 2458 	ld	-1 (ix), d
+                                   2459 ;edimain.c:450: word i = visual_to_logical(line, cursor_x);
+      000DFE E5               [11] 2460 	push	hl
+      000DFF ED 5Br04r00      [20] 2461 	ld	de, (_cursor_x)
+      000E03 CDr3Ar07         [17] 2462 	call	_visual_to_logical
+      000E06 E1               [10] 2463 	pop	hl
+                                   2464 ;edimain.c:451: if (i > n) cursor_x = logical_to_visual(line, n);
+      000E07 DD 7E FE         [19] 2465 	ld	a, -2 (ix)
+      000E0A 93               [ 4] 2466 	sub	a, e
+      000E0B DD 7E FF         [19] 2467 	ld	a, -1 (ix)
+      000E0E 9A               [ 4] 2468 	sbc	a, d
+      000E0F 30 0D            [12] 2469 	jr	NC, 00135$
+      000E11 DD 5E FE         [19] 2470 	ld	e, -2 (ix)
+      000E14 DD 56 FF         [19] 2471 	ld	d, -1 (ix)
+      000E17 CDrDAr06         [17] 2472 	call	_logical_to_visual
+      000E1A ED 53r04r00      [20] 2473 	ld	(_cursor_x), de
+      000E1E                       2474 00135$:
+                                   2475 ;edimain.c:453: if (redraw_line)
+      000E1E DD 7E F5         [19] 2476 	ld	a, -11 (ix)
+      000E21 B7               [ 4] 2477 	or	a, a
+      000E22 28 06            [12] 2478 	jr	Z, 00137$
+                                   2479 ;edimain.c:454: draw_line(cursor_y);
+      000E24 2Ar06r00         [16] 2480 	ld	hl, (_cursor_y)
+      000E27 CDrEBr02         [17] 2481 	call	_draw_line
+      000E2A                       2482 00137$:
+                                   2483 ;edimain.c:455: draw_cursor_position();
+      000E2A CDr71r06         [17] 2484 	call	_draw_cursor_position
+                                   2485 ;edimain.c:456: place_cursor();
+      000E2D CDrA5r05         [17] 2486 	call	_place_cursor
+                                   2487 ;edimain.c:457: if (full_redraw)
+      000E30 3Ar02r00         [13] 2488 	ld	a, (_full_redraw+0)
+      000E33 B7               [ 4] 2489 	or	a, a
+      000E34 CArD9r0B         [10] 2490 	jp	Z, 00140$
+                                   2491 ;edimain.c:459: draw_screen();
+      000E37 CDrAEr06         [17] 2492 	call	_draw_screen
+                                   2493 ;edimain.c:460: place_cursor();
+      000E3A CDrA5r05         [17] 2494 	call	_place_cursor
+      000E3D C3rD9r0B         [10] 2495 	jp	00140$
+      000E40                       2496 00143$:
+                                   2497 ;edimain.c:463: }
+      000E40 DD F9            [10] 2498 	ld	sp, ix
+      000E42 DD E1            [14] 2499 	pop	ix
+      000E44 C9               [10] 2500 	ret
+                                   2501 ;edimain.c:465: int main(char** args)
+                                   2502 ;	---------------------------------
+                                   2503 ; Function main
+                                   2504 ; ---------------------------------
+      000E45                       2505 _main::
+                                   2506 ;edimain.c:467: init_state();
+      000E45 E5               [11] 2507 	push	hl
+      000E46 CDr00r00         [17] 2508 	call	_init_state
+      000E49 CDr00r00         [17] 2509 	call	_alloc_init
+      000E4C CDr00r00         [17] 2510 	call	_hal_init
+      000E4F 21 02 00         [10] 2511 	ld	hl, #0x0002
+      000E52 CDr00r00         [17] 2512 	call	_vector_new
+      000E55 E1               [10] 2513 	pop	hl
+      000E56 ED 53r00r00      [20] 2514 	ld	(_document), de
+                                   2515 ;edimain.c:471: if (args[0])
+      000E5A 4E               [ 7] 2516 	ld	c, (hl)
+      000E5B 23               [ 6] 2517 	inc	hl
+      000E5C 66               [ 7] 2518 	ld	h, (hl)
+                                   2519 ;	spillPairReg hl
+      000E5D 7C               [ 4] 2520 	ld	a, h
+      000E5E B1               [ 4] 2521 	or	a, c
+      000E5F 28 04            [12] 2522 	jr	Z, 00102$
+                                   2523 ;edimain.c:473: load_file(args[0]);
+      000E61 69               [ 4] 2524 	ld	l, c
+                                   2525 ;	spillPairReg hl
+                                   2526 ;	spillPairReg hl
+      000E62 CDr7Br01         [17] 2527 	call	_load_file
+      000E65                       2528 00102$:
+                                   2529 ;edimain.c:475: fg = 0x3F;
+      000E65 21r00r00         [10] 2530 	ld	hl, #_fg
+      000E68 36 3F            [10] 2531 	ld	(hl), #0x3f
+                                   2532 ;edimain.c:476: bg = 0x40;
+      000E6A 21r01r00         [10] 2533 	ld	hl, #_bg
+      000E6D 36 40            [10] 2534 	ld	(hl), #0x40
+                                   2535 ;edimain.c:477: if (full_redraw)
+      000E6F 3Ar02r00         [13] 2536 	ld	a, (_full_redraw+0)
+      000E72 B7               [ 4] 2537 	or	a, a
+      000E73 28 03            [12] 2538 	jr	Z, 00104$
+                                   2539 ;edimain.c:478: draw_screen();
+      000E75 CDrAEr06         [17] 2540 	call	_draw_screen
+      000E78                       2541 00104$:
+                                   2542 ;edimain.c:479: hal_blink(1);
+      000E78 3E 01            [ 7] 2543 	ld	a, #0x01
+      000E7A CDr00r00         [17] 2544 	call	_hal_blink
+                                   2545 ;edimain.c:480: event_loop();
+      000E7D CDrB8r0B         [17] 2546 	call	_event_loop
+                                   2547 ;edimain.c:481: hal_shutdown();
+      000E80 CDr00r00         [17] 2548 	call	_hal_shutdown
+                                   2549 ;edimain.c:482: clear();
+      000E83 CDr2Fr00         [17] 2550 	call	_clear
+                                   2551 ;edimain.c:483: vector_shut(document);
+      000E86 2Ar00r00         [16] 2552 	ld	hl, (_document)
+      000E89 CDr00r00         [17] 2553 	call	_vector_shut
+                                   2554 ;edimain.c:484: return 0;
+      000E8C 11 00 00         [10] 2555 	ld	de, #0x0000
+                                   2556 ;edimain.c:485: }
+      000E8F C9               [10] 2557 	ret
+                                   2558 	.area _CODE
+                                   2559 	.area _INITIALIZER
+      000000                       2560 __xinit__fg:
+      000000 FF                    2561 	.db #0xff	; 255
+      000001                       2562 __xinit__bg:
+      000001 00                    2563 	.db #0x00	; 0
+      000002                       2564 __xinit__full_redraw:
+      000002 01                    2565 	.db #0x01	; 1
+      000003                       2566 __xinit__insert:
+      000003 01                    2567 	.db #0x01	; 1
+      000004                       2568 __xinit__cursor_x:
+      000004 00 00                 2569 	.dw #0x0000
+      000006                       2570 __xinit__cursor_y:
+      000006 00 00                 2571 	.dw #0x0000
+      000008                       2572 __xinit__offset_x:
+      000008 00 00                 2573 	.dw #0x0000
+      00000A                       2574 __xinit__offset_y:
+      00000A 00 00                 2575 	.dw #0x0000
+                                   2576 	.area _CABS (ABS)

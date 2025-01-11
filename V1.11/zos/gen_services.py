@@ -60,26 +60,19 @@ def main():
         services = [sw.name for sw in wrappers]
         source_services = list(services)
         print(f'Total {len(services)} services')
-        # total_count = (0xEC - 0x64) // 2
-        # while len(services) < total_count:
-        #    services.append('0')
-        # lines = [l.rstrip() for l in open('globals.zasm').readlines()]
-        # indices = find_services_block(lines)
-        # if len(indices) != 2:
-        #    print("Failed to find services block")
-        #    return
+
         declarations = [f'\t.globl\t\t{service_label(ll_names, s)}' for s in source_services]
         services = [f'\t.dw\t\t{service_label(ll_names, s)}' for s in services]
         new_lines = ['', '.area _SERVICES', '', '_services::']
-        # new_lines = lines[0:indices[0] + 1]
+
         new_lines.extend(declarations)
         new_lines.extend(services)
         new_lines.append('')
-        # new_lines.extend(lines[indices[1]:])
+
         with open('services.zasm', 'w') as f:
             f.write('\n'.join(new_lines))
-        with open('../stdlib/stdlib.h', 'w') as f:
-            f.write(f'#pragma once\n\ntypedef unsigned char byte;\ntypedef unsigned short word;\n\n')
+        with open('../include/stdlib.h', 'w') as f:
+            f.write(f'#pragma once\n\n#include "stdlib_types.h"\n\n')
             for sw in wrappers:
                 f.write(sw.gen_header())
         with open('../stdlib/stdlib.zasm', 'w') as f:

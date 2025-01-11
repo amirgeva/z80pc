@@ -1,0 +1,151 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000000 L
+  0 _BL                                                            00003C GR
+  0 _BR                                                            00003D GR
+  0 _HORZ                                                          00003E GR
+  0 _TL                                                            00003A GR
+  0 _TR                                                            00003B GR
+  0 _VERT                                                          00003F GR
+  0 ___str_0                                                       00060A R
+  0 ___str_1                                                       00060C R
+  0 ___str_10                                                      00067C R
+  0 ___str_11                                                      00067F R
+  0 ___str_12                                                      000684 R
+  0 ___str_13                                                      000687 R
+  0 ___str_2                                                       000611 R
+  0 ___str_3                                                       000616 R
+  0 ___str_4                                                       00061D R
+  0 ___str_5                                                       000621 R
+  0 ___str_6                                                       00066C R
+  0 ___str_7                                                       00066F R
+  0 ___str_8                                                       000674 R
+  0 ___str_9                                                       000677 R
+  7 __xinit__bg                                                    000001 R
+  7 __xinit__fg                                                    000000 R
+  7 __xinit__insert                                                000002 R
+  0 _add_char                                                      001090 GR
+  0 _add_enter                                                     000FEF GR
+    _alloc_init                                                    ****** GX
+  0 _append_line                                                   000486 GR
+  0 _backspace                                                     000FE6 GR
+  2 _bg                                                            000001 GR
+  0 _calculate_new_offset                                          000A6F GR
+  0 _clear                                                         000353 GR
+  0 _clear_select                                                  0002E5 GR
+  1 _clipboard                                                     000002 GR
+  0 _clipboard_copy                                                001134 GR
+  0 _clipboard_cut                                                 001243 GR
+  0 _clipboard_paste                                               00124E GR
+    _close_file                                                    ****** GX
+  1 _cursor                                                        000144 GR
+  0 _cursor_in_view                                                000A07 GR
+  0 _cursor_lt                                                     000234 GR
+  0 _decimal_string                                                000B00 GR
+  0 _delete_selection                                              000DF9 GR
+  0 _delete_single_line_selection                                  000DC4 GR
+    _div_mod                                                       ****** GX
+  0 _do_delete                                                     000F1A GR
+  1 _document                                                      000000 GR
+  0 _draw_brackets                                                 00068F GR
+  0 _draw_cursor_position                                          000BA9 GR
+  0 _draw_frame                                                    0006AE GR
+  0 _draw_line                                                     0007B2 GR
+  0 _draw_menu                                                     0005C7 GR
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+  0 _draw_menu_item                                                000573 GR
+  0 _draw_number                                                   000B6A GR
+  0 _draw_screen                                                   000BE2 GR
+  0 _draw_status                                                   000629 GR
+  0 _draw_status_item                                              00059E GR
+  0 _draw_str                                                      000566 GR
+  0 _eod_cursor                                                    000A51 GR
+  0 _event_loop                                                    001294 GR
+  0 _extend_select                                                 00031F GR
+  2 _fg                                                            000000 GR
+  0 _get_line                                                      0003A9 GR
+  0 _getkey                                                        0010FE GR
+    _hal_blink                                                     ****** GX
+    _hal_color                                                     ****** GX
+    _hal_draw_char                                                 ****** GX
+    _hal_getkey                                                    ****** GX
+    _hal_init                                                      ****** GX
+    _hal_move                                                      ****** GX
+    _hal_rept_char                                                 ****** GX
+    _hal_shutdown                                                  ****** GX
+  0 _in_selection                                                  000040 GR
+  0 _init_state                                                    000000 GR
+  2 _insert                                                        000002 GR
+  0 _is_move_key                                                   000D20 GR
+  0 _join_prev_line                                                000D34 GR
+  1 _line_mapping                                                  000004 GR
+  0 _load_file                                                     00049F GR
+  0 _logical_to_visual                                             0001A8 GR
+  0 _main                                                          00166C GR
+    _max                                                           ****** GX
+    _min                                                           ****** GX
+  0 _move_x_cursor                                                 000CD0 GR
+  0 _move_y                                                        001101 GR
+  1 _offset                                                        000148 GR
+    _open_file                                                     ****** GX
+  0 _place_cursor                                                  000AD2 GR
+    _read_file                                                     ****** GX
+  0 _redraw_all                                                    000A63 GR
+  0 _redraw_from                                                   0002C1 GR
+  0 _redraw_line                                                   0002B9 GR
+  0 _redraw_range                                                  0002CB GR
+  1 _redraw_start                                                  000154 GR
+  1 _redraw_stop                                                   000156 GR
+  0 _round_up                                                      00039A GR
+  1 _select_start                                                  00014C GR
+  1 _select_stop                                                   000150 GR
+  0 _start_select                                                  000308 GR
+  0 _valid_select                                                  000289 GR
+    _vector_access                                                 ****** GX
+    _vector_clear                                                  ****** GX
+    _vector_erase                                                  ****** GX
+    _vector_erase_range                                            ****** GX
+    _vector_get                                                    ****** GX
+    _vector_insert                                                 ****** GX
+    _vector_new                                                    ****** GX
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    _vector_push                                                   ****** GX
+    _vector_reserve                                                ****** GX
+    _vector_resize                                                 ****** GX
+    _vector_set                                                    ****** GX
+    _vector_shut                                                   ****** GX
+    _vector_size                                                   ****** GX
+  0 _visual_cursor                                                 0009A3 GR
+  0 _visual_mapping                                                00008D GR
+  0 _visual_to_logical                                             000C27 GR
+
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 4.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size   16C9   flags    0
+   1 _DATA                                      size    158   flags    0
+   2 _INITIALIZED                               size      3   flags    0
+   3 _DABS                                      size      0   flags    8
+   4 _HOME                                      size      0   flags    0
+   5 _GSINIT                                    size      0   flags    0
+   6 _GSFINAL                                   size      0   flags    0
+   7 _INITIALIZER                               size      3   flags    0
+   8 _CABS                                      size      0   flags    8
+

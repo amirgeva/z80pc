@@ -21,6 +21,7 @@ _services::
 	.globl		close_file
 	.globl		bounds_check
 	.globl		load_sprites
+	.globl		div_mod
 	.dw		cls
 	.dw		print_text
 	.dw		_print_word_impl
@@ -40,3 +41,4 @@ _services::
 	.dw		close_file
 	.dw		bounds_check
 	.dw		load_sprites
+	.dw		div_mod

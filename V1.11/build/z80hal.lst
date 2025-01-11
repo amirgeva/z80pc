@@ -1,0 +1,108 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+
+
+                                      1 	.area _CODE
+                                      2 
+                                      3 	.globl _main
+                                      4 	.globl _hal_color
+                                      5 	.globl _exit
+                                      6 	.globl _hal_draw_char
+                                      7 	.globl _hal_init
+                                      8 	.globl _hal_move
+                                      9 	.globl _hal_shutdown
+                                     10 	.globl entry_point
+                                     11 
+      000000                         12 entry_point::
+      000000 C3 00 00         [10]   13 	jp	_main
+                                     14 
+      000003                         15 _exit::
+      000003 C7               [11]   16 	rst 0
+                                     17 
+      000004                         18 _hal_init::
+      000004 C9               [10]   19 	ret
+                                     20 	
+      000005                         21 _hal_draw_char::
+      000005 F5               [11]   22 	push af
+      000006 3E 1E            [ 7]   23 	ld a,#30
+      000008 D3 00            [11]   24 	out (0),a
+      00000A 3E 01            [ 7]   25 	ld a,#1
+      00000C D3 00            [11]   26 	out (0),a
+      00000E F1               [10]   27 	pop af
+      00000F D3 00            [11]   28 	out (0),a
+      000011 C9               [10]   29 	ret
+                                     30 
+      000012                         31 _hal_rept_char::
+                                     32 ;	Draw character in A,   L times
+      000012 F5               [11]   33 	push af
+      000013 3E 1E            [ 7]   34 	ld a,#30
+      000015 D3 00            [11]   35 	out (0),a
+      000017 7D               [ 4]   36 	ld a,l
+      000018 D3 00            [11]   37 	out (0),a
+      00001A F1               [10]   38 	pop af
+      00001B 45               [ 4]   39 	ld b,l
+      00001C                         40 hal_rept_loop:
+      00001C D3 00            [11]   41 	out (0),a
+      00001E 10 FC            [13]   42 	djnz hal_rept_loop
+      000020 C9               [10]   43 	ret
+                                     44 
+      000021                         45 _hal_color::
+      000021 F5               [11]   46 	push	af
+      000022 3E 07            [ 7]   47 	ld		a,#7
+      000024 D3 00            [11]   48 	out		(0),a
+      000026 F1               [10]   49 	pop		af
+      000027 D3 00            [11]   50 	out		(0),a
+      000029 3E 08            [ 7]   51 	ld		a,#8
+      00002B D3 00            [11]   52 	out		(0),a
+      00002D 7D               [ 4]   53 	ld		a,l
+      00002E D3 00            [11]   54 	out		(0),a
+      000030 C9               [10]   55 	ret
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+
+
+                                     56 	
+                                     57 	
+      000031                         58 _hal_move::
+                                     59 ;HL=x, DE=y
+                                     60 ;3 bytes: 6, x, y
+      000031 3E 06            [ 7]   61 	ld		a,#6
+      000033 D3 00            [11]   62 	out		(0),a
+      000035 7D               [ 4]   63 	ld		a,L
+      000036 D3 00            [11]   64 	out		(0),a
+      000038 7B               [ 4]   65 	ld		a,E
+      000039 D3 00            [11]   66 	out		(0),a
+      00003B C9               [10]   67 	ret
+                                     68 	
+                                     69 
+      00003C                         70 _hal_shutdown::
+      00003C C9               [10]   71 	ret
+                                     72 	
+      00003D                         73 _hal_blink::
+      00003D F5               [11]   74 	push af
+      00003E 3E 0B            [ 7]   75 	ld	a,#11
+      000040 D3 00            [11]   76 	out (0),a
+      000042 F1               [10]   77 	pop af
+      000043 D3 00            [11]   78 	out (0),a
+      000045 C9               [10]   79 	ret
+                                     80 	
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.=  002710 L   |     .__.ABS.=  000000 G   |     .__.CPU.=  000000 L
+    .__.H$L.=  000000 L   |   0 _exit      000003 GR  |   0 _hal_bli   00003D GR
+  0 _hal_col   000021 GR  |   0 _hal_dra   000005 GR  |   0 _hal_ini   000004 GR
+  0 _hal_mov   000031 GR  |   0 _hal_rep   000012 GR  |   0 _hal_shu   00003C GR
+    _main      ****** GX  |   0 entry_po   000000 GR  |   0 hal_rept   00001C R
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 4.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE      size     46   flags    0
+

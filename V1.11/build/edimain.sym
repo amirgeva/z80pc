@@ -1,0 +1,110 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000000 L
+  0 _BL                                                            00002B GR
+  0 _BR                                                            00002C GR
+  0 _H                                                             000028 GR
+  0 _HORZ                                                          00002D GR
+  0 _TL                                                            000029 GR
+  0 _TR                                                            00002A GR
+  0 _VERT                                                          00002E GR
+  0 _W                                                             000027 GR
+  7 __xinit__bg                                                    000001 R
+  7 __xinit__cursor_x                                              000004 R
+  7 __xinit__cursor_y                                              000006 R
+  7 __xinit__fg                                                    000000 R
+  7 __xinit__full_redraw                                           000002 R
+  7 __xinit__insert                                                000003 R
+  7 __xinit__offset_x                                              000008 R
+  7 __xinit__offset_y                                              00000A R
+  0 _add_char                                                      000A13 GR
+  0 _add_enter                                                     000AFC GR
+    _alloc_init                                                    ****** GX
+  0 _append_line                                                   000162 GR
+  0 _backspace                                                     000A0A GR
+  2 _bg                                                            000001 GR
+  0 _calculate_new_offset                                          000547 GR
+  0 _clear                                                         00002F GR
+    _close_file                                                    ****** GX
+  0 _cursor_in_view                                                0004E7 GR
+  2 _cursor_x                                                      000004 GR
+  2 _cursor_y                                                      000006 GR
+  0 _decimal_string                                                0005C8 GR
+    _div_mod                                                       ****** GX
+  0 _do_delete                                                     000954 GR
+  1 _document                                                      000000 GR
+  0 _draw_cursor_position                                          000671 GR
+  0 _draw_frame                                                    00024F GR
+  0 _draw_line                                                     0002EB GR
+  0 _draw_number                                                   000632 GR
+  0 _draw_screen                                                   0006AE GR
+  0 _draw_str                                                      000242 GR
+  0 _event_loop                                                    000BB8 GR
+  2 _fg                                                            000000 GR
+  2 _full_redraw                                                   000002 GR
+  0 _get_line                                                      000085 GR
+  0 _getkey                                                        000BAF GR
+    _hal_blink                                                     ****** GX
+    _hal_color                                                     ****** GX
+    _hal_draw_char                                                 ****** GX
+    _hal_init                                                      ****** GX
+    _hal_move                                                      ****** GX
+    _hal_rept_char                                                 ****** GX
+    _hal_shutdown                                                  ****** GX
+  0 _init_state                                                    000000 GR
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    _input_empty                                                   ****** GX
+    _input_read                                                    ****** GX
+  2 _insert                                                        000003 GR
+  0 _join_prev_line                                                000A6E GR
+  0 _load_file                                                     00017B GR
+  0 _logical_to_visual                                             0006DA GR
+  0 _main                                                          000E45 GR
+    _min                                                           ****** GX
+  0 _move_x_cursor                                                 0007E7 GR
+  2 _offset_x                                                      000008 GR
+  2 _offset_y                                                      00000A GR
+    _open_file                                                     ****** GX
+  0 _place_cursor                                                  0005A5 GR
+    _read_file                                                     ****** GX
+  0 _round_up                                                      000076 GR
+    _vector_access                                                 ****** GX
+    _vector_clear                                                  ****** GX
+    _vector_erase                                                  ****** GX
+    _vector_erase_range                                            ****** GX
+    _vector_get                                                    ****** GX
+    _vector_insert                                                 ****** GX
+    _vector_new                                                    ****** GX
+    _vector_push                                                   ****** GX
+    _vector_reserve                                                ****** GX
+    _vector_resize                                                 ****** GX
+    _vector_set                                                    ****** GX
+    _vector_shut                                                   ****** GX
+    _vector_size                                                   ****** GX
+  0 _visual_to_logical                                             00073A GR
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size    E90   flags    0
+   1 _DATA                                      size      2   flags    0
+   2 _INITIALIZED                               size      C   flags    0
+   3 _DABS                                      size      0   flags    8
+   4 _HOME                                      size      0   flags    0
+   5 _GSINIT                                    size      0   flags    0
+   6 _GSFINAL                                   size      0   flags    0
+   7 _INITIALIZER                               size      C   flags    0
+   8 _CABS                                      size      0   flags    8
+

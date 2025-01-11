@@ -1,52 +1,30 @@
-CFLAGS=-I../stdlib
+CFLAGS=-I../include -I../stdlib -I../datastr -I../utils -I../zos -I../edi
 
-zos.bin: zos.ihx
-	rm -f zos.bin
-	rm -f intermediate/*
-	echo intermediate > intermediate/README.md
-	python ihx2bin.py zos.ihx zos.bin
-	#python bin2list.py zos.bin ../z80io/os.inl
-	mv *.asm intermediate
-	mv *.lst intermediate
-	mv *.ihx intermediate
-	mv *.rel intermediate
-	mv *.sym intermediate
-	python bin2c.py -c ../z80io/src/os.h -a os_data zos.bin
+../build/zos: ../build/zos.ihx
+	python ../ihx2bin.py ../build/zos.ihx ../build/zos
 
-zos.ihx: zos.rel stdlibimpl.rel bootloader.rel services.rel globals.rel isrs.rel llfuncs.rel stdlib.rel
-	sdldz80 -m -w -i -b _BOOT=1 -b _ISRS=0x20 -b _CODE=0x200 -b _GLOBALS=0xE0 -b _SERVICES=0x64 zos zos.rel stdlibimpl.rel bootloader.rel services.rel globals.rel isrs.rel llfuncs.rel stdlib.rel
+../build/zos.ihx: ../build/bootloader.rel ../build/globals.rel ../build/isrs.rel ../build/llfuncs.rel ../build/services.rel ../build/zos.rel
+	make -C ../stdlib
+	sdldz80 -m -w -i  -b _BOOT=0x0001 -b _ISRS=0x0020 -b _SERVICES=0x0064 -b _GLOBALS=0x00E0 -b _CODE=0x0200 zos ../build/bootloader.rel ../build/globals.rel ../build/isrs.rel ../build/llfuncs.rel ../build/services.rel ../build/zos.rel -l ../build/stdlib.a
+	mv zos.ihx ../build/
 
-bootloader.rel: bootloader.zasm
-	sdasz80 -l -o bootloader.rel bootloader.zasm
+	mv zos.map ../build/
 
-services.rel: services.zasm
-	sdasz80 -l -o services.rel services.zasm
+../build/zos.rel: zos.c
+	sdcc -c $(CFLAGS) -o ../build/zos.rel  -mz80 zos.c
 
-globals.rel: globals.zasm
-	sdasz80 -l -o globals.rel globals.zasm
+../build/bootloader.rel: bootloader.zasm
+	python ../z80asm.py -r ../build/bootloader.rel bootloader.zasm
 
-isrs.rel: isrs.zasm
-	sdasz80 -l -o isrs.rel isrs.zasm
+../build/globals.rel: globals.zasm
+	python ../z80asm.py -r ../build/globals.rel globals.zasm
 
-llfuncs.rel: llfuncs.zasm
-	python z80asm.py llfuncs.zasm
+../build/isrs.rel: isrs.zasm
+	python ../z80asm.py -r ../build/isrs.rel isrs.zasm
 
-stdlib.rel: ../stdlib/stdlib.zasm
-	sdasz80 -l -o stdlib.rel ../stdlib/stdlib.zasm
+../build/llfuncs.rel: llfuncs.zasm
+	python ../z80asm.py -r ../build/llfuncs.rel llfuncs.zasm
 
-zos.rel: zos.c
-	sdcc -c $(CFLAGS) -mz80 zos.c
+../build/services.rel: services.zasm
+	python ../z80asm.py -r ../build/services.rel services.zasm
 
-stdlibimpl.rel: ../stdlib/stdlibimpl.c
-	sdcc -c $(CFLAGS) -mz80 ../stdlib/stdlibimpl.c
-
-clean:
-	rm -f *.asm
-	rm -f *.map
-	rm -f *.rel
-	rm -f *.lst
-	rm -f *.sym
-	rm -f *.cdb
-	rm -f *.rst
-	rm -f *.ihx
-	rm -f intermediate/*

@@ -1,0 +1,784 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.2.0 #13081 (MINGW64)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module strhash
+                                      6 	.optsdcc -mz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _compare_n
+                                     12 	.globl _copy_n
+                                     13 	.globl _release
+                                     14 	.globl _allocate
+                                     15 	.globl _vector_access
+                                     16 	.globl _vector_push
+                                     17 	.globl _vector_size
+                                     18 	.globl _vector_shut
+                                     19 	.globl _vector_new
+                                     20 	.globl _strlen
+                                     21 	.globl _sh_init
+                                     22 	.globl _sh_shut
+                                     23 	.globl _sh_get
+                                     24 	.globl _sh_text
+                                     25 	.globl _sh_temp
+                                     26 	.globl _sh_size
+                                     27 ;--------------------------------------------------------
+                                     28 ; special function registers
+                                     29 ;--------------------------------------------------------
+                                     30 ;--------------------------------------------------------
+                                     31 ; ram data
+                                     32 ;--------------------------------------------------------
+                                     33 	.area _DATA
+      000000                         34 _sh_temp_hex_65536_82:
+      000000                         35 	.ds 2
+                                     36 ;--------------------------------------------------------
+                                     37 ; ram data
+                                     38 ;--------------------------------------------------------
+                                     39 	.area _INITIALIZED
+                                     40 ;--------------------------------------------------------
+                                     41 ; absolute external ram data
+                                     42 ;--------------------------------------------------------
+                                     43 	.area _DABS (ABS)
+                                     44 ;--------------------------------------------------------
+                                     45 ; global & static initialisations
+                                     46 ;--------------------------------------------------------
+                                     47 	.area _HOME
+                                     48 	.area _GSINIT
+                                     49 	.area _GSFINAL
+                                     50 	.area _GSINIT
+                                     51 ;strhash.c:128: static const char* hex = "0123456789ABCDEF";
+      000000 21rBAr03         [10]   52 	ld	hl, #___str_0+0
+      000003 22r00r00         [16]   53 	ld	(_sh_temp_hex_65536_82), hl
+                                     54 ;--------------------------------------------------------
+                                     55 ; Home
+                                     56 ;--------------------------------------------------------
+                                     57 	.area _HOME
+                                     58 	.area _HOME
+                                     59 ;--------------------------------------------------------
+                                     60 ; code
+                                     61 ;--------------------------------------------------------
+                                     62 	.area _CODE
+                                     63 ;strhash.c:8: void copy_n(char* dst, const char* src, int n)
+                                     64 ;	---------------------------------
+                                     65 ; Function copy_n
+                                     66 ; ---------------------------------
+      000000                         67 _copy_n::
+      000000 DD E5            [15]   68 	push	ix
+      000002 DD 21 00 00      [14]   69 	ld	ix,#0
+      000006 DD 39            [15]   70 	add	ix,sp
+                                     71 ;strhash.c:10: for (int i = 0; i < n; ++i, ++src, ++dst)
+      000008 01 00 00         [10]   72 	ld	bc, #0x0000
+      00000B                         73 00105$:
+      00000B 79               [ 4]   74 	ld	a, c
+      00000C DD 96 04         [19]   75 	sub	a, 4 (ix)
+      00000F 78               [ 4]   76 	ld	a, b
+      000010 DD 9E 05         [19]   77 	sbc	a, 5 (ix)
+      000013 E2r18r00         [10]   78 	jp	PO, 00125$
+      000016 EE 80            [ 7]   79 	xor	a, #0x80
+      000018                         80 00125$:
+      000018 F2r26r00         [10]   81 	jp	P, 00107$
+                                     82 ;strhash.c:12: *dst = *src;
+      00001B 1A               [ 7]   83 	ld	a, (de)
+      00001C 77               [ 7]   84 	ld	(hl), a
+                                     85 ;strhash.c:13: if (*src == 0) break;
+      00001D 1A               [ 7]   86 	ld	a, (de)
+      00001E B7               [ 4]   87 	or	a, a
+      00001F 28 05            [12]   88 	jr	Z, 00107$
+                                     89 ;strhash.c:10: for (int i = 0; i < n; ++i, ++src, ++dst)
+      000021 23               [ 6]   90 	inc	hl
+      000022 03               [ 6]   91 	inc	bc
+      000023 13               [ 6]   92 	inc	de
+      000024 18 E5            [12]   93 	jr	00105$
+      000026                         94 00107$:
+                                     95 ;strhash.c:15: }
+      000026 DD E1            [14]   96 	pop	ix
+      000028 E1               [10]   97 	pop	hl
+      000029 F1               [10]   98 	pop	af
+      00002A E9               [ 4]   99 	jp	(hl)
+                                    100 ;strhash.c:17: int compare_n(const char* a, const char* b, int n)
+                                    101 ;	---------------------------------
+                                    102 ; Function compare_n
+                                    103 ; ---------------------------------
+      00002B                        104 _compare_n::
+      00002B DD E5            [15]  105 	push	ix
+      00002D DD 21 00 00      [14]  106 	ld	ix,#0
+      000031 DD 39            [15]  107 	add	ix,sp
+      000033 F5               [11]  108 	push	af
+      000034 F5               [11]  109 	push	af
+      000035 DD 75 FE         [19]  110 	ld	-2 (ix), l
+      000038 DD 74 FF         [19]  111 	ld	-1 (ix), h
+      00003B 33               [ 6]  112 	inc	sp
+      00003C 33               [ 6]  113 	inc	sp
+      00003D D5               [11]  114 	push	de
+                                    115 ;strhash.c:19: for (int i = 0; i < n; ++i)
+      00003E 01 00 00         [10]  116 	ld	bc, #0x0000
+      000041                        117 00110$:
+      000041 79               [ 4]  118 	ld	a, c
+      000042 DD 96 04         [19]  119 	sub	a, 4 (ix)
+      000045 78               [ 4]  120 	ld	a, b
+      000046 DD 9E 05         [19]  121 	sbc	a, 5 (ix)
+      000049 E2r4Er00         [10]  122 	jp	PO, 00144$
+      00004C EE 80            [ 7]  123 	xor	a, #0x80
+      00004E                        124 00144$:
+      00004E F2r7Cr00         [10]  125 	jp	P, 00108$
+                                    126 ;strhash.c:21: if (*a < *b) return -1;
+      000051 DD 6E FE         [19]  127 	ld	l, -2 (ix)
+      000054 DD 66 FF         [19]  128 	ld	h, -1 (ix)
+      000057 5E               [ 7]  129 	ld	e, (hl)
+      000058 E1               [10]  130 	pop	hl
+      000059 E5               [11]  131 	push	hl
+      00005A 56               [ 7]  132 	ld	d, (hl)
+      00005B 7B               [ 4]  133 	ld	a, e
+      00005C 92               [ 4]  134 	sub	a, d
+      00005D 30 05            [12]  135 	jr	NC, 00102$
+      00005F 11 FF FF         [10]  136 	ld	de, #0xffff
+      000062 18 1B            [12]  137 	jr	00112$
+      000064                        138 00102$:
+                                    139 ;strhash.c:22: if (*a > *b) return 1;
+      000064 7A               [ 4]  140 	ld	a, d
+      000065 93               [ 4]  141 	sub	a, e
+      000066 30 05            [12]  142 	jr	NC, 00104$
+      000068 11 01 00         [10]  143 	ld	de, #0x0001
+      00006B 18 12            [12]  144 	jr	00112$
+      00006D                        145 00104$:
+                                    146 ;strhash.c:23: if (*a == 0 && *b == 0) return 0;
+      00006D 7B               [ 4]  147 	ld	a, e
+      00006E B7               [ 4]  148 	or	a,a
+      00006F 20 08            [12]  149 	jr	NZ, 00111$
+      000071 B2               [ 4]  150 	or	a,d
+      000072 20 05            [12]  151 	jr	NZ, 00111$
+      000074 11 00 00         [10]  152 	ld	de, #0x0000
+      000077 18 06            [12]  153 	jr	00112$
+      000079                        154 00111$:
+                                    155 ;strhash.c:19: for (int i = 0; i < n; ++i)
+      000079 03               [ 6]  156 	inc	bc
+      00007A 18 C5            [12]  157 	jr	00110$
+      00007C                        158 00108$:
+                                    159 ;strhash.c:25: return 0;
+      00007C 11 00 00         [10]  160 	ld	de, #0x0000
+      00007F                        161 00112$:
+                                    162 ;strhash.c:26: }
+      00007F DD F9            [10]  163 	ld	sp, ix
+      000081 DD E1            [14]  164 	pop	ix
+      000083 E1               [10]  165 	pop	hl
+      000084 F1               [10]  166 	pop	af
+      000085 E9               [ 4]  167 	jp	(hl)
+                                    168 ;strhash.c:29: static word calculate_crc16(const byte* buffer, int len)
+                                    169 ;	---------------------------------
+                                    170 ; Function calculate_crc16
+                                    171 ; ---------------------------------
+      000086                        172 _calculate_crc16:
+      000086 DD E5            [15]  173 	push	ix
+      000088 DD 21 00 00      [14]  174 	ld	ix,#0
+      00008C DD 39            [15]  175 	add	ix,sp
+      00008E FD 21 F7 FF      [14]  176 	ld	iy, #-9
+      000092 FD 39            [15]  177 	add	iy, sp
+      000094 FD F9            [10]  178 	ld	sp, iy
+      000096 DD 75 FE         [19]  179 	ld	-2 (ix), l
+      000099 DD 74 FF         [19]  180 	ld	-1 (ix), h
+      00009C DD 73 FC         [19]  181 	ld	-4 (ix), e
+      00009F DD 72 FD         [19]  182 	ld	-3 (ix), d
+                                    183 ;strhash.c:31: word result = 0;
+      0000A2 21 00 00         [10]  184 	ld	hl, #0x0000
+      0000A5 E3               [19]  185 	ex	(sp), hl
+                                    186 ;strhash.c:32: for (int i = 0; i < len; ++i)
+      0000A6 01 00 00         [10]  187 	ld	bc, #0x0000
+      0000A9                        188 00103$:
+      0000A9 79               [ 4]  189 	ld	a, c
+      0000AA DD 96 FC         [19]  190 	sub	a, -4 (ix)
+      0000AD 78               [ 4]  191 	ld	a, b
+      0000AE DD 9E FD         [19]  192 	sbc	a, -3 (ix)
+      0000B1 E2rB6r00         [10]  193 	jp	PO, 00118$
+      0000B4 EE 80            [ 7]  194 	xor	a, #0x80
+      0000B6                        195 00118$:
+      0000B6 F2r0Ar01         [10]  196 	jp	P, 00101$
+                                    197 ;strhash.c:34: byte data = buffer[i] ^ (byte)(result & 0xFF);
+      0000B9 DD 6E FE         [19]  198 	ld	l, -2 (ix)
+      0000BC DD 66 FF         [19]  199 	ld	h, -1 (ix)
+      0000BF 09               [11]  200 	add	hl, bc
+      0000C0 7E               [ 7]  201 	ld	a, (hl)
+      0000C1 DD 5E F7         [19]  202 	ld	e, -9 (ix)
+      0000C4 AB               [ 4]  203 	xor	a, e
+                                    204 ;strhash.c:35: data = data ^ (data << 4);
+      0000C5 5F               [ 4]  205 	ld	e, a
+      0000C6 87               [ 4]  206 	add	a, a
+      0000C7 87               [ 4]  207 	add	a, a
+      0000C8 87               [ 4]  208 	add	a, a
+      0000C9 87               [ 4]  209 	add	a, a
+      0000CA AB               [ 4]  210 	xor	a, e
+                                    211 ;strhash.c:36: result = (((word)data << 8) | (result >> 8)) ^ (data >> 4) ^ ((word)data << 3);
+      0000CB DD 77 F9         [19]  212 	ld	-7 (ix), a
+      0000CE DD 77 FA         [19]  213 	ld	-6 (ix), a
+      0000D1 DD 36 FB 00      [19]  214 	ld	-5 (ix), #0x00
+      0000D5 DD 56 FA         [19]  215 	ld	d, -6 (ix)
+      0000D8 1E 00            [ 7]  216 	ld	e, #0x00
+      0000DA DD 6E F8         [19]  217 	ld	l, -8 (ix)
+                                    218 ;	spillPairReg hl
+                                    219 ;	spillPairReg hl
+      0000DD 26 00            [ 7]  220 	ld	h, #0x00
+                                    221 ;	spillPairReg hl
+                                    222 ;	spillPairReg hl
+      0000DF 7B               [ 4]  223 	ld	a, e
+      0000E0 B5               [ 4]  224 	or	a, l
+      0000E1 5F               [ 4]  225 	ld	e, a
+      0000E2 7A               [ 4]  226 	ld	a, d
+      0000E3 B4               [ 4]  227 	or	a, h
+      0000E4 57               [ 4]  228 	ld	d, a
+      0000E5 DD 7E F9         [19]  229 	ld	a, -7 (ix)
+      0000E8 07               [ 4]  230 	rlca
+      0000E9 07               [ 4]  231 	rlca
+      0000EA 07               [ 4]  232 	rlca
+      0000EB 07               [ 4]  233 	rlca
+      0000EC E6 0F            [ 7]  234 	and	a, #0x0f
+      0000EE 2E 00            [ 7]  235 	ld	l, #0x00
+                                    236 ;	spillPairReg hl
+                                    237 ;	spillPairReg hl
+      0000F0 AB               [ 4]  238 	xor	a, e
+      0000F1 5F               [ 4]  239 	ld	e, a
+      0000F2 7D               [ 4]  240 	ld	a, l
+      0000F3 AA               [ 4]  241 	xor	a, d
+      0000F4 57               [ 4]  242 	ld	d, a
+      0000F5 DD 6E FA         [19]  243 	ld	l, -6 (ix)
+      0000F8 DD 66 FB         [19]  244 	ld	h, -5 (ix)
+      0000FB 29               [11]  245 	add	hl, hl
+      0000FC 29               [11]  246 	add	hl, hl
+      0000FD 29               [11]  247 	add	hl, hl
+      0000FE 7B               [ 4]  248 	ld	a, e
+      0000FF AD               [ 4]  249 	xor	a, l
+      000100 5F               [ 4]  250 	ld	e, a
+      000101 7A               [ 4]  251 	ld	a, d
+      000102 AC               [ 4]  252 	xor	a, h
+      000103 57               [ 4]  253 	ld	d, a
+      000104 33               [ 6]  254 	inc	sp
+      000105 33               [ 6]  255 	inc	sp
+      000106 D5               [11]  256 	push	de
+                                    257 ;strhash.c:32: for (int i = 0; i < len; ++i)
+      000107 03               [ 6]  258 	inc	bc
+      000108 18 9F            [12]  259 	jr	00103$
+      00010A                        260 00101$:
+                                    261 ;strhash.c:38: return result;
+      00010A D1               [10]  262 	pop	de
+      00010B D5               [11]  263 	push	de
+                                    264 ;strhash.c:39: }
+      00010C DD F9            [10]  265 	ld	sp, ix
+      00010E DD E1            [14]  266 	pop	ix
+      000110 C9               [10]  267 	ret
+                                    268 ;strhash.c:41: static byte checksum(const char* text)
+                                    269 ;	---------------------------------
+                                    270 ; Function checksum
+                                    271 ; ---------------------------------
+      000111                        272 _checksum:
+                                    273 ;strhash.c:44: byte res = 0xFF;
+      000111 0E FF            [ 7]  274 	ld	c, #0xff
+                                    275 ;strhash.c:47: return res;
+      000113                        276 00103$:
+                                    277 ;strhash.c:45: for (; *bytes; ++bytes)
+      000113 7E               [ 7]  278 	ld	a, (hl)
+      000114 B7               [ 4]  279 	or	a, a
+      000115 28 05            [12]  280 	jr	Z, 00101$
+                                    281 ;strhash.c:46: res += *bytes;
+                                    282 ;strhash.c:45: for (; *bytes; ++bytes)
+      000117 23               [ 6]  283 	inc	hl
+      000118 81               [ 4]  284 	add	a, c
+      000119 4F               [ 4]  285 	ld	c, a
+      00011A 18 F7            [12]  286 	jr	00103$
+      00011C                        287 00101$:
+                                    288 ;strhash.c:47: return res;
+      00011C 79               [ 4]  289 	ld	a, c
+                                    290 ;strhash.c:48: }
+      00011D C9               [10]  291 	ret
+                                    292 ;strhash.c:64: StrHash* sh_init()
+                                    293 ;	---------------------------------
+                                    294 ; Function sh_init
+                                    295 ; ---------------------------------
+      00011E                        296 _sh_init::
+                                    297 ;strhash.c:66: StrHash* sh = (StrHash*)allocate(sizeof(StrHash));
+      00011E 21 04 00         [10]  298 	ld	hl, #0x0004
+      000121 CDr00r00         [17]  299 	call	_allocate
+                                    300 ;strhash.c:67: sh->strings = vector_new(sizeof(TextNode));
+      000124 D5               [11]  301 	push	de
+      000125 21 10 00         [10]  302 	ld	hl, #0x0010
+      000128 CDr00r00         [17]  303 	call	_vector_new
+      00012B 4B               [ 4]  304 	ld	c, e
+      00012C 42               [ 4]  305 	ld	b, d
+      00012D D1               [10]  306 	pop	de
+      00012E 6B               [ 4]  307 	ld	l, e
+      00012F 62               [ 4]  308 	ld	h, d
+      000130 71               [ 7]  309 	ld	(hl), c
+      000131 23               [ 6]  310 	inc	hl
+      000132 70               [ 7]  311 	ld	(hl), b
+                                    312 ;strhash.c:68: sh->last_temporary = 0;
+      000133 4B               [ 4]  313 	ld	c, e
+      000134 42               [ 4]  314 	ld	b, d
+      000135 03               [ 6]  315 	inc	bc
+      000136 03               [ 6]  316 	inc	bc
+      000137 AF               [ 4]  317 	xor	a, a
+      000138 02               [ 7]  318 	ld	(bc), a
+      000139 03               [ 6]  319 	inc	bc
+      00013A 02               [ 7]  320 	ld	(bc), a
+                                    321 ;strhash.c:69: return sh;
+                                    322 ;strhash.c:70: }
+      00013B C9               [10]  323 	ret
+                                    324 ;strhash.c:72: void sh_shut(StrHash* sh)
+                                    325 ;	---------------------------------
+                                    326 ; Function sh_shut
+                                    327 ; ---------------------------------
+      00013C                        328 _sh_shut::
+                                    329 ;strhash.c:74: vector_shut(sh->strings);
+      00013C 5E               [ 7]  330 	ld	e, (hl)
+      00013D 23               [ 6]  331 	inc	hl
+      00013E 56               [ 7]  332 	ld	d, (hl)
+      00013F 2B               [ 6]  333 	dec	hl
+      000140 EB               [ 4]  334 	ex	de, hl
+      000141 D5               [11]  335 	push	de
+      000142 CDr00r00         [17]  336 	call	_vector_shut
+      000145 E1               [10]  337 	pop	hl
+                                    338 ;strhash.c:75: release(sh);
+                                    339 ;strhash.c:76: }
+      000146 C3r00r00         [10]  340 	jp	_release
+                                    341 ;strhash.c:78: word sh_get(StrHash* sh, const char* text)
+                                    342 ;	---------------------------------
+                                    343 ; Function sh_get
+                                    344 ; ---------------------------------
+      000149                        345 _sh_get::
+      000149 DD E5            [15]  346 	push	ix
+      00014B DD 21 00 00      [14]  347 	ld	ix,#0
+      00014F DD 39            [15]  348 	add	ix,sp
+      000151 FD 21 E6 FF      [14]  349 	ld	iy, #-26
+      000155 FD 39            [15]  350 	add	iy, sp
+      000157 FD F9            [10]  351 	ld	sp, iy
+      000159 DD 75 FC         [19]  352 	ld	-4 (ix), l
+      00015C DD 74 FD         [19]  353 	ld	-3 (ix), h
+      00015F 4B               [ 4]  354 	ld	c, e
+      000160 42               [ 4]  355 	ld	b, d
+                                    356 ;strhash.c:80: const size_t n=strlen(text);
+      000161 C5               [11]  357 	push	bc
+      000162 69               [ 4]  358 	ld	l, c
+                                    359 ;	spillPairReg hl
+                                    360 ;	spillPairReg hl
+      000163 60               [ 4]  361 	ld	h, b
+                                    362 ;	spillPairReg hl
+                                    363 ;	spillPairReg hl
+      000164 CDr00r00         [17]  364 	call	_strlen
+      000167 C1               [10]  365 	pop	bc
+      000168 DD 73 F6         [19]  366 	ld	-10 (ix), e
+      00016B DD 72 F7         [19]  367 	ld	-9 (ix), d
+                                    368 ;strhash.c:81: if (n >= MAX_LENGTH) return 0;
+      00016E DD 7E F6         [19]  369 	ld	a, -10 (ix)
+      000171 D6 0D            [ 7]  370 	sub	a, #0x0d
+      000173 DD 7E F7         [19]  371 	ld	a, -9 (ix)
+      000176 DE 00            [ 7]  372 	sbc	a, #0x00
+      000178 38 06            [12]  373 	jr	C, 00102$
+      00017A 11 00 00         [10]  374 	ld	de, #0x0000
+      00017D C3r5Dr02         [10]  375 	jp	00115$
+      000180                        376 00102$:
+                                    377 ;strhash.c:82: const word crc = calculate_crc16(text, n);
+      000180 C5               [11]  378 	push	bc
+      000181 DD 5E F6         [19]  379 	ld	e, -10 (ix)
+      000184 DD 56 F7         [19]  380 	ld	d, -9 (ix)
+      000187 69               [ 4]  381 	ld	l, c
+                                    382 ;	spillPairReg hl
+                                    383 ;	spillPairReg hl
+      000188 60               [ 4]  384 	ld	h, b
+                                    385 ;	spillPairReg hl
+                                    386 ;	spillPairReg hl
+      000189 CDr86r00         [17]  387 	call	_calculate_crc16
+      00018C C1               [10]  388 	pop	bc
+      00018D DD 73 F8         [19]  389 	ld	-8 (ix), e
+                                    390 ;strhash.c:83: if (crc == 0) return 0;
+      000190 DD 72 F9         [19]  391 	ld	-7 (ix), d
+      000193 7A               [ 4]  392 	ld	a, d
+      000194 DD B6 F8         [19]  393 	or	a, -8 (ix)
+      000197 20 06            [12]  394 	jr	NZ, 00104$
+      000199 11 00 00         [10]  395 	ld	de, #0x0000
+      00019C C3r5Dr02         [10]  396 	jp	00115$
+      00019F                        397 00104$:
+                                    398 ;strhash.c:84: const word m = vector_size(sh->strings);
+      00019F DD 6E FC         [19]  399 	ld	l, -4 (ix)
+      0001A2 DD 66 FD         [19]  400 	ld	h, -3 (ix)
+      0001A5 5E               [ 7]  401 	ld	e, (hl)
+      0001A6 23               [ 6]  402 	inc	hl
+      0001A7 56               [ 7]  403 	ld	d, (hl)
+      0001A8 C5               [11]  404 	push	bc
+      0001A9 EB               [ 4]  405 	ex	de, hl
+      0001AA CDr00r00         [17]  406 	call	_vector_size
+      0001AD C1               [10]  407 	pop	bc
+      0001AE DD 73 FA         [19]  408 	ld	-6 (ix), e
+      0001B1 DD 72 FB         [19]  409 	ld	-5 (ix), d
+                                    410 ;strhash.c:86: for (word i = 0; i < m; ++i)
+      0001B4 AF               [ 4]  411 	xor	a, a
+      0001B5 DD 77 FE         [19]  412 	ld	-2 (ix), a
+      0001B8 DD 77 FF         [19]  413 	ld	-1 (ix), a
+      0001BB                        414 00113$:
+      0001BB DD 7E FE         [19]  415 	ld	a, -2 (ix)
+      0001BE DD 96 FA         [19]  416 	sub	a, -6 (ix)
+      0001C1 DD 7E FF         [19]  417 	ld	a, -1 (ix)
+      0001C4 DD 9E FB         [19]  418 	sbc	a, -5 (ix)
+      0001C7 30 4B            [12]  419 	jr	NC, 00109$
+                                    420 ;strhash.c:88: cur = (TextNode*)vector_access(sh->strings, i);
+      0001C9 DD 6E FC         [19]  421 	ld	l, -4 (ix)
+      0001CC DD 66 FD         [19]  422 	ld	h, -3 (ix)
+      0001CF 7E               [ 7]  423 	ld	a, (hl)
+      0001D0 23               [ 6]  424 	inc	hl
+      0001D1 66               [ 7]  425 	ld	h, (hl)
+                                    426 ;	spillPairReg hl
+      0001D2 6F               [ 4]  427 	ld	l, a
+                                    428 ;	spillPairReg hl
+                                    429 ;	spillPairReg hl
+      0001D3 C5               [11]  430 	push	bc
+      0001D4 DD 5E FE         [19]  431 	ld	e, -2 (ix)
+      0001D7 DD 56 FF         [19]  432 	ld	d, -1 (ix)
+      0001DA CDr00r00         [17]  433 	call	_vector_access
+      0001DD C1               [10]  434 	pop	bc
+                                    435 ;strhash.c:89: if (cur->id == crc)
+      0001DE 6B               [ 4]  436 	ld	l, e
+      0001DF 62               [ 4]  437 	ld	h, d
+      0001E0 7E               [ 7]  438 	ld	a, (hl)
+      0001E1 23               [ 6]  439 	inc	hl
+      0001E2 66               [ 7]  440 	ld	h, (hl)
+                                    441 ;	spillPairReg hl
+                                    442 ;	spillPairReg hl
+                                    443 ;	spillPairReg hl
+      0001E3 DD 96 F8         [19]  444 	sub	a, -8 (ix)
+      0001E6 20 22            [12]  445 	jr	NZ, 00114$
+      0001E8 7C               [ 4]  446 	ld	a, h
+      0001E9 DD 96 F9         [19]  447 	sub	a, -7 (ix)
+      0001EC 20 1C            [12]  448 	jr	NZ, 00114$
+                                    449 ;strhash.c:91: if (compare_n(text, cur->text, MAX_LENGTH) != 0)
+      0001EE 13               [ 6]  450 	inc	de
+      0001EF 13               [ 6]  451 	inc	de
+      0001F0 21 0D 00         [10]  452 	ld	hl, #0x000d
+      0001F3 E5               [11]  453 	push	hl
+      0001F4 69               [ 4]  454 	ld	l, c
+                                    455 ;	spillPairReg hl
+                                    456 ;	spillPairReg hl
+      0001F5 60               [ 4]  457 	ld	h, b
+                                    458 ;	spillPairReg hl
+                                    459 ;	spillPairReg hl
+      0001F6 CDr2Br00         [17]  460 	call	_compare_n
+      0001F9 7A               [ 4]  461 	ld	a, d
+      0001FA B3               [ 4]  462 	or	a, e
+      0001FB 28 05            [12]  463 	jr	Z, 00106$
+                                    464 ;strhash.c:97: return 0;
+      0001FD 11 00 00         [10]  465 	ld	de, #0x0000
+      000200 18 5B            [12]  466 	jr	00115$
+      000202                        467 00106$:
+                                    468 ;strhash.c:99: return crc;
+      000202 DD 5E F8         [19]  469 	ld	e, -8 (ix)
+      000205 DD 56 F9         [19]  470 	ld	d, -7 (ix)
+      000208 18 53            [12]  471 	jr	00115$
+      00020A                        472 00114$:
+                                    473 ;strhash.c:86: for (word i = 0; i < m; ++i)
+      00020A DD 34 FE         [23]  474 	inc	-2 (ix)
+      00020D 20 AC            [12]  475 	jr	NZ, 00113$
+      00020F DD 34 FF         [23]  476 	inc	-1 (ix)
+      000212 18 A7            [12]  477 	jr	00113$
+      000214                        478 00109$:
+                                    479 ;strhash.c:103: copy_n(new_node.text, text, n);
+      000214 DD 6E F6         [19]  480 	ld	l, -10 (ix)
+                                    481 ;	spillPairReg hl
+                                    482 ;	spillPairReg hl
+      000217 DD 66 F7         [19]  483 	ld	h, -9 (ix)
+                                    484 ;	spillPairReg hl
+                                    485 ;	spillPairReg hl
+      00021A E5               [11]  486 	push	hl
+      00021B 59               [ 4]  487 	ld	e, c
+      00021C 50               [ 4]  488 	ld	d, b
+      00021D 21 04 00         [10]  489 	ld	hl, #4
+      000220 39               [11]  490 	add	hl, sp
+      000221 CDr00r00         [17]  491 	call	_copy_n
+                                    492 ;strhash.c:104: new_node.text[n] = 0;
+      000224 DD 5E F6         [19]  493 	ld	e, -10 (ix)
+      000227 DD 56 F7         [19]  494 	ld	d, -9 (ix)
+      00022A 21 02 00         [10]  495 	ld	hl, #2
+      00022D 39               [11]  496 	add	hl, sp
+      00022E 19               [11]  497 	add	hl, de
+      00022F 36 00            [10]  498 	ld	(hl), #0x00
+                                    499 ;strhash.c:105: new_node.id = crc;
+      000231 DD 7E F8         [19]  500 	ld	a, -8 (ix)
+      000234 DD 77 E6         [19]  501 	ld	-26 (ix), a
+      000237 DD 7E F9         [19]  502 	ld	a, -7 (ix)
+      00023A DD 77 E7         [19]  503 	ld	-25 (ix), a
+                                    504 ;strhash.c:106: if (!vector_push(sh->strings, &new_node)) return 0;
+      00023D 21 00 00         [10]  505 	ld	hl, #0
+      000240 39               [11]  506 	add	hl, sp
+      000241 EB               [ 4]  507 	ex	de, hl
+      000242 DD 6E FC         [19]  508 	ld	l, -4 (ix)
+      000245 DD 66 FD         [19]  509 	ld	h, -3 (ix)
+      000248 4E               [ 7]  510 	ld	c, (hl)
+      000249 23               [ 6]  511 	inc	hl
+      00024A 66               [ 7]  512 	ld	h, (hl)
+                                    513 ;	spillPairReg hl
+      00024B 69               [ 4]  514 	ld	l, c
+                                    515 ;	spillPairReg hl
+                                    516 ;	spillPairReg hl
+      00024C CDr00r00         [17]  517 	call	_vector_push
+      00024F B7               [ 4]  518 	or	a, a
+      000250 20 05            [12]  519 	jr	NZ, 00111$
+      000252 11 00 00         [10]  520 	ld	de, #0x0000
+      000255 18 06            [12]  521 	jr	00115$
+      000257                        522 00111$:
+                                    523 ;strhash.c:107: return crc;
+      000257 DD 5E F8         [19]  524 	ld	e, -8 (ix)
+      00025A DD 56 F9         [19]  525 	ld	d, -7 (ix)
+      00025D                        526 00115$:
+                                    527 ;strhash.c:108: }
+      00025D DD F9            [10]  528 	ld	sp, ix
+      00025F DD E1            [14]  529 	pop	ix
+      000261 C9               [10]  530 	ret
+                                    531 ;strhash.c:110: byte sh_text(StrHash* sh, char* text, word id)
+                                    532 ;	---------------------------------
+                                    533 ; Function sh_text
+                                    534 ; ---------------------------------
+      000262                        535 _sh_text::
+      000262 DD E5            [15]  536 	push	ix
+      000264 DD 21 00 00      [14]  537 	ld	ix,#0
+      000268 DD 39            [15]  538 	add	ix,sp
+      00026A FD 21 F8 FF      [14]  539 	ld	iy, #-8
+      00026E FD 39            [15]  540 	add	iy, sp
+      000270 FD F9            [10]  541 	ld	sp, iy
+      000272 DD 75 FC         [19]  542 	ld	-4 (ix), l
+      000275 DD 74 FD         [19]  543 	ld	-3 (ix), h
+      000278 DD 73 FA         [19]  544 	ld	-6 (ix), e
+      00027B DD 72 FB         [19]  545 	ld	-5 (ix), d
+                                    546 ;strhash.c:112: const word m = vector_size(sh->strings);
+      00027E DD 6E FC         [19]  547 	ld	l, -4 (ix)
+      000281 DD 66 FD         [19]  548 	ld	h, -3 (ix)
+      000284 4E               [ 7]  549 	ld	c, (hl)
+      000285 23               [ 6]  550 	inc	hl
+      000286 66               [ 7]  551 	ld	h, (hl)
+                                    552 ;	spillPairReg hl
+      000287 69               [ 4]  553 	ld	l, c
+                                    554 ;	spillPairReg hl
+                                    555 ;	spillPairReg hl
+      000288 CDr00r00         [17]  556 	call	_vector_size
+      00028B 33               [ 6]  557 	inc	sp
+      00028C 33               [ 6]  558 	inc	sp
+      00028D D5               [11]  559 	push	de
+                                    560 ;strhash.c:114: for (word i = 0; i < m; ++i)
+      00028E AF               [ 4]  561 	xor	a, a
+      00028F DD 77 FE         [19]  562 	ld	-2 (ix), a
+      000292 DD 77 FF         [19]  563 	ld	-1 (ix), a
+      000295                        564 00105$:
+      000295 DD 7E FE         [19]  565 	ld	a, -2 (ix)
+      000298 DD 96 F8         [19]  566 	sub	a, -8 (ix)
+      00029B DD 7E FF         [19]  567 	ld	a, -1 (ix)
+      00029E DD 9E F9         [19]  568 	sbc	a, -7 (ix)
+      0002A1 30 40            [12]  569 	jr	NC, 00103$
+                                    570 ;strhash.c:116: cur = (TextNode*)vector_access(sh->strings, i);
+      0002A3 DD 6E FC         [19]  571 	ld	l, -4 (ix)
+      0002A6 DD 66 FD         [19]  572 	ld	h, -3 (ix)
+      0002A9 4E               [ 7]  573 	ld	c, (hl)
+      0002AA 23               [ 6]  574 	inc	hl
+      0002AB 66               [ 7]  575 	ld	h, (hl)
+                                    576 ;	spillPairReg hl
+      0002AC DD 5E FE         [19]  577 	ld	e, -2 (ix)
+      0002AF DD 56 FF         [19]  578 	ld	d, -1 (ix)
+      0002B2 69               [ 4]  579 	ld	l, c
+                                    580 ;	spillPairReg hl
+                                    581 ;	spillPairReg hl
+      0002B3 CDr00r00         [17]  582 	call	_vector_access
+                                    583 ;strhash.c:117: if (cur->id == id)
+      0002B6 6B               [ 4]  584 	ld	l, e
+      0002B7 62               [ 4]  585 	ld	h, d
+      0002B8 4E               [ 7]  586 	ld	c, (hl)
+      0002B9 23               [ 6]  587 	inc	hl
+      0002BA 46               [ 7]  588 	ld	b, (hl)
+      0002BB DD 6E 04         [19]  589 	ld	l, 4 (ix)
+      0002BE DD 66 05         [19]  590 	ld	h, 5 (ix)
+      0002C1 BF               [ 4]  591 	cp	a, a
+      0002C2 ED 42            [15]  592 	sbc	hl, bc
+      0002C4 20 13            [12]  593 	jr	NZ, 00106$
+                                    594 ;strhash.c:119: copy_n(text, cur->text, MAX_LENGTH);
+      0002C6 13               [ 6]  595 	inc	de
+      0002C7 13               [ 6]  596 	inc	de
+      0002C8 21 0D 00         [10]  597 	ld	hl, #0x000d
+      0002CB E5               [11]  598 	push	hl
+      0002CC DD 6E FA         [19]  599 	ld	l, -6 (ix)
+                                    600 ;	spillPairReg hl
+                                    601 ;	spillPairReg hl
+      0002CF DD 66 FB         [19]  602 	ld	h, -5 (ix)
+                                    603 ;	spillPairReg hl
+                                    604 ;	spillPairReg hl
+      0002D2 CDr00r00         [17]  605 	call	_copy_n
+                                    606 ;strhash.c:120: return 1;
+      0002D5 3E 01            [ 7]  607 	ld	a, #0x01
+      0002D7 18 0B            [12]  608 	jr	00107$
+      0002D9                        609 00106$:
+                                    610 ;strhash.c:114: for (word i = 0; i < m; ++i)
+      0002D9 DD 34 FE         [23]  611 	inc	-2 (ix)
+      0002DC 20 B7            [12]  612 	jr	NZ, 00105$
+      0002DE DD 34 FF         [23]  613 	inc	-1 (ix)
+      0002E1 18 B2            [12]  614 	jr	00105$
+      0002E3                        615 00103$:
+                                    616 ;strhash.c:123: return 0;
+      0002E3 AF               [ 4]  617 	xor	a, a
+      0002E4                        618 00107$:
+                                    619 ;strhash.c:124: }
+      0002E4 DD F9            [10]  620 	ld	sp, ix
+      0002E6 DD E1            [14]  621 	pop	ix
+      0002E8 E1               [10]  622 	pop	hl
+      0002E9 C1               [10]  623 	pop	bc
+      0002EA E9               [ 4]  624 	jp	(hl)
+                                    625 ;strhash.c:126: word sh_temp(StrHash* sh)
+                                    626 ;	---------------------------------
+                                    627 ; Function sh_temp
+                                    628 ; ---------------------------------
+      0002EB                        629 _sh_temp::
+      0002EB DD E5            [15]  630 	push	ix
+      0002ED DD 21 00 00      [14]  631 	ld	ix,#0
+      0002F1 DD 39            [15]  632 	add	ix,sp
+      0002F3 FD 21 EC FF      [14]  633 	ld	iy, #-20
+      0002F7 FD 39            [15]  634 	add	iy, sp
+      0002F9 FD F9            [10]  635 	ld	sp, iy
+      0002FB DD 75 FE         [19]  636 	ld	-2 (ix), l
+      0002FE DD 74 FF         [19]  637 	ld	-1 (ix), h
+                                    638 ;strhash.c:129: word id = 0;
+      000301 01 00 00         [10]  639 	ld	bc, #0x0000
+                                    640 ;strhash.c:131: copy_n(temp_name, "TEMP", 4);
+      000304 C5               [11]  641 	push	bc
+      000305 21 04 00         [10]  642 	ld	hl, #0x0004
+      000308 E5               [11]  643 	push	hl
+      000309 11rCBr03         [10]  644 	ld	de, #___str_1
+      00030C 21 04 00         [10]  645 	ld	hl, #4
+      00030F 39               [11]  646 	add	hl, sp
+      000310 CDr00r00         [17]  647 	call	_copy_n
+      000313 C1               [10]  648 	pop	bc
+                                    649 ;strhash.c:132: while (id == 0)
+      000314 DD 7E FE         [19]  650 	ld	a, -2 (ix)
+      000317 C6 02            [ 7]  651 	add	a, #0x02
+      000319 DD 77 F6         [19]  652 	ld	-10 (ix), a
+      00031C DD 7E FF         [19]  653 	ld	a, -1 (ix)
+      00031F CE 00            [ 7]  654 	adc	a, #0x00
+      000321 DD 77 F7         [19]  655 	ld	-9 (ix), a
+      000324 DD 7E F6         [19]  656 	ld	a, -10 (ix)
+      000327 DD 77 F8         [19]  657 	ld	-8 (ix), a
+      00032A DD 7E F7         [19]  658 	ld	a, -9 (ix)
+      00032D DD 77 F9         [19]  659 	ld	-7 (ix), a
+      000330                        660 00102$:
+      000330 78               [ 4]  661 	ld	a, b
+      000331 B1               [ 4]  662 	or	a, c
+      000332 C2rB3r03         [10]  663 	jp	NZ, 00104$
+                                    664 ;strhash.c:134: ++(sh->last_temporary);
+      000335 DD 6E F6         [19]  665 	ld	l, -10 (ix)
+      000338 DD 66 F7         [19]  666 	ld	h, -9 (ix)
+      00033B 4E               [ 7]  667 	ld	c, (hl)
+      00033C 23               [ 6]  668 	inc	hl
+      00033D 46               [ 7]  669 	ld	b, (hl)
+      00033E 03               [ 6]  670 	inc	bc
+      00033F DD 6E F6         [19]  671 	ld	l, -10 (ix)
+      000342 DD 66 F7         [19]  672 	ld	h, -9 (ix)
+      000345 71               [ 7]  673 	ld	(hl), c
+      000346 23               [ 6]  674 	inc	hl
+      000347 70               [ 7]  675 	ld	(hl), b
+                                    676 ;strhash.c:135: byte shift = 12;
+                                    677 ;strhash.c:136: for (byte i = 0; i < 4; ++i)
+      000348 11 0C 00         [10]  678 	ld	de, #0xc
+      00034B                        679 00106$:
+                                    680 ;strhash.c:138: temp_name[4 + i] = hex[(sh->last_temporary >> shift) & 15];
+      00034B 7A               [ 4]  681 	ld	a,d
+      00034C FE 04            [ 7]  682 	cp	a,#0x04
+      00034E 30 4C            [12]  683 	jr	NC, 00101$
+      000350 C6 04            [ 7]  684 	add	a, #0x04
+      000352 4F               [ 4]  685 	ld	c, a
+      000353 07               [ 4]  686 	rlca
+      000354 9F               [ 4]  687 	sbc	a, a
+      000355 47               [ 4]  688 	ld	b, a
+      000356 21 00 00         [10]  689 	ld	hl, #0
+      000359 39               [11]  690 	add	hl, sp
+      00035A 09               [11]  691 	add	hl, bc
+      00035B DD 75 FA         [19]  692 	ld	-6 (ix), l
+      00035E DD 74 FB         [19]  693 	ld	-5 (ix), h
+      000361 DD 6E F8         [19]  694 	ld	l, -8 (ix)
+      000364 DD 66 F9         [19]  695 	ld	h, -7 (ix)
+      000367 7E               [ 7]  696 	ld	a, (hl)
+      000368 23               [ 6]  697 	inc	hl
+      000369 66               [ 7]  698 	ld	h, (hl)
+                                    699 ;	spillPairReg hl
+      00036A 6F               [ 4]  700 	ld	l, a
+                                    701 ;	spillPairReg hl
+                                    702 ;	spillPairReg hl
+      00036B 43               [ 4]  703 	ld	b, e
+      00036C 04               [ 4]  704 	inc	b
+      00036D 18 04            [12]  705 	jr	00132$
+      00036F                        706 00131$:
+      00036F CB 3C            [ 8]  707 	srl	h
+      000371 CB 1D            [ 8]  708 	rr	l
+      000373                        709 00132$:
+      000373 10 FA            [13]  710 	djnz	00131$
+      000375 7D               [ 4]  711 	ld	a, l
+      000376 E6 0F            [ 7]  712 	and	a, #0x0f
+      000378 DD 77 FC         [19]  713 	ld	-4 (ix), a
+      00037B DD 36 FD 00      [19]  714 	ld	-3 (ix), #0x00
+      00037F DD 7E FC         [19]  715 	ld	a, -4 (ix)
+      000382 21r00r00         [10]  716 	ld	hl, #_sh_temp_hex_65536_82
+      000385 86               [ 7]  717 	add	a, (hl)
+      000386 4F               [ 4]  718 	ld	c, a
+      000387 DD 7E FD         [19]  719 	ld	a, -3 (ix)
+      00038A 23               [ 6]  720 	inc	hl
+      00038B 8E               [ 7]  721 	adc	a, (hl)
+      00038C 47               [ 4]  722 	ld	b, a
+      00038D 0A               [ 7]  723 	ld	a, (bc)
+      00038E DD 6E FA         [19]  724 	ld	l, -6 (ix)
+      000391 DD 66 FB         [19]  725 	ld	h, -5 (ix)
+      000394 77               [ 7]  726 	ld	(hl), a
+                                    727 ;strhash.c:139: shift -= 4;
+      000395 7B               [ 4]  728 	ld	a, e
+      000396 C6 FC            [ 7]  729 	add	a, #0xfc
+      000398 5F               [ 4]  730 	ld	e, a
+                                    731 ;strhash.c:136: for (byte i = 0; i < 4; ++i)
+      000399 14               [ 4]  732 	inc	d
+      00039A 18 AF            [12]  733 	jr	00106$
+      00039C                        734 00101$:
+                                    735 ;strhash.c:141: temp_name[8] = 0;
+      00039C DD 36 F4 00      [19]  736 	ld	-12 (ix), #0x00
+                                    737 ;strhash.c:142: id = sh_get(sh, temp_name);
+      0003A0 21 00 00         [10]  738 	ld	hl, #0
+      0003A3 39               [11]  739 	add	hl, sp
+      0003A4 EB               [ 4]  740 	ex	de, hl
+      0003A5 DD 6E FE         [19]  741 	ld	l, -2 (ix)
+                                    742 ;	spillPairReg hl
+                                    743 ;	spillPairReg hl
+      0003A8 DD 66 FF         [19]  744 	ld	h, -1 (ix)
+                                    745 ;	spillPairReg hl
+                                    746 ;	spillPairReg hl
+      0003AB CDr49r01         [17]  747 	call	_sh_get
+      0003AE 4B               [ 4]  748 	ld	c, e
+      0003AF 42               [ 4]  749 	ld	b, d
+      0003B0 C3r30r03         [10]  750 	jp	00102$
+      0003B3                        751 00104$:
+                                    752 ;strhash.c:144: return id;
+      0003B3 59               [ 4]  753 	ld	e, c
+      0003B4 50               [ 4]  754 	ld	d, b
+                                    755 ;strhash.c:145: }
+      0003B5 DD F9            [10]  756 	ld	sp, ix
+      0003B7 DD E1            [14]  757 	pop	ix
+      0003B9 C9               [10]  758 	ret
+      0003BA                        759 ___str_0:
+      0003BA 30 31 32 33 34 35 36   760 	.ascii "0123456789ABCDEF"
+             37 38 39 41 42 43 44
+             45 46
+      0003CA 00                     761 	.db 0x00
+      0003CB                        762 ___str_1:
+      0003CB 54 45 4D 50            763 	.ascii "TEMP"
+      0003CF 00                     764 	.db 0x00
+                                    765 ;strhash.c:147: word sh_size(StrHash* sh)
+                                    766 ;	---------------------------------
+                                    767 ; Function sh_size
+                                    768 ; ---------------------------------
+      0003D0                        769 _sh_size::
+                                    770 ;strhash.c:149: return vector_size(sh->strings);
+      0003D0 4E               [ 7]  771 	ld	c, (hl)
+      0003D1 23               [ 6]  772 	inc	hl
+      0003D2 66               [ 7]  773 	ld	h, (hl)
+                                    774 ;	spillPairReg hl
+      0003D3 69               [ 4]  775 	ld	l, c
+                                    776 ;	spillPairReg hl
+                                    777 ;	spillPairReg hl
+                                    778 ;strhash.c:150: }
+      0003D4 C3r00r00         [10]  779 	jp	_vector_size
+                                    780 	.area _CODE
+                                    781 	.area _INITIALIZER
+                                    782 	.area _CABS (ABS)

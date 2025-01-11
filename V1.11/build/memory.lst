@@ -1,0 +1,1044 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.2.0 #13081 (MINGW64)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module memory
+                                      6 	.optsdcc -mz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _defrag
+                                     12 	.globl _unite_free_blocks
+                                     13 	.globl _sort_free_blocks
+                                     14 	.globl _find_free_block
+                                     15 	.globl _get_pointer
+                                     16 	.globl _get_offset
+                                     17 	.globl _check_heap
+                                     18 	.globl _alloc_init
+                                     19 	.globl _alloc_shut
+                                     20 	.globl _allocate
+                                     21 	.globl _release
+                                     22 	.globl _verify_heap
+                                     23 	.globl _get_total_allocated
+                                     24 	.globl _get_max_allocated
+                                     25 	.globl _print_leaked
+                                     26 ;--------------------------------------------------------
+                                     27 ; special function registers
+                                     28 ;--------------------------------------------------------
+                                     29 ;--------------------------------------------------------
+                                     30 ; ram data
+                                     31 ;--------------------------------------------------------
+                                     32 	.area _DATA
+      000000                         33 _max_allocated:
+      000000                         34 	.ds 2
+      000002                         35 _total_allocated:
+      000002                         36 	.ds 2
+      000004                         37 _heap:
+      000004                         38 	.ds 2
+      000006                         39 _free_block:
+      000006                         40 	.ds 2
+                                     41 ;--------------------------------------------------------
+                                     42 ; ram data
+                                     43 ;--------------------------------------------------------
+                                     44 	.area _INITIALIZED
+      000000                         45 _static_heap:
+      000000                         46 	.ds 2
+                                     47 ;--------------------------------------------------------
+                                     48 ; absolute external ram data
+                                     49 ;--------------------------------------------------------
+                                     50 	.area _DABS (ABS)
+                                     51 ;--------------------------------------------------------
+                                     52 ; global & static initialisations
+                                     53 ;--------------------------------------------------------
+                                     54 	.area _HOME
+                                     55 	.area _GSINIT
+                                     56 	.area _GSFINAL
+                                     57 	.area _GSINIT
+                                     58 ;--------------------------------------------------------
+                                     59 ; Home
+                                     60 ;--------------------------------------------------------
+                                     61 	.area _HOME
+                                     62 	.area _HOME
+                                     63 ;--------------------------------------------------------
+                                     64 ; code
+                                     65 ;--------------------------------------------------------
+                                     66 	.area _CODE
+                                     67 ;memory.c:13: byte check_heap(word size)
+                                     68 ;	---------------------------------
+                                     69 ; Function check_heap
+                                     70 ; ---------------------------------
+      000000                         71 _check_heap::
+      000000 EB               [ 4]   72 	ex	de, hl
+                                     73 ;memory.c:15: return (heap + size) <= HEAP_SIZE;
+      000001 2Ar04r00         [16]   74 	ld	hl, (_heap)
+      000004 19               [11]   75 	add	hl, de
+      000005 AF               [ 4]   76 	xor	a, a
+      000006 BD               [ 4]   77 	cp	a, l
+      000007 3E 70            [ 7]   78 	ld	a, #0x70
+      000009 9C               [ 4]   79 	sbc	a, h
+      00000A 3E 00            [ 7]   80 	ld	a, #0x00
+      00000C 17               [ 4]   81 	rla
+      00000D EE 01            [ 7]   82 	xor	a, #0x01
+                                     83 ;memory.c:16: }
+      00000F C9               [10]   84 	ret
+                                     85 ;memory.c:28: word get_offset(void* ptr)
+                                     86 ;	---------------------------------
+                                     87 ; Function get_offset
+                                     88 ; ---------------------------------
+      000010                         89 _get_offset::
+      000010 EB               [ 4]   90 	ex	de, hl
+                                     91 ;memory.c:30: return (word)(((byte*)ptr) - static_heap);
+      000011 21r00r00         [10]   92 	ld	hl, #_static_heap
+      000014 7B               [ 4]   93 	ld	a, e
+      000015 96               [ 7]   94 	sub	a, (hl)
+      000016 23               [ 6]   95 	inc	hl
+      000017 5F               [ 4]   96 	ld	e, a
+      000018 7A               [ 4]   97 	ld	a, d
+      000019 9E               [ 7]   98 	sbc	a, (hl)
+      00001A 57               [ 4]   99 	ld	d, a
+                                    100 ;memory.c:31: }
+      00001B C9               [10]  101 	ret
+                                    102 ;memory.c:33: void* get_pointer(word offset)
+                                    103 ;	---------------------------------
+                                    104 ; Function get_pointer
+                                    105 ; ---------------------------------
+      00001C                        106 _get_pointer::
+      00001C EB               [ 4]  107 	ex	de, hl
+                                    108 ;memory.c:35: return static_heap + offset;
+      00001D 2Ar00r00         [16]  109 	ld	hl, (_static_heap)
+      000020 19               [11]  110 	add	hl, de
+      000021 EB               [ 4]  111 	ex	de, hl
+                                    112 ;memory.c:36: }
+      000022 C9               [10]  113 	ret
+                                    114 ;memory.c:38: void alloc_init()
+                                    115 ;	---------------------------------
+                                    116 ; Function alloc_init
+                                    117 ; ---------------------------------
+      000023                        118 _alloc_init::
+                                    119 ;memory.c:43: max_allocated = 0;
+      000023 21 00 00         [10]  120 	ld	hl, #0x0000
+      000026 22r00r00         [16]  121 	ld	(_max_allocated), hl
+                                    122 ;memory.c:44: total_allocated = 0;
+      000029 22r02r00         [16]  123 	ld	(_total_allocated), hl
+                                    124 ;memory.c:45: heap=0;
+      00002C 22r04r00         [16]  125 	ld	(_heap), hl
+                                    126 ;memory.c:46: free_block = 0xFFFF;
+      00002F 21 FF FF         [10]  127 	ld	hl, #0xffff
+      000032 22r06r00         [16]  128 	ld	(_free_block), hl
+                                    129 ;memory.c:47: static_heap = (byte*)0x8000;
+      000035 21 00 80         [10]  130 	ld	hl, #0x8000
+      000038 22r00r00         [16]  131 	ld	(_static_heap), hl
+                                    132 ;memory.c:49: }
+      00003B C9               [10]  133 	ret
+                                    134 ;memory.c:51: void alloc_shut()
+                                    135 ;	---------------------------------
+                                    136 ; Function alloc_shut
+                                    137 ; ---------------------------------
+      00003C                        138 _alloc_shut::
+                                    139 ;memory.c:57: }
+      00003C C9               [10]  140 	ret
+                                    141 ;memory.c:59: void* find_free_block(word size)
+                                    142 ;	---------------------------------
+                                    143 ; Function find_free_block
+                                    144 ; ---------------------------------
+      00003D                        145 _find_free_block::
+      00003D DD E5            [15]  146 	push	ix
+      00003F DD 21 00 00      [14]  147 	ld	ix,#0
+      000043 DD 39            [15]  148 	add	ix,sp
+      000045 FD 21 F2 FF      [14]  149 	ld	iy, #-14
+      000049 FD 39            [15]  150 	add	iy, sp
+      00004B FD F9            [10]  151 	ld	sp, iy
+      00004D DD 75 FE         [19]  152 	ld	-2 (ix), l
+      000050 DD 74 FF         [19]  153 	ld	-1 (ix), h
+                                    154 ;memory.c:61: word best=0xFFFF;
+      000053 DD 36 FC FF      [19]  155 	ld	-4 (ix), #0xff
+      000057 DD 36 FD FF      [19]  156 	ld	-3 (ix), #0xff
+                                    157 ;memory.c:62: word best_prev=0xFFFF;
+      00005B 21 FF FF         [10]  158 	ld	hl, #0xffff
+      00005E E3               [19]  159 	ex	(sp), hl
+                                    160 ;memory.c:63: word best_diff=0xFFFF;
+      00005F DD 36 FA FF      [19]  161 	ld	-6 (ix), #0xff
+      000063 DD 36 FB FF      [19]  162 	ld	-5 (ix), #0xff
+                                    163 ;memory.c:64: word prev = 0xFFFF;
+      000067 DD 36 F8 FF      [19]  164 	ld	-8 (ix), #0xff
+      00006B DD 36 F9 FF      [19]  165 	ld	-7 (ix), #0xff
+                                    166 ;memory.c:65: word current = free_block;
+      00006F ED 4Br06r00      [20]  167 	ld	bc, (_free_block)
+                                    168 ;memory.c:66: word* best_ptr=0;
+      000073 AF               [ 4]  169 	xor	a, a
+      000074 DD 77 F4         [19]  170 	ld	-12 (ix), a
+      000077 DD 77 F5         [19]  171 	ld	-11 (ix), a
+                                    172 ;memory.c:67: while (current != 0xFFFF)
+      00007A                        173 00110$:
+      00007A 59               [ 4]  174 	ld	e, c
+      00007B 50               [ 4]  175 	ld	d, b
+      00007C 7B               [ 4]  176 	ld	a, e
+      00007D A2               [ 4]  177 	and	a, d
+      00007E 3C               [ 4]  178 	inc	a
+      00007F 28 64            [12]  179 	jr	Z, 00112$
+                                    180 ;memory.c:69: word* ptr=(word*)get_pointer(current);
+      000081 C5               [11]  181 	push	bc
+      000082 69               [ 4]  182 	ld	l, c
+                                    183 ;	spillPairReg hl
+                                    184 ;	spillPairReg hl
+      000083 60               [ 4]  185 	ld	h, b
+                                    186 ;	spillPairReg hl
+                                    187 ;	spillPairReg hl
+      000084 CDr1Cr00         [17]  188 	call	_get_pointer
+      000087 C1               [10]  189 	pop	bc
+      000088 EB               [ 4]  190 	ex	de, hl
+                                    191 ;memory.c:70: word block_size = *ptr;
+      000089 5E               [ 7]  192 	ld	e, (hl)
+      00008A 23               [ 6]  193 	inc	hl
+      00008B 56               [ 7]  194 	ld	d, (hl)
+      00008C 2B               [ 6]  195 	dec	hl
+                                    196 ;memory.c:71: if (block_size >= size)
+      00008D 7B               [ 4]  197 	ld	a, e
+      00008E DD 96 FE         [19]  198 	sub	a, -2 (ix)
+      000091 7A               [ 4]  199 	ld	a, d
+      000092 DD 9E FF         [19]  200 	sbc	a, -1 (ix)
+      000095 38 41            [12]  201 	jr	C, 00109$
+                                    202 ;memory.c:73: word diff=block_size-size;
+      000097 7B               [ 4]  203 	ld	a, e
+      000098 DD 96 FE         [19]  204 	sub	a, -2 (ix)
+      00009B 5F               [ 4]  205 	ld	e, a
+      00009C 7A               [ 4]  206 	ld	a, d
+      00009D DD 9E FF         [19]  207 	sbc	a, -1 (ix)
+                                    208 ;memory.c:74: if (diff == 0 || diff >= (2 * sizeof(word)))
+      0000A0 57               [ 4]  209 	ld	d, a
+      0000A1 B3               [ 4]  210 	or	a, e
+      0000A2 28 08            [12]  211 	jr	Z, 00105$
+      0000A4 7B               [ 4]  212 	ld	a, e
+      0000A5 D6 04            [ 7]  213 	sub	a, #0x04
+      0000A7 7A               [ 4]  214 	ld	a, d
+      0000A8 DE 00            [ 7]  215 	sbc	a, #0x00
+      0000AA 38 2C            [12]  216 	jr	C, 00109$
+      0000AC                        217 00105$:
+                                    218 ;memory.c:76: if (diff < best_diff)
+      0000AC 7B               [ 4]  219 	ld	a, e
+      0000AD DD 96 FA         [19]  220 	sub	a, -6 (ix)
+      0000B0 7A               [ 4]  221 	ld	a, d
+      0000B1 DD 9E FB         [19]  222 	sbc	a, -5 (ix)
+      0000B4 30 22            [12]  223 	jr	NC, 00109$
+                                    224 ;memory.c:78: best_ptr=ptr;
+      0000B6 DD 75 F4         [19]  225 	ld	-12 (ix), l
+      0000B9 DD 74 F5         [19]  226 	ld	-11 (ix), h
+                                    227 ;memory.c:79: best_diff = diff;
+      0000BC DD 73 FA         [19]  228 	ld	-6 (ix), e
+      0000BF DD 72 FB         [19]  229 	ld	-5 (ix), d
+                                    230 ;memory.c:80: best = current;
+      0000C2 DD 71 FC         [19]  231 	ld	-4 (ix), c
+      0000C5 DD 70 FD         [19]  232 	ld	-3 (ix), b
+                                    233 ;memory.c:81: best_prev = prev;
+      0000C8 DD 7E F8         [19]  234 	ld	a, -8 (ix)
+      0000CB DD 77 F2         [19]  235 	ld	-14 (ix), a
+      0000CE DD 7E F9         [19]  236 	ld	a, -7 (ix)
+      0000D1 DD 77 F3         [19]  237 	ld	-13 (ix), a
+                                    238 ;memory.c:82: if (best_diff==0) break;
+      0000D4 7A               [ 4]  239 	ld	a, d
+      0000D5 B3               [ 4]  240 	or	a, e
+      0000D6 28 0D            [12]  241 	jr	Z, 00112$
+      0000D8                        242 00109$:
+                                    243 ;memory.c:86: prev=current;
+      0000D8 DD 71 F8         [19]  244 	ld	-8 (ix), c
+      0000DB DD 70 F9         [19]  245 	ld	-7 (ix), b
+                                    246 ;memory.c:87: current=ptr[1];
+      0000DE 23               [ 6]  247 	inc	hl
+      0000DF 23               [ 6]  248 	inc	hl
+      0000E0 4E               [ 7]  249 	ld	c, (hl)
+      0000E1 23               [ 6]  250 	inc	hl
+      0000E2 46               [ 7]  251 	ld	b, (hl)
+      0000E3 18 95            [12]  252 	jr	00110$
+      0000E5                        253 00112$:
+                                    254 ;memory.c:89: if (best == 0xFFFF) return 0;
+      0000E5 DD 7E FC         [19]  255 	ld	a, -4 (ix)
+      0000E8 DD 46 FD         [19]  256 	ld	b, -3 (ix)
+      0000EB A0               [ 4]  257 	and	a, b
+      0000EC 3C               [ 4]  258 	inc	a
+      0000ED 20 06            [12]  259 	jr	NZ, 00114$
+      0000EF 11 00 00         [10]  260 	ld	de, #0x0000
+      0000F2 C3rDAr01         [10]  261 	jp	00120$
+      0000F5                        262 00114$:
+                                    263 ;memory.c:95: left_over[1]=best_ptr[1];
+      0000F5 DD 7E F4         [19]  264 	ld	a, -12 (ix)
+      0000F8 C6 02            [ 7]  265 	add	a, #0x02
+      0000FA DD 77 F6         [19]  266 	ld	-10 (ix), a
+      0000FD DD 7E F5         [19]  267 	ld	a, -11 (ix)
+      000100 CE 00            [ 7]  268 	adc	a, #0x00
+      000102 DD 77 F7         [19]  269 	ld	-9 (ix), a
+                                    270 ;memory.c:90: if (best_diff > 0)
+      000105 DD 7E FB         [19]  271 	ld	a, -5 (ix)
+      000108 DD B6 FA         [19]  272 	or	a, -6 (ix)
+      00010B 28 78            [12]  273 	jr	Z, 00116$
+                                    274 ;memory.c:93: word* left_over = (word*)get_pointer(best+size);
+      00010D DD 7E FC         [19]  275 	ld	a, -4 (ix)
+      000110 DD 86 FE         [19]  276 	add	a, -2 (ix)
+      000113 DD 77 F8         [19]  277 	ld	-8 (ix), a
+      000116 DD 7E FD         [19]  278 	ld	a, -3 (ix)
+      000119 DD 8E FF         [19]  279 	adc	a, -1 (ix)
+      00011C DD 77 F9         [19]  280 	ld	-7 (ix), a
+      00011F DD 6E F8         [19]  281 	ld	l, -8 (ix)
+                                    282 ;	spillPairReg hl
+                                    283 ;	spillPairReg hl
+      000122 DD 66 F9         [19]  284 	ld	h, -7 (ix)
+                                    285 ;	spillPairReg hl
+                                    286 ;	spillPairReg hl
+      000125 CDr1Cr00         [17]  287 	call	_get_pointer
+      000128 DD 73 FC         [19]  288 	ld	-4 (ix), e
+      00012B DD 72 FD         [19]  289 	ld	-3 (ix), d
+      00012E DD 7E FC         [19]  290 	ld	a, -4 (ix)
+      000131 DD 77 FA         [19]  291 	ld	-6 (ix), a
+      000134 DD 7E FD         [19]  292 	ld	a, -3 (ix)
+      000137 DD 77 FB         [19]  293 	ld	-5 (ix), a
+                                    294 ;memory.c:94: left_over[0]=*best_ptr - size;
+      00013A DD 6E F4         [19]  295 	ld	l, -12 (ix)
+      00013D DD 66 F5         [19]  296 	ld	h, -11 (ix)
+      000140 7E               [ 7]  297 	ld	a, (hl)
+      000141 DD 77 FC         [19]  298 	ld	-4 (ix), a
+      000144 23               [ 6]  299 	inc	hl
+      000145 7E               [ 7]  300 	ld	a, (hl)
+      000146 DD 77 FD         [19]  301 	ld	-3 (ix), a
+      000149 DD 7E FC         [19]  302 	ld	a, -4 (ix)
+      00014C DD 96 FE         [19]  303 	sub	a, -2 (ix)
+      00014F 4F               [ 4]  304 	ld	c, a
+      000150 DD 7E FD         [19]  305 	ld	a, -3 (ix)
+      000153 DD 9E FF         [19]  306 	sbc	a, -1 (ix)
+      000156 47               [ 4]  307 	ld	b, a
+      000157 DD 6E FA         [19]  308 	ld	l, -6 (ix)
+      00015A DD 66 FB         [19]  309 	ld	h, -5 (ix)
+      00015D 71               [ 7]  310 	ld	(hl), c
+      00015E 23               [ 6]  311 	inc	hl
+      00015F 70               [ 7]  312 	ld	(hl), b
+                                    313 ;memory.c:95: left_over[1]=best_ptr[1];
+      000160 DD 4E FA         [19]  314 	ld	c, -6 (ix)
+      000163 DD 46 FB         [19]  315 	ld	b, -5 (ix)
+      000166 03               [ 6]  316 	inc	bc
+      000167 03               [ 6]  317 	inc	bc
+      000168 DD 6E F6         [19]  318 	ld	l, -10 (ix)
+      00016B DD 66 F7         [19]  319 	ld	h, -9 (ix)
+      00016E 5E               [ 7]  320 	ld	e, (hl)
+      00016F 23               [ 6]  321 	inc	hl
+      000170 56               [ 7]  322 	ld	d, (hl)
+      000171 7B               [ 4]  323 	ld	a, e
+      000172 02               [ 7]  324 	ld	(bc), a
+      000173 03               [ 6]  325 	inc	bc
+      000174 7A               [ 4]  326 	ld	a, d
+      000175 02               [ 7]  327 	ld	(bc), a
+                                    328 ;memory.c:96: best_ptr[1]=best+size;
+      000176 DD 6E F6         [19]  329 	ld	l, -10 (ix)
+      000179 DD 66 F7         [19]  330 	ld	h, -9 (ix)
+      00017C DD 7E F8         [19]  331 	ld	a, -8 (ix)
+      00017F 77               [ 7]  332 	ld	(hl), a
+      000180 23               [ 6]  333 	inc	hl
+      000181 DD 7E F9         [19]  334 	ld	a, -7 (ix)
+      000184 77               [ 7]  335 	ld	(hl), a
+      000185                        336 00116$:
+                                    337 ;memory.c:98: if (best_prev != 0xFFFF)
+      000185 C1               [10]  338 	pop	bc
+      000186 C5               [11]  339 	push	bc
+      000187 79               [ 4]  340 	ld	a, c
+      000188 A0               [ 4]  341 	and	a, b
+      000189 3C               [ 4]  342 	inc	a
+      00018A 28 3B            [12]  343 	jr	Z, 00118$
+                                    344 ;memory.c:100: word* prev_ptr = (word*)get_pointer(best_prev);
+      00018C E1               [10]  345 	pop	hl
+      00018D E5               [11]  346 	push	hl
+      00018E CDr1Cr00         [17]  347 	call	_get_pointer
+      000191 DD 73 FC         [19]  348 	ld	-4 (ix), e
+      000194 DD 72 FD         [19]  349 	ld	-3 (ix), d
+                                    350 ;memory.c:101: prev_ptr[1]=best_ptr[1];
+      000197 DD 7E FC         [19]  351 	ld	a, -4 (ix)
+      00019A C6 02            [ 7]  352 	add	a, #0x02
+      00019C DD 77 FA         [19]  353 	ld	-6 (ix), a
+      00019F DD 7E FD         [19]  354 	ld	a, -3 (ix)
+      0001A2 CE 00            [ 7]  355 	adc	a, #0x00
+      0001A4 DD 77 FB         [19]  356 	ld	-5 (ix), a
+      0001A7 DD 6E F6         [19]  357 	ld	l, -10 (ix)
+      0001AA DD 66 F7         [19]  358 	ld	h, -9 (ix)
+      0001AD 7E               [ 7]  359 	ld	a, (hl)
+      0001AE DD 77 FC         [19]  360 	ld	-4 (ix), a
+      0001B1 23               [ 6]  361 	inc	hl
+      0001B2 7E               [ 7]  362 	ld	a, (hl)
+      0001B3 DD 77 FD         [19]  363 	ld	-3 (ix), a
+      0001B6 DD 6E FA         [19]  364 	ld	l, -6 (ix)
+      0001B9 DD 66 FB         [19]  365 	ld	h, -5 (ix)
+      0001BC DD 7E FC         [19]  366 	ld	a, -4 (ix)
+      0001BF 77               [ 7]  367 	ld	(hl), a
+      0001C0 23               [ 6]  368 	inc	hl
+      0001C1 DD 7E FD         [19]  369 	ld	a, -3 (ix)
+      0001C4 77               [ 7]  370 	ld	(hl), a
+      0001C5 18 0F            [12]  371 	jr	00119$
+      0001C7                        372 00118$:
+                                    373 ;memory.c:104: free_block = best_ptr[1];
+      0001C7 DD 6E F6         [19]  374 	ld	l, -10 (ix)
+      0001CA DD 66 F7         [19]  375 	ld	h, -9 (ix)
+      0001CD 7E               [ 7]  376 	ld	a, (hl)
+      0001CE 23               [ 6]  377 	inc	hl
+      0001CF 32r06r00         [13]  378 	ld	(_free_block+0), a
+      0001D2 7E               [ 7]  379 	ld	a, (hl)
+      0001D3 32r07r00         [13]  380 	ld	(_free_block+1), a
+      0001D6                        381 00119$:
+                                    382 ;memory.c:105: return best_ptr;
+      0001D6 E1               [10]  383 	pop	hl
+      0001D7 D1               [10]  384 	pop	de
+      0001D8 D5               [11]  385 	push	de
+      0001D9 E5               [11]  386 	push	hl
+      0001DA                        387 00120$:
+                                    388 ;memory.c:106: }
+      0001DA DD F9            [10]  389 	ld	sp, ix
+      0001DC DD E1            [14]  390 	pop	ix
+      0001DE C9               [10]  391 	ret
+                                    392 ;memory.c:108: void* allocate(word size)
+                                    393 ;	---------------------------------
+                                    394 ; Function allocate
+                                    395 ; ---------------------------------
+      0001DF                        396 _allocate::
+      0001DF DD E5            [15]  397 	push	ix
+      0001E1 DD 21 00 00      [14]  398 	ld	ix,#0
+      0001E5 DD 39            [15]  399 	add	ix,sp
+      0001E7 F5               [11]  400 	push	af
+      0001E8 4D               [ 4]  401 	ld	c, l
+      0001E9 44               [ 4]  402 	ld	b, h
+                                    403 ;memory.c:110: if (size==0) return 0;
+      0001EA 78               [ 4]  404 	ld	a, b
+      0001EB B1               [ 4]  405 	or	a, c
+      0001EC 20 05            [12]  406 	jr	NZ, 00102$
+      0001EE 11 00 00         [10]  407 	ld	de, #0x0000
+      0001F1 18 73            [12]  408 	jr	00111$
+      0001F3                        409 00102$:
+                                    410 ;memory.c:111: if (size<sizeof(word))
+      0001F3 79               [ 4]  411 	ld	a, c
+      0001F4 D6 02            [ 7]  412 	sub	a, #0x02
+      0001F6 78               [ 4]  413 	ld	a, b
+      0001F7 DE 00            [ 7]  414 	sbc	a, #0x00
+      0001F9 30 03            [12]  415 	jr	NC, 00104$
+                                    416 ;memory.c:112: size=sizeof(word); // minimum allocation is sizeof(word)
+      0001FB 01 02 00         [10]  417 	ld	bc, #0x0002
+      0001FE                        418 00104$:
+                                    419 ;memory.c:113: size += sizeof(word);
+      0001FE 03               [ 6]  420 	inc	bc
+      0001FF 03               [ 6]  421 	inc	bc
+                                    422 ;memory.c:114: void* best_free_block=find_free_block(size);
+      000200 C5               [11]  423 	push	bc
+      000201 69               [ 4]  424 	ld	l, c
+                                    425 ;	spillPairReg hl
+                                    426 ;	spillPairReg hl
+      000202 60               [ 4]  427 	ld	h, b
+                                    428 ;	spillPairReg hl
+                                    429 ;	spillPairReg hl
+      000203 CDr3Dr00         [17]  430 	call	_find_free_block
+      000206 C1               [10]  431 	pop	bc
+                                    432 ;memory.c:115: if (!best_free_block)
+      000207 7A               [ 4]  433 	ld	a, d
+      000208 B3               [ 4]  434 	or	a, e
+      000209 20 29            [12]  435 	jr	NZ, 00108$
+                                    436 ;memory.c:117: if (!check_heap(size)) return 0;
+      00020B C5               [11]  437 	push	bc
+      00020C 69               [ 4]  438 	ld	l, c
+                                    439 ;	spillPairReg hl
+                                    440 ;	spillPairReg hl
+      00020D 60               [ 4]  441 	ld	h, b
+                                    442 ;	spillPairReg hl
+                                    443 ;	spillPairReg hl
+      00020E CDr00r00         [17]  444 	call	_check_heap
+      000211 C1               [10]  445 	pop	bc
+      000212 B7               [ 4]  446 	or	a, a
+      000213 20 05            [12]  447 	jr	NZ, 00106$
+      000215 11 00 00         [10]  448 	ld	de, #0x0000
+      000218 18 4C            [12]  449 	jr	00111$
+      00021A                        450 00106$:
+                                    451 ;memory.c:118: best_free_block = get_pointer(heap);
+      00021A C5               [11]  452 	push	bc
+      00021B 2Ar04r00         [16]  453 	ld	hl, (_heap)
+      00021E CDr1Cr00         [17]  454 	call	_get_pointer
+      000221 C1               [10]  455 	pop	bc
+                                    456 ;memory.c:119: heap += size;
+      000222 79               [ 4]  457 	ld	a, c
+      000223 FD 21r04r00      [14]  458 	ld	iy, #_heap
+      000227 FD 86 00         [19]  459 	add	a, 0 (iy)
+      00022A 32r04r00         [13]  460 	ld	(_heap+0), a
+      00022D 78               [ 4]  461 	ld	a, b
+      00022E FD 8E 01         [19]  462 	adc	a, 1 (iy)
+      000231 32r05r00         [13]  463 	ld	(_heap+1), a
+      000234                        464 00108$:
+                                    465 ;memory.c:121: word* header = (word*)best_free_block;
+      000234 33               [ 6]  466 	inc	sp
+      000235 33               [ 6]  467 	inc	sp
+      000236 D5               [11]  468 	push	de
+                                    469 ;memory.c:122: *header = size;
+      000237 E1               [10]  470 	pop	hl
+      000238 E5               [11]  471 	push	hl
+      000239 71               [ 7]  472 	ld	(hl), c
+      00023A 23               [ 6]  473 	inc	hl
+      00023B 70               [ 7]  474 	ld	(hl), b
+                                    475 ;memory.c:123: total_allocated += size;
+      00023C 21r02r00         [10]  476 	ld	hl, #_total_allocated
+      00023F 7E               [ 7]  477 	ld	a, (hl)
+      000240 81               [ 4]  478 	add	a, c
+      000241 77               [ 7]  479 	ld	(hl), a
+      000242 23               [ 6]  480 	inc	hl
+      000243 7E               [ 7]  481 	ld	a, (hl)
+      000244 88               [ 4]  482 	adc	a, b
+      000245 77               [ 7]  483 	ld	(hl), a
+                                    484 ;memory.c:124: if (heap > max_allocated)
+      000246 21r00r00         [10]  485 	ld	hl, #_max_allocated
+      000249 7E               [ 7]  486 	ld	a, (hl)
+      00024A FD 21r04r00      [14]  487 	ld	iy, #_heap
+      00024E FD 96 00         [19]  488 	sub	a, 0 (iy)
+      000251 23               [ 6]  489 	inc	hl
+      000252 7E               [ 7]  490 	ld	a, (hl)
+      000253 FD 9E 01         [19]  491 	sbc	a, 1 (iy)
+      000256 30 06            [12]  492 	jr	NC, 00110$
+                                    493 ;memory.c:126: max_allocated=heap;
+      000258 2Ar04r00         [16]  494 	ld	hl, (_heap)
+      00025B 22r00r00         [16]  495 	ld	(_max_allocated), hl
+      00025E                        496 00110$:
+                                    497 ;memory.c:128: word offset= get_offset(best_free_block);
+      00025E EB               [ 4]  498 	ex	de, hl
+      00025F CDr10r00         [17]  499 	call	_get_offset
+                                    500 ;memory.c:133: return header + 1;
+      000262 D1               [10]  501 	pop	de
+      000263 D5               [11]  502 	push	de
+      000264 13               [ 6]  503 	inc	de
+      000265 13               [ 6]  504 	inc	de
+      000266                        505 00111$:
+                                    506 ;memory.c:134: }
+      000266 DD F9            [10]  507 	ld	sp, ix
+      000268 DD E1            [14]  508 	pop	ix
+      00026A C9               [10]  509 	ret
+                                    510 ;memory.c:136: void sort_free_blocks()
+                                    511 ;	---------------------------------
+                                    512 ; Function sort_free_blocks
+                                    513 ; ---------------------------------
+      00026B                        514 _sort_free_blocks::
+      00026B DD E5            [15]  515 	push	ix
+      00026D DD 21 00 00      [14]  516 	ld	ix,#0
+      000271 DD 39            [15]  517 	add	ix,sp
+      000273 21 F6 FF         [10]  518 	ld	hl, #-10
+      000276 39               [11]  519 	add	hl, sp
+      000277 F9               [ 6]  520 	ld	sp, hl
+                                    521 ;memory.c:139: word swaps=1;
+      000278 21 01 00         [10]  522 	ld	hl, #0x0001
+      00027B E3               [19]  523 	ex	(sp), hl
+                                    524 ;memory.c:140: while (swaps > 0)
+      00027C                        525 00109$:
+      00027C DD 7E F7         [19]  526 	ld	a, -9 (ix)
+      00027F DD B6 F6         [19]  527 	or	a, -10 (ix)
+      000282 CAr61r03         [10]  528 	jp	Z, 00112$
+                                    529 ;memory.c:142: swaps=0;
+      000285 21 00 00         [10]  530 	ld	hl, #0x0000
+      000288 E3               [19]  531 	ex	(sp), hl
+                                    532 ;memory.c:143: word prev=0xFFFF;
+      000289 DD 36 F8 FF      [19]  533 	ld	-8 (ix), #0xff
+      00028D DD 36 F9 FF      [19]  534 	ld	-7 (ix), #0xff
+                                    535 ;memory.c:144: word current = free_block;
+      000291 2Ar06r00         [16]  536 	ld	hl, (_free_block)
+      000294 DD 75 FA         [19]  537 	ld	-6 (ix), l
+      000297 DD 74 FB         [19]  538 	ld	-5 (ix), h
+                                    539 ;memory.c:145: while (current != 0xFFFF)
+      00029A AF               [ 4]  540 	xor	a, a
+      00029B DD 77 FE         [19]  541 	ld	-2 (ix), a
+      00029E DD 77 FF         [19]  542 	ld	-1 (ix), a
+      0002A1                        543 00106$:
+      0002A1 DD 7E FA         [19]  544 	ld	a, -6 (ix)
+      0002A4 DD 77 FC         [19]  545 	ld	-4 (ix), a
+      0002A7 DD 7E FB         [19]  546 	ld	a, -5 (ix)
+      0002AA DD 77 FD         [19]  547 	ld	-3 (ix), a
+      0002AD DD 7E FC         [19]  548 	ld	a, -4 (ix)
+      0002B0 DD A6 FD         [19]  549 	and	a, -3 (ix)
+      0002B3 3C               [ 4]  550 	inc	a
+      0002B4 28 C6            [12]  551 	jr	Z, 00109$
+                                    552 ;memory.c:147: word* cur_ptr=(word*)get_pointer(current);
+      0002B6 DD 6E FA         [19]  553 	ld	l, -6 (ix)
+                                    554 ;	spillPairReg hl
+                                    555 ;	spillPairReg hl
+      0002B9 DD 66 FB         [19]  556 	ld	h, -5 (ix)
+                                    557 ;	spillPairReg hl
+                                    558 ;	spillPairReg hl
+      0002BC CDr1Cr00         [17]  559 	call	_get_pointer
+                                    560 ;memory.c:148: word next=cur_ptr[1];
+      0002BF 13               [ 6]  561 	inc	de
+      0002C0 13               [ 6]  562 	inc	de
+      0002C1 1A               [ 7]  563 	ld	a, (de)
+      0002C2 DD 77 FC         [19]  564 	ld	-4 (ix), a
+      0002C5 13               [ 6]  565 	inc	de
+      0002C6 1A               [ 7]  566 	ld	a, (de)
+      0002C7 DD 77 FD         [19]  567 	ld	-3 (ix), a
+      0002CA 1B               [ 6]  568 	dec	de
+                                    569 ;memory.c:149: if (next<current)
+      0002CB DD 7E FC         [19]  570 	ld	a, -4 (ix)
+      0002CE DD 96 FA         [19]  571 	sub	a, -6 (ix)
+      0002D1 DD 7E FD         [19]  572 	ld	a, -3 (ix)
+      0002D4 DD 9E FB         [19]  573 	sbc	a, -5 (ix)
+      0002D7 30 6D            [12]  574 	jr	NC, 00105$
+                                    575 ;memory.c:151: word* next_ptr=(word*)get_pointer(next);
+      0002D9 D5               [11]  576 	push	de
+      0002DA DD 6E FC         [19]  577 	ld	l, -4 (ix)
+                                    578 ;	spillPairReg hl
+                                    579 ;	spillPairReg hl
+      0002DD DD 66 FD         [19]  580 	ld	h, -3 (ix)
+                                    581 ;	spillPairReg hl
+                                    582 ;	spillPairReg hl
+      0002E0 CDr1Cr00         [17]  583 	call	_get_pointer
+      0002E3 4B               [ 4]  584 	ld	c, e
+      0002E4 42               [ 4]  585 	ld	b, d
+      0002E5 D1               [10]  586 	pop	de
+                                    587 ;memory.c:152: if (prev==0xFFFF) free_block=next;
+                                    588 ;	spillPairReg hl
+                                    589 ;	spillPairReg hl
+                                    590 ;	spillPairReg hl
+                                    591 ;	spillPairReg hl
+      0002E6 DD 7E F8         [19]  592 	ld	a, -8 (ix)
+      0002E9 DD 66 F9         [19]  593 	ld	h, -7 (ix)
+      0002EC A4               [ 4]  594 	and	a, h
+      0002ED 3C               [ 4]  595 	inc	a
+      0002EE 20 0B            [12]  596 	jr	NZ, 00102$
+      0002F0 DD 6E FC         [19]  597 	ld	l, -4 (ix)
+      0002F3 DD 66 FD         [19]  598 	ld	h, -3 (ix)
+      0002F6 22r06r00         [16]  599 	ld	(_free_block), hl
+      0002F9 18 19            [12]  600 	jr	00103$
+      0002FB                        601 00102$:
+                                    602 ;memory.c:155: word* prev_ptr=(word*)get_pointer(prev);
+      0002FB C5               [11]  603 	push	bc
+      0002FC D5               [11]  604 	push	de
+      0002FD DD 6E F8         [19]  605 	ld	l, -8 (ix)
+                                    606 ;	spillPairReg hl
+                                    607 ;	spillPairReg hl
+      000300 DD 66 F9         [19]  608 	ld	h, -7 (ix)
+                                    609 ;	spillPairReg hl
+                                    610 ;	spillPairReg hl
+      000303 CDr1Cr00         [17]  611 	call	_get_pointer
+      000306 EB               [ 4]  612 	ex	de, hl
+                                    613 ;memory.c:156: prev_ptr[1]=next;
+      000307 23               [ 6]  614 	inc	hl
+      000308 23               [ 6]  615 	inc	hl
+      000309 D1               [10]  616 	pop	de
+      00030A C1               [10]  617 	pop	bc
+      00030B DD 7E FC         [19]  618 	ld	a, -4 (ix)
+      00030E 77               [ 7]  619 	ld	(hl), a
+      00030F 23               [ 6]  620 	inc	hl
+      000310 DD 7E FD         [19]  621 	ld	a, -3 (ix)
+      000313 77               [ 7]  622 	ld	(hl), a
+      000314                        623 00103$:
+                                    624 ;memory.c:158: cur_ptr[1]=next_ptr[1];
+      000314 03               [ 6]  625 	inc	bc
+      000315 03               [ 6]  626 	inc	bc
+      000316 0A               [ 7]  627 	ld	a, (bc)
+      000317 DD 77 F8         [19]  628 	ld	-8 (ix), a
+      00031A 03               [ 6]  629 	inc	bc
+      00031B 0A               [ 7]  630 	ld	a, (bc)
+      00031C DD 77 F9         [19]  631 	ld	-7 (ix), a
+      00031F 0B               [ 6]  632 	dec	bc
+      000320 DD 7E F8         [19]  633 	ld	a, -8 (ix)
+      000323 12               [ 7]  634 	ld	(de), a
+      000324 13               [ 6]  635 	inc	de
+      000325 DD 7E F9         [19]  636 	ld	a, -7 (ix)
+      000328 12               [ 7]  637 	ld	(de), a
+                                    638 ;memory.c:159: next_ptr[1]=current;
+      000329 DD 7E FA         [19]  639 	ld	a, -6 (ix)
+      00032C 02               [ 7]  640 	ld	(bc), a
+      00032D 03               [ 6]  641 	inc	bc
+      00032E DD 7E FB         [19]  642 	ld	a, -5 (ix)
+      000331 02               [ 7]  643 	ld	(bc), a
+                                    644 ;memory.c:160: swaps++;
+      000332 DD 34 FE         [23]  645 	inc	-2 (ix)
+      000335 20 03            [12]  646 	jr	NZ, 00147$
+      000337 DD 34 FF         [23]  647 	inc	-1 (ix)
+      00033A                        648 00147$:
+      00033A DD 7E FE         [19]  649 	ld	a, -2 (ix)
+      00033D DD 77 F6         [19]  650 	ld	-10 (ix), a
+      000340 DD 7E FF         [19]  651 	ld	a, -1 (ix)
+      000343 DD 77 F7         [19]  652 	ld	-9 (ix), a
+      000346                        653 00105$:
+                                    654 ;memory.c:162: prev=current;
+      000346 DD 7E FA         [19]  655 	ld	a, -6 (ix)
+      000349 DD 77 F8         [19]  656 	ld	-8 (ix), a
+      00034C DD 7E FB         [19]  657 	ld	a, -5 (ix)
+      00034F DD 77 F9         [19]  658 	ld	-7 (ix), a
+                                    659 ;memory.c:163: current=next;
+      000352 DD 7E FC         [19]  660 	ld	a, -4 (ix)
+      000355 DD 77 FA         [19]  661 	ld	-6 (ix), a
+      000358 DD 7E FD         [19]  662 	ld	a, -3 (ix)
+      00035B DD 77 FB         [19]  663 	ld	-5 (ix), a
+      00035E C3rA1r02         [10]  664 	jp	00106$
+      000361                        665 00112$:
+                                    666 ;memory.c:166: }
+      000361 DD F9            [10]  667 	ld	sp, ix
+      000363 DD E1            [14]  668 	pop	ix
+      000365 C9               [10]  669 	ret
+                                    670 ;memory.c:168: void unite_free_blocks()
+                                    671 ;	---------------------------------
+                                    672 ; Function unite_free_blocks
+                                    673 ; ---------------------------------
+      000366                        674 _unite_free_blocks::
+      000366 DD E5            [15]  675 	push	ix
+      000368 DD 21 00 00      [14]  676 	ld	ix,#0
+      00036C DD 39            [15]  677 	add	ix,sp
+      00036E 21 F6 FF         [10]  678 	ld	hl, #-10
+      000371 39               [11]  679 	add	hl, sp
+      000372 F9               [ 6]  680 	ld	sp, hl
+                                    681 ;memory.c:170: word current = free_block;
+      000373 2Ar06r00         [16]  682 	ld	hl, (_free_block)
+      000376 E3               [19]  683 	ex	(sp), hl
+                                    684 ;memory.c:171: word last = 0xFFFF;
+      000377 DD 36 F8 FF      [19]  685 	ld	-8 (ix), #0xff
+      00037B DD 36 F9 FF      [19]  686 	ld	-7 (ix), #0xff
+                                    687 ;memory.c:172: while (current != 0xFFFF)
+      00037F                        688 00109$:
+      00037F C1               [10]  689 	pop	bc
+      000380 C5               [11]  690 	push	bc
+      000381 79               [ 4]  691 	ld	a, c
+      000382 A0               [ 4]  692 	and	a, b
+      000383 3C               [ 4]  693 	inc	a
+      000384 CAr7Ar04         [10]  694 	jp	Z,00112$
+                                    695 ;memory.c:174: word* cur_ptr=(word*)get_pointer(current);
+      000387 E1               [10]  696 	pop	hl
+      000388 E5               [11]  697 	push	hl
+      000389 CDr1Cr00         [17]  698 	call	_get_pointer
+                                    699 ;memory.c:175: while ((current + cur_ptr[0]) == cur_ptr[1]) // Consecutive blocks
+      00038C                        700 00101$:
+      00038C 1A               [ 7]  701 	ld	a, (de)
+      00038D DD 77 FA         [19]  702 	ld	-6 (ix), a
+      000390 13               [ 6]  703 	inc	de
+      000391 1A               [ 7]  704 	ld	a, (de)
+      000392 DD 77 FB         [19]  705 	ld	-5 (ix), a
+      000395 1B               [ 6]  706 	dec	de
+      000396 DD 7E FA         [19]  707 	ld	a, -6 (ix)
+      000399 DD 86 F6         [19]  708 	add	a, -10 (ix)
+      00039C 4F               [ 4]  709 	ld	c, a
+      00039D DD 7E FB         [19]  710 	ld	a, -5 (ix)
+      0003A0 DD 8E F7         [19]  711 	adc	a, -9 (ix)
+      0003A3 47               [ 4]  712 	ld	b, a
+      0003A4 21 02 00         [10]  713 	ld	hl, #0x0002
+      0003A7 19               [11]  714 	add	hl, de
+      0003A8 DD 75 FC         [19]  715 	ld	-4 (ix), l
+      0003AB DD 74 FD         [19]  716 	ld	-3 (ix), h
+      0003AE 7E               [ 7]  717 	ld	a, (hl)
+      0003AF DD 77 FE         [19]  718 	ld	-2 (ix), a
+      0003B2 23               [ 6]  719 	inc	hl
+      0003B3 7E               [ 7]  720 	ld	a, (hl)
+      0003B4 DD 77 FF         [19]  721 	ld	-1 (ix), a
+      0003B7 DD 6E FE         [19]  722 	ld	l, -2 (ix)
+      0003BA DD 66 FF         [19]  723 	ld	h, -1 (ix)
+      0003BD BF               [ 4]  724 	cp	a, a
+      0003BE ED 42            [15]  725 	sbc	hl, bc
+      0003C0 20 34            [12]  726 	jr	NZ, 00103$
+                                    727 ;memory.c:177: word* next_ptr=(word*)get_pointer(cur_ptr[1]);
+      0003C2 D5               [11]  728 	push	de
+      0003C3 DD 6E FE         [19]  729 	ld	l, -2 (ix)
+                                    730 ;	spillPairReg hl
+                                    731 ;	spillPairReg hl
+      0003C6 DD 66 FF         [19]  732 	ld	h, -1 (ix)
+                                    733 ;	spillPairReg hl
+                                    734 ;	spillPairReg hl
+      0003C9 CDr1Cr00         [17]  735 	call	_get_pointer
+      0003CC D5               [11]  736 	push	de
+      0003CD FD E1            [14]  737 	pop	iy
+      0003CF D1               [10]  738 	pop	de
+                                    739 ;memory.c:178: cur_ptr[0]+=next_ptr[0];
+      0003D0 6B               [ 4]  740 	ld	l, e
+      0003D1 62               [ 4]  741 	ld	h, d
+      0003D2 4E               [ 7]  742 	ld	c, (hl)
+      0003D3 23               [ 6]  743 	inc	hl
+      0003D4 46               [ 7]  744 	ld	b, (hl)
+      0003D5 FD 6E 00         [19]  745 	ld	l, 0 (iy)
+                                    746 ;	spillPairReg hl
+      0003D8 FD 66 01         [19]  747 	ld	h, 1 (iy)
+                                    748 ;	spillPairReg hl
+      0003DB 09               [11]  749 	add	hl, bc
+      0003DC 4D               [ 4]  750 	ld	c, l
+      0003DD 44               [ 4]  751 	ld	b, h
+      0003DE 6B               [ 4]  752 	ld	l, e
+      0003DF 62               [ 4]  753 	ld	h, d
+      0003E0 71               [ 7]  754 	ld	(hl), c
+      0003E1 23               [ 6]  755 	inc	hl
+      0003E2 70               [ 7]  756 	ld	(hl), b
+                                    757 ;memory.c:179: cur_ptr[1]=next_ptr[1];
+      0003E3 FD E5            [15]  758 	push	iy
+      0003E5 E1               [10]  759 	pop	hl
+      0003E6 23               [ 6]  760 	inc	hl
+      0003E7 23               [ 6]  761 	inc	hl
+      0003E8 4E               [ 7]  762 	ld	c, (hl)
+      0003E9 23               [ 6]  763 	inc	hl
+      0003EA 46               [ 7]  764 	ld	b, (hl)
+      0003EB DD 6E FC         [19]  765 	ld	l, -4 (ix)
+      0003EE DD 66 FD         [19]  766 	ld	h, -3 (ix)
+      0003F1 71               [ 7]  767 	ld	(hl), c
+      0003F2 23               [ 6]  768 	inc	hl
+      0003F3 70               [ 7]  769 	ld	(hl), b
+      0003F4 18 96            [12]  770 	jr	00101$
+      0003F6                        771 00103$:
+                                    772 ;memory.c:181: if ((current + cur_ptr[0]) == heap) // Last block in heap
+      0003F6 2Ar04r00         [16]  773 	ld	hl, (_heap)
+      0003F9 BF               [ 4]  774 	cp	a, a
+      0003FA ED 42            [15]  775 	sbc	hl, bc
+      0003FC 20 61            [12]  776 	jr	NZ, 00108$
+                                    777 ;memory.c:183: heap -= cur_ptr[0];
+      0003FE 21r04r00         [10]  778 	ld	hl, #_heap
+      000401 7E               [ 7]  779 	ld	a, (hl)
+      000402 DD 96 FA         [19]  780 	sub	a, -6 (ix)
+      000405 77               [ 7]  781 	ld	(hl), a
+      000406 23               [ 6]  782 	inc	hl
+      000407 7E               [ 7]  783 	ld	a, (hl)
+      000408 DD 9E FB         [19]  784 	sbc	a, -5 (ix)
+      00040B 77               [ 7]  785 	ld	(hl), a
+                                    786 ;memory.c:184: if (last == 0xFFFF) free_block = 0xFFFF;
+      00040C DD 7E F8         [19]  787 	ld	a, -8 (ix)
+      00040F DD 77 FE         [19]  788 	ld	-2 (ix), a
+      000412 DD 7E F9         [19]  789 	ld	a, -7 (ix)
+      000415 DD 77 FF         [19]  790 	ld	-1 (ix), a
+      000418 DD 7E FE         [19]  791 	ld	a, -2 (ix)
+      00041B DD A6 FF         [19]  792 	and	a, -1 (ix)
+      00041E 3C               [ 4]  793 	inc	a
+      00041F 20 08            [12]  794 	jr	NZ, 00105$
+      000421 21 FF FF         [10]  795 	ld	hl, #0xffff
+      000424 22r06r00         [16]  796 	ld	(_free_block), hl
+      000427 18 51            [12]  797 	jr	00112$
+      000429                        798 00105$:
+                                    799 ;memory.c:187: word* prev_ptr = (word*)get_pointer(last);
+      000429 D1               [10]  800 	pop	de
+      00042A E1               [10]  801 	pop	hl
+      00042B E5               [11]  802 	push	hl
+      00042C D5               [11]  803 	push	de
+      00042D CDr1Cr00         [17]  804 	call	_get_pointer
+      000430 DD 73 FE         [19]  805 	ld	-2 (ix), e
+      000433 DD 72 FF         [19]  806 	ld	-1 (ix), d
+      000436 DD 7E FE         [19]  807 	ld	a, -2 (ix)
+      000439 DD 77 FC         [19]  808 	ld	-4 (ix), a
+      00043C DD 7E FF         [19]  809 	ld	a, -1 (ix)
+      00043F DD 77 FD         [19]  810 	ld	-3 (ix), a
+                                    811 ;memory.c:188: prev_ptr[1] = 0xFFFF;
+      000442 DD 7E FC         [19]  812 	ld	a, -4 (ix)
+      000445 C6 02            [ 7]  813 	add	a, #0x02
+      000447 DD 77 FE         [19]  814 	ld	-2 (ix), a
+      00044A DD 7E FD         [19]  815 	ld	a, -3 (ix)
+      00044D CE 00            [ 7]  816 	adc	a, #0x00
+      00044F DD 77 FF         [19]  817 	ld	-1 (ix), a
+      000452 DD 6E FE         [19]  818 	ld	l, -2 (ix)
+      000455 DD 66 FF         [19]  819 	ld	h, -1 (ix)
+      000458 36 FF            [10]  820 	ld	(hl), #0xff
+      00045A 23               [ 6]  821 	inc	hl
+      00045B 36 FF            [10]  822 	ld	(hl), #0xff
+                                    823 ;memory.c:190: break;
+      00045D 18 1B            [12]  824 	jr	00112$
+      00045F                        825 00108$:
+                                    826 ;memory.c:192: last = current;
+      00045F DD 7E F6         [19]  827 	ld	a, -10 (ix)
+      000462 DD 77 F8         [19]  828 	ld	-8 (ix), a
+      000465 DD 7E F7         [19]  829 	ld	a, -9 (ix)
+      000468 DD 77 F9         [19]  830 	ld	-7 (ix), a
+                                    831 ;memory.c:193: current=cur_ptr[1];
+      00046B DD 7E FE         [19]  832 	ld	a, -2 (ix)
+      00046E DD 77 F6         [19]  833 	ld	-10 (ix), a
+      000471 DD 7E FF         [19]  834 	ld	a, -1 (ix)
+      000474 DD 77 F7         [19]  835 	ld	-9 (ix), a
+      000477 C3r7Fr03         [10]  836 	jp	00109$
+      00047A                        837 00112$:
+                                    838 ;memory.c:195: }
+      00047A DD F9            [10]  839 	ld	sp, ix
+      00047C DD E1            [14]  840 	pop	ix
+      00047E C9               [10]  841 	ret
+                                    842 ;memory.c:197: void defrag()
+                                    843 ;	---------------------------------
+                                    844 ; Function defrag
+                                    845 ; ---------------------------------
+      00047F                        846 _defrag::
+                                    847 ;memory.c:199: sort_free_blocks();
+      00047F CDr6Br02         [17]  848 	call	_sort_free_blocks
+                                    849 ;memory.c:200: unite_free_blocks();
+                                    850 ;memory.c:201: }
+      000482 C3r66r03         [10]  851 	jp	_unite_free_blocks
+                                    852 ;memory.c:203: void	release(void* ptr)
+                                    853 ;	---------------------------------
+                                    854 ; Function release
+                                    855 ; ---------------------------------
+      000485                        856 _release::
+      000485 DD E5            [15]  857 	push	ix
+      000487 DD 21 00 00      [14]  858 	ld	ix,#0
+      00048B DD 39            [15]  859 	add	ix,sp
+      00048D F5               [11]  860 	push	af
+      00048E F5               [11]  861 	push	af
+      00048F EB               [ 4]  862 	ex	de, hl
+                                    863 ;memory.c:205: if (!ptr) return;
+      000490 7A               [ 4]  864 	ld	a, d
+      000491 B3               [ 4]  865 	or	a, e
+      000492 28 65            [12]  866 	jr	Z, 00106$
+                                    867 ;memory.c:206: word* header = (word*)ptr;
+                                    868 ;memory.c:207: --header;
+      000494 1B               [ 6]  869 	dec	de
+      000495 1B               [ 6]  870 	dec	de
+                                    871 ;memory.c:212: word size=*header;
+      000496 1A               [ 7]  872 	ld	a, (de)
+      000497 DD 77 FC         [19]  873 	ld	-4 (ix), a
+      00049A 13               [ 6]  874 	inc	de
+      00049B 1A               [ 7]  875 	ld	a, (de)
+      00049C DD 77 FD         [19]  876 	ld	-3 (ix), a
+      00049F 1B               [ 6]  877 	dec	de
+                                    878 ;memory.c:213: total_allocated -= size;
+      0004A0 21r02r00         [10]  879 	ld	hl, #_total_allocated
+      0004A3 7E               [ 7]  880 	ld	a, (hl)
+      0004A4 DD 96 FC         [19]  881 	sub	a, -4 (ix)
+      0004A7 77               [ 7]  882 	ld	(hl), a
+      0004A8 23               [ 6]  883 	inc	hl
+      0004A9 7E               [ 7]  884 	ld	a, (hl)
+      0004AA DD 9E FD         [19]  885 	sbc	a, -3 (ix)
+      0004AD 77               [ 7]  886 	ld	(hl), a
+                                    887 ;memory.c:214: word offset = get_offset(header);
+      0004AE 6B               [ 4]  888 	ld	l, e
+                                    889 ;	spillPairReg hl
+                                    890 ;	spillPairReg hl
+      0004AF 62               [ 4]  891 	ld	h, d
+                                    892 ;	spillPairReg hl
+                                    893 ;	spillPairReg hl
+      0004B0 D5               [11]  894 	push	de
+      0004B1 CDr10r00         [17]  895 	call	_get_offset
+      0004B4 EB               [ 4]  896 	ex	de, hl
+      0004B5 D1               [10]  897 	pop	de
+      0004B6 DD 75 FE         [19]  898 	ld	-2 (ix), l
+      0004B9 DD 74 FF         [19]  899 	ld	-1 (ix), h
+                                    900 ;memory.c:215: if ((offset + size) == heap)
+      0004BC DD 7E FE         [19]  901 	ld	a, -2 (ix)
+      0004BF DD 86 FC         [19]  902 	add	a, -4 (ix)
+      0004C2 4F               [ 4]  903 	ld	c, a
+      0004C3 DD 7E FF         [19]  904 	ld	a, -1 (ix)
+      0004C6 DD 8E FD         [19]  905 	adc	a, -3 (ix)
+      0004C9 47               [ 4]  906 	ld	b, a
+      0004CA 2Ar04r00         [16]  907 	ld	hl, (_heap)
+      0004CD BF               [ 4]  908 	cp	a, a
+      0004CE ED 42            [15]  909 	sbc	hl, bc
+      0004D0 20 10            [12]  910 	jr	NZ, 00104$
+                                    911 ;memory.c:217: heap -= size;
+      0004D2 21r04r00         [10]  912 	ld	hl, #_heap
+      0004D5 7E               [ 7]  913 	ld	a, (hl)
+      0004D6 DD 96 FC         [19]  914 	sub	a, -4 (ix)
+      0004D9 77               [ 7]  915 	ld	(hl), a
+      0004DA 23               [ 6]  916 	inc	hl
+      0004DB 7E               [ 7]  917 	ld	a, (hl)
+      0004DC DD 9E FD         [19]  918 	sbc	a, -3 (ix)
+      0004DF 77               [ 7]  919 	ld	(hl), a
+      0004E0 18 17            [12]  920 	jr	00106$
+      0004E2                        921 00104$:
+                                    922 ;memory.c:221: header[1] = free_block;
+      0004E2 13               [ 6]  923 	inc	de
+      0004E3 13               [ 6]  924 	inc	de
+      0004E4 3Ar06r00         [13]  925 	ld	a, (_free_block+0)
+      0004E7 12               [ 7]  926 	ld	(de), a
+      0004E8 13               [ 6]  927 	inc	de
+      0004E9 3Ar07r00         [13]  928 	ld	a, (_free_block+1)
+      0004EC 12               [ 7]  929 	ld	(de), a
+                                    930 ;memory.c:222: free_block = offset;
+      0004ED DD 6E FE         [19]  931 	ld	l, -2 (ix)
+      0004F0 DD 66 FF         [19]  932 	ld	h, -1 (ix)
+      0004F3 22r06r00         [16]  933 	ld	(_free_block), hl
+                                    934 ;memory.c:223: defrag();
+      0004F6 CDr7Fr04         [17]  935 	call	_defrag
+      0004F9                        936 00106$:
+                                    937 ;memory.c:225: }
+      0004F9 DD F9            [10]  938 	ld	sp, ix
+      0004FB DD E1            [14]  939 	pop	ix
+      0004FD C9               [10]  940 	ret
+                                    941 ;memory.c:227: byte verify_heap()
+                                    942 ;	---------------------------------
+                                    943 ; Function verify_heap
+                                    944 ; ---------------------------------
+      0004FE                        945 _verify_heap::
+      0004FE DD E5            [15]  946 	push	ix
+      000500 DD 21 00 00      [14]  947 	ld	ix,#0
+      000504 DD 39            [15]  948 	add	ix,sp
+      000506 F5               [11]  949 	push	af
+                                    950 ;memory.c:229: word next_free_block=free_block;
+      000507 2Ar06r00         [16]  951 	ld	hl, (_free_block)
+                                    952 ;memory.c:230: word sum_free_blocks=0;
+      00050A 0E 00            [ 7]  953 	ld	c, #0x00
+      00050C 59               [ 4]  954 	ld	e, c
+                                    955 ;memory.c:231: while (next_free_block != 0xFFFF)
+      00050D                        956 00103$:
+      00050D 33               [ 6]  957 	inc	sp
+      00050E 33               [ 6]  958 	inc	sp
+      00050F E5               [11]  959 	push	hl
+      000510 DD 7E FE         [19]  960 	ld	a, -2 (ix)
+      000513 DD A6 FF         [19]  961 	and	a, -1 (ix)
+      000516 3C               [ 4]  962 	inc	a
+      000517 28 1B            [12]  963 	jr	Z, 00105$
+                                    964 ;memory.c:233: word* block=(word*)get_pointer(next_free_block);
+      000519 C5               [11]  965 	push	bc
+      00051A D5               [11]  966 	push	de
+      00051B CDr1Cr00         [17]  967 	call	_get_pointer
+      00051E EB               [ 4]  968 	ex	de, hl
+      00051F D1               [10]  969 	pop	de
+      000520 C1               [10]  970 	pop	bc
+                                    971 ;memory.c:234: if (!block) break;
+      000521 7C               [ 4]  972 	ld	a, h
+      000522 B5               [ 4]  973 	or	a, l
+      000523 28 0F            [12]  974 	jr	Z, 00105$
+                                    975 ;memory.c:235: sum_free_blocks+=*block;
+      000525 7E               [ 7]  976 	ld	a, (hl)
+      000526 23               [ 6]  977 	inc	hl
+      000527 46               [ 7]  978 	ld	b, (hl)
+                                    979 ;memory.c:236: next_free_block=block[1];
+      000528 23               [ 6]  980 	inc	hl
+      000529 81               [ 4]  981 	add	a, c
+      00052A 4F               [ 4]  982 	ld	c, a
+      00052B 78               [ 4]  983 	ld	a, b
+      00052C 8B               [ 4]  984 	adc	a, e
+      00052D 5F               [ 4]  985 	ld	e, a
+      00052E 7E               [ 7]  986 	ld	a, (hl)
+      00052F 23               [ 6]  987 	inc	hl
+      000530 66               [ 7]  988 	ld	h, (hl)
+                                    989 ;	spillPairReg hl
+      000531 6F               [ 4]  990 	ld	l, a
+                                    991 ;	spillPairReg hl
+                                    992 ;	spillPairReg hl
+      000532 18 D9            [12]  993 	jr	00103$
+      000534                        994 00105$:
+                                    995 ;memory.c:238: return (total_allocated + sum_free_blocks == heap) ? 1 : 0;
+      000534 79               [ 4]  996 	ld	a, c
+      000535 21r02r00         [10]  997 	ld	hl, #_total_allocated
+      000538 86               [ 7]  998 	add	a, (hl)
+      000539 23               [ 6]  999 	inc	hl
+      00053A 4F               [ 4] 1000 	ld	c, a
+      00053B 7B               [ 4] 1001 	ld	a, e
+      00053C 8E               [ 7] 1002 	adc	a, (hl)
+      00053D 47               [ 4] 1003 	ld	b, a
+      00053E 2Ar04r00         [16] 1004 	ld	hl, (_heap)
+      000541 BF               [ 4] 1005 	cp	a, a
+      000542 ED 42            [15] 1006 	sbc	hl, bc
+      000544 3E 01            [ 7] 1007 	ld	a, #0x01
+      000546 28 01            [12] 1008 	jr	Z, 00109$
+      000548 AF               [ 4] 1009 	xor	a, a
+      000549                       1010 00109$:
+                                   1011 ;memory.c:239: }
+      000549 DD F9            [10] 1012 	ld	sp, ix
+      00054B DD E1            [14] 1013 	pop	ix
+      00054D C9               [10] 1014 	ret
+                                   1015 ;memory.c:241: unsigned get_total_allocated()
+                                   1016 ;	---------------------------------
+                                   1017 ; Function get_total_allocated
+                                   1018 ; ---------------------------------
+      00054E                       1019 _get_total_allocated::
+                                   1020 ;memory.c:243: return total_allocated;
+      00054E ED 5Br02r00      [20] 1021 	ld	de, (_total_allocated)
+                                   1022 ;memory.c:244: }
+      000552 C9               [10] 1023 	ret
+                                   1024 ;memory.c:246: unsigned get_max_allocated()
+                                   1025 ;	---------------------------------
+                                   1026 ; Function get_max_allocated
+                                   1027 ; ---------------------------------
+      000553                       1028 _get_max_allocated::
+                                   1029 ;memory.c:248: return max_allocated;
+      000553 ED 5Br00r00      [20] 1030 	ld	de, (_max_allocated)
+                                   1031 ;memory.c:249: }
+      000557 C9               [10] 1032 	ret
+                                   1033 ;memory.c:251: void print_leaked()
+                                   1034 ;	---------------------------------
+                                   1035 ; Function print_leaked
+                                   1036 ; ---------------------------------
+      000558                       1037 _print_leaked::
+                                   1038 ;memory.c:257: }
+      000558 C9               [10] 1039 	ret
+                                   1040 	.area _CODE
+                                   1041 	.area _INITIALIZER
+      000000                       1042 __xinit__static_heap:
+      000000 00 80                 1043 	.dw #0x8000
+                                   1044 	.area _CABS (ABS)
